@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/logo.png" alt="BrowserControl" width="120">
+  <img src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/logo.png" alt="BrowserControl" width="120">
 </p>
 
 <h1 align="center">🌐 BrowserControl</h1>
