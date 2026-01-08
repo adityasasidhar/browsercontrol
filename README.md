@@ -180,8 +180,7 @@ pip install browsercontrol
 # Or with uv (recommended)
 uv add browsercontrol
 
-# Install Playwright browsers
-playwright install chromium
+# That's it! Chromium is auto-installed on first run
 ```
 
 ### Run the Server
@@ -471,9 +470,9 @@ xvfb-run browsercontrol
 
 ### Browser Not Starting
 
-Make sure Playwright browsers are installed:
+Chromium auto-installs on first run. If it fails, install manually:
 ```bash
-playwright install chromium
+python -m playwright install chromium
 ```
 
 ### Session Not Persisting

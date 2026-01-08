@@ -40,6 +40,64 @@ class BrowserManager:
         """Check if browser is started."""
         return self._started and self._context is not None
     
+    async def _ensure_browser_installed(self) -> None:
+        """Ensure Chromium browser is installed, auto-install if missing."""
+        import subprocess
+        import sys
+        
+        # Check if Chromium is already installed by looking for the executable
+        try:
+            from playwright._impl._driver import compute_driver_executable
+            driver_executable = compute_driver_executable()
+            
+            # Try to get browser path - this will fail if not installed
+            result = subprocess.run(
+                [driver_executable, "install", "--dry-run", "chromium"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            # If dry-run shows it needs installation, do it
+            if "chromium" in result.stdout.lower() or result.returncode != 0:
+                logger.info("Chromium not found, installing automatically...")
+                self._install_chromium()
+            else:
+                logger.debug("Chromium already installed")
+                
+        except Exception as e:
+            # If check fails, try to install anyway
+            logger.info(f"Checking browser installation: {e}")
+            self._install_chromium()
+    
+    def _install_chromium(self) -> None:
+        """Install Chromium browser using Playwright."""
+        import subprocess
+        import sys
+        
+        logger.info("Installing Chromium browser (one-time setup)...")
+        
+        try:
+            # Use playwright install command
+            result = subprocess.run(
+                [sys.executable, "-m", "playwright", "install", "chromium"],
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minutes timeout for download
+            )
+            
+            if result.returncode == 0:
+                logger.info("Chromium installed successfully!")
+            else:
+                logger.warning(f"Chromium installation output: {result.stderr}")
+                # Don't fail - let Playwright try to launch and give better error
+                
+        except subprocess.TimeoutExpired:
+            logger.error("Chromium installation timed out. Please run: playwright install chromium")
+        except Exception as e:
+            logger.error(f"Failed to install Chromium: {e}")
+            logger.info("Please run manually: playwright install chromium")
+    
     def _setup_page_listeners(self, page: Page) -> None:
         """Set up event listeners for console, network, and errors."""
         
@@ -117,6 +175,8 @@ class BrowserManager:
         if self._started:
             logger.warning("Browser already started")
             return
+        
+        await self._ensure_browser_installed()
         
         config.user_data_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Starting browser with user data dir: {config.user_data_dir}")
