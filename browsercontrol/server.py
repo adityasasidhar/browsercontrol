@@ -47,25 +47,32 @@ async def lifespan(app: FastMCP):
 # Create the MCP server
 mcp = FastMCP(
     "BrowserControl",
-    instructions="""Browser automation with Set of Marks (SoM), Developer Tools, and Session Recording.
+    instructions="""Full-featured browser automation for AI agents.
 
-Every screenshot shows numbered interactive elements. Use element IDs to interact:
-- click(5) - Click element 5
-- type_text(3, "hello") - Type into element 3
+Features:
+- Set of Marks (SoM): Screenshots show numbered interactive elements.
+- Developer Tools: Console logs, network requests, errors, and performance metrics.
+- Session Recording: Capture video traces and snapshots for debugging.
+- Persistent Session: Cookies and login state are saved automatically.
+- Smart Navigation: Auto-handles localhost/127.0.0.1 and bypasses proxies.
+
+Core Actions:
+- navigate_to(url)
+- click(element_id)
+- type_text(element_id, text)
+- scroll(direction, amount)
 
 Developer Tools:
-- get_console_logs() - Browser console output
-- get_network_requests() - Monitor API calls
-- get_page_errors() - JavaScript errors
-- run_in_console(code) - Execute JS
-- inspect_element(id) - Get styles/properties
-- get_page_performance() - Load times, Web Vitals
+- get_console_logs()
+- get_network_requests()
+- get_page_errors()
+- inspect_element(id)
 
 Session Recording:
-- start_recording() - Begin recording session
-- stop_recording() - Save recording
-- take_snapshot() - Save screenshot + HTML
-- list_recordings() - View saved sessions""",
+- start_recording()
+- stop_recording()
+- take_snapshot()
+- list_recordings()""",
     lifespan=lifespan,
 )
 
