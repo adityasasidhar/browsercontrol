@@ -184,7 +184,12 @@ class BrowserManager:
         self._playwright = await async_playwright().start()
         
         # Build launch args
-        args = ["--no-first-run", "--no-default-browser-check"]
+        # Add proxy bypass for localhost to fix connection refused errors
+        args = [
+            "--no-first-run", 
+            "--no-default-browser-check",
+            "--proxy-bypass-list=<-loopback>"
+        ]
         if config.extension_path and config.extension_path.exists():
             args.extend([
                 f"--disable-extensions-except={config.extension_path}",
