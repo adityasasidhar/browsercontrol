@@ -43,7 +43,19 @@ def register_navigation_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             logger.info(f"Navigating to: {url}")
-            await browser.page.goto(url, wait_until="domcontentloaded", timeout=config.timeout_ms)
+            
+            try:
+                await browser.page.goto(url, wait_until="domcontentloaded", timeout=config.timeout_ms)
+            except Exception as e:
+                # Handle localhost vs 127.0.0.1 resolution issues
+                if "ERR_CONNECTION_REFUSED" in str(e) and "localhost" in url:
+                    fallback_url = url.replace("localhost", "127.0.0.1")
+                    logger.info(f"Navigation to localhost failed, retrying with: {fallback_url}")
+                    await browser.page.goto(fallback_url, wait_until="domcontentloaded", timeout=config.timeout_ms)
+                    url = fallback_url  # Update for success message
+                else:
+                    raise e
+
             await browser.page.wait_for_timeout(500)
             image, summary = await _get_screenshot_with_summary()
             return f"Navigated to {url}\n\n{summary}", image
