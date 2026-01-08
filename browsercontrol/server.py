@@ -17,6 +17,7 @@ from browsercontrol.tools import (
     register_form_tools,
     register_content_tools,
     register_devtools,
+    register_recording_tools,
 )
 
 # Configure logging
@@ -46,26 +47,25 @@ async def lifespan(app: FastMCP):
 # Create the MCP server
 mcp = FastMCP(
     "BrowserControl",
-    instructions="""Browser automation with Set of Marks (SoM) and Developer Tools.
+    instructions="""Browser automation with Set of Marks (SoM), Developer Tools, and Session Recording.
 
 Every screenshot shows numbered interactive elements. Use element IDs to interact:
 - click(5) - Click element 5
 - type_text(3, "hello") - Type into element 3
-- scroll("down", "large") - Scroll the page
 
 Developer Tools:
-- get_console_logs() - View browser console output
-- get_network_requests() - Monitor API calls and responses
-- get_page_errors() - See JavaScript errors
-- run_in_console(code) - Execute JS in console
-- inspect_element(id) - Get element styles and properties
-- get_page_performance() - Check load times and Web Vitals
+- get_console_logs() - Browser console output
+- get_network_requests() - Monitor API calls
+- get_page_errors() - JavaScript errors
+- run_in_console(code) - Execute JS
+- inspect_element(id) - Get styles/properties
+- get_page_performance() - Load times, Web Vitals
 
-Available tools: navigate_to, go_back, go_forward, refresh_page, scroll,
-click, click_at, type_text, press_key, hover, scroll_to_element, wait,
-select_option, check_checkbox, get_page_content, get_text, get_page_info,
-run_javascript, screenshot, get_console_logs, get_network_requests,
-get_page_errors, run_in_console, inspect_element, get_page_performance""",
+Session Recording:
+- start_recording() - Begin recording session
+- stop_recording() - Save recording
+- take_snapshot() - Save screenshot + HTML
+- list_recordings() - View saved sessions""",
     lifespan=lifespan,
 )
 
@@ -75,6 +75,8 @@ register_interaction_tools(mcp)
 register_form_tools(mcp)
 register_content_tools(mcp)
 register_devtools(mcp)
+register_recording_tools(mcp)
 
 logger.info("Browser Control MCP server initialized with all tools")
+
 
