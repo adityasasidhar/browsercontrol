@@ -1,48 +1,55 @@
-# BrowserControl
+# 🌐 BrowserControl
+
+**Give your AI agent real browser superpowers.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
 
-An MCP (Model Context Protocol) server that enables AI agents to browse the web with **Set of Marks (SoM)** - every screenshot shows numbered interactive elements, so AI can simply say "click element 5" instead of finding complex CSS selectors.
+Ever wished Claude, Gemini, or your custom AI agent could actually browse the web? Not just fetch URLs, but truly **see**, **click**, **type**, and **interact** with any website like a human?
 
-## Features
+**BrowserControl** is an MCP server that gives your AI agent full browser access with a vision-first approach inspired by Google's AntiGravity IDE.
 
-- 🎯 **Set of Marks (SoM)**: Screenshots with numbered bounding boxes on clickable elements
-- 🖱️ **Simple Interaction**: `click(5)` instead of CSS selectors
-- 📸 **Vision-First**: Every action returns an annotated screenshot
-- 💾 **Persistent Sessions**: Cookies and localStorage survive restarts
-- ⚙️ **Configurable**: Environment variables for all settings
-- 🔒 **Headless by Default**: Works in server environments
+---
 
-## Installation
+## ✨ What Makes This Different
+
+| Traditional Web Access | BrowserControl |
+|------------------------|----------------|
+| Fetch static HTML | See the **rendered page** |
+| Parse complex DOM | Point at **numbered elements** |
+| Guess at selectors | Just say **"click 5"** |
+| No JavaScript support | Full **dynamic content** |
+| No login persistence | **Persistent sessions** |
+
+### The Secret: Set of Marks (SoM)
+
+Every screenshot comes annotated with numbered boxes on interactive elements:
+
+```
+Found 15 interactive elements:
+  [1] button - Sign In
+  [2] input - Search...
+  [3] a - Products
+  [4] a - Pricing
+```
+
+Your agent sees the numbers and simply calls `click(1)` to sign in. No CSS selectors. No XPath. No guessing.
+
+---
+
+## 🚀 Quick Start
 
 ```bash
-# Install with uv
-uv add browsercontrol
-
-# Or with pip
+# Install
 pip install browsercontrol
-
-# Install Playwright browsers
 playwright install chromium
-```
 
-## Quick Start
-
-### Run the MCP Server
-
-```bash
-# Using the CLI
+# Run
 browsercontrol
-
-# Or as a module
-python -m browsercontrol
-
-# Or with fastmcp
-fastmcp run browsercontrol.server:mcp
 ```
 
-### Configure Claude Desktop
+### Connect to Claude Desktop
 
 Add to `~/.config/Claude/claude_desktop_config.json`:
 
@@ -56,94 +63,118 @@ Add to `~/.config/Claude/claude_desktop_config.json`:
 }
 ```
 
-Then ask Claude: *"Go to wikipedia.org and search for 'artificial intelligence'"*
+Then just ask:
 
-## Available Tools
+> *"Go to GitHub and star the browsercontrol repo"*
 
-| Tool | Description |
-|------|-------------|
-| `navigate_to(url)` | Go to a URL |
-| `go_back()` | Navigate back |
-| `go_forward()` | Navigate forward |
-| `refresh_page()` | Reload the page |
+Claude will navigate, find the star button, and click it—showing you screenshots along the way.
+
+---
+
+## 🛠️ Available Tools
+
+| Tool | What it does |
+|------|--------------|
+| `navigate_to(url)` | Open any webpage |
+| `click(element_id)` | Click element by its number |
+| `type_text(element_id, text)` | Type into inputs |
 | `scroll(direction, amount)` | Scroll the page |
-| `click(element_id)` | Click element by number |
-| `click_at(x, y)` | Click at coordinates |
-| `type_text(element_id, text)` | Type into input |
-| `press_key(key)` | Press keyboard key |
-| `hover(element_id)` | Hover over element |
-| `scroll_to_element(element_id)` | Scroll to element |
+| `press_key(key)` | Press Enter, Tab, Escape, etc. |
+| `get_page_content()` | Extract page as markdown |
+| `screenshot()` | Capture current state |
 | `wait(seconds)` | Wait for loading |
-| `select_option(element_id, option)` | Select dropdown option |
-| `check_checkbox(element_id)` | Toggle checkbox |
-| `get_page_content()` | Get page as markdown |
-| `get_text(element_id)` | Get element text |
-| `get_page_info()` | Get URL and title |
-| `run_javascript(script)` | Execute JS |
-| `screenshot(annotate, full_page)` | Take screenshot |
+| + 10 more... | Full browser control |
 
-## Configuration
+---
 
-Configure via environment variables:
+## ⚙️ Configuration
+
+```bash
+# Run with visible browser (debugging)
+BROWSER_HEADLESS=false browsercontrol
+
+# Custom viewport
+BROWSER_VIEWPORT_WIDTH=1920 BROWSER_VIEWPORT_HEIGHT=1080 browsercontrol
+
+# Verbose logging
+LOG_LEVEL=DEBUG browsercontrol
+```
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `BROWSER_HEADLESS` | `true` | Run without visible window |
-| `BROWSER_VIEWPORT_WIDTH` | `1280` | Viewport width in pixels |
-| `BROWSER_VIEWPORT_HEIGHT` | `720` | Viewport height in pixels |
+| `BROWSER_HEADLESS` | `true` | Hide browser window |
+| `BROWSER_VIEWPORT_WIDTH` | `1280` | Width in pixels |
+| `BROWSER_VIEWPORT_HEIGHT` | `720` | Height in pixels |
 | `BROWSER_TIMEOUT` | `30000` | Navigation timeout (ms) |
-| `BROWSER_USER_DATA_DIR` | `~/.browsercontrol/user_data` | Browser profile path |
-| `BROWSER_EXTENSION_PATH` | - | Path to browser extension |
-| `LOG_LEVEL` | `INFO` | Logging level |
+| `BROWSER_USER_DATA_DIR` | `~/.browsercontrol/user_data` | Persistent storage |
 
-## How It Works
+---
 
-1. **Screenshot**: Captures the current page
-2. **Detect Elements**: Finds all interactive elements (buttons, links, inputs)
-3. **Annotate**: Draws numbered red boxes on each element
-4. **Return**: Sends annotated image + element list to AI
+## 🔮 Use Cases
 
-The AI sees:
+- **Automated Research**: Have your agent browse documentation, gather information
+- **Form Filling**: Fill out applications, surveys, registrations
+- **Testing**: Let AI test your web app like a real user
+- **Social Media**: Post updates, check notifications (carefully!)
+- **Shopping**: Compare prices, add to cart
+- **Anything a human can do in a browser**
+
+---
+
+## 🏗️ Architecture
+
 ```
-Found 15 interactive elements:
-  [1] button - Sign In
-  [2] input - Search...
-  [3] a - Products
-  [4] a - Pricing
-  ...
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────┐
+│   AI Agent      │────▶│  BrowserControl  │────▶│   Browser   │
+│ (Claude/Gemini) │◀────│   MCP Server     │◀────│ (Chromium)  │
+└─────────────────┘     └──────────────────┘     └─────────────┘
+        │                        │                      │
+        │   "click(5)"          │   mouse.click()      │
+        │◀──────────────────────│◀─────────────────────│
+        │   [screenshot +       │   [annotated         │
+        │    element list]      │    image]            │
 ```
 
-Then it can simply call `click(1)` to click "Sign In"!
+---
 
-## Troubleshooting
+## 📦 Installation Options
 
-### "Missing X server" Error
-Set `BROWSER_HEADLESS=true` or run with `xvfb-run`.
+```bash
+# With pip
+pip install browsercontrol
 
-### Browser Not Connecting
-Make sure Playwright browsers are installed:
+# With uv (recommended)
+uv add browsercontrol
+
+# From source
+git clone https://github.com/adityasasidhar/browsercontrol
+cd browsercontrol
+uv sync
+```
+
+Don't forget to install Playwright browsers:
 ```bash
 playwright install chromium
 ```
 
-### Session Not Persisting
-Check that `BROWSER_USER_DATA_DIR` is writable.
+---
 
-## Development
+## 🤝 Contributing
 
-```bash
-# Clone and install
-git clone https://github.com/adityasasidhar/browsercontrol
-cd browsercontrol
-uv sync
+PRs welcome! Some ideas:
+- [ ] Multi-tab support
+- [ ] Video recording
+- [ ] Mobile viewport presets
+- [ ] Cookie import/export
 
-# Run tests
-uv run pytest
+---
 
-# Run in development
-uv run fastmcp dev browsercontrol/server.py
-```
+## 📄 License
 
-## License
+MIT - Use it however you want.
 
-MIT
+---
+
+**Built with ❤️ for the AI agent community.**
+
+*Inspired by the browser control capabilities in Google's AntiGravity IDE.*
