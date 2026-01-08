@@ -1,8 +1,10 @@
 """
 Browser lifecycle management with Set of Marks (SoM) annotation.
+Includes console, network, and error capture for developer tools.
 """
 
 import logging
+import time
 from io import BytesIO
 from pathlib import Path
 
@@ -26,11 +28,89 @@ class BrowserManager:
         self._context: BrowserContext | None = None
         self._page: Page | None = None
         self._started = False
+        
+        # Developer tools storage
+        self._console_logs: list[dict] = []
+        self._network_requests: list[dict] = []
+        self._page_errors: list[dict] = []
+        self._request_map: dict[str, dict] = {}  # Track in-flight requests
     
     @property
     def is_started(self) -> bool:
         """Check if browser is started."""
         return self._started and self._context is not None
+    
+    def _setup_page_listeners(self, page: Page) -> None:
+        """Set up event listeners for console, network, and errors."""
+        
+        # Console messages
+        def on_console(msg):
+            self._console_logs.append({
+                "level": msg.type,
+                "text": msg.text,
+                "location": f"{msg.location.get('url', '')}:{msg.location.get('lineNumber', '')}" if msg.location else "",
+                "timestamp": time.time()
+            })
+            # Keep only last 200 logs
+            if len(self._console_logs) > 200:
+                self._console_logs = self._console_logs[-200:]
+        
+        # Page errors (uncaught exceptions)
+        def on_page_error(error):
+            self._page_errors.append({
+                "message": str(error),
+                "stack": getattr(error, 'stack', ''),
+                "timestamp": time.time()
+            })
+            if len(self._page_errors) > 100:
+                self._page_errors = self._page_errors[-100:]
+        
+        # Network request started
+        def on_request(request):
+            self._request_map[request.url] = {
+                "method": request.method,
+                "url": request.url,
+                "start_time": time.time(),
+                "status": "pending",
+                "resource_type": request.resource_type
+            }
+        
+        # Network request completed
+        def on_response(response):
+            url = response.url
+            if url in self._request_map:
+                req = self._request_map[url]
+                req["status"] = response.status
+                req["duration"] = int((time.time() - req["start_time"]) * 1000)
+                self._network_requests.append(req)
+                del self._request_map[url]
+            else:
+                self._network_requests.append({
+                    "method": response.request.method,
+                    "url": url,
+                    "status": response.status,
+                    "resource_type": response.request.resource_type
+                })
+            
+            # Keep only last 100 requests
+            if len(self._network_requests) > 100:
+                self._network_requests = self._network_requests[-100:]
+        
+        # Network request failed
+        def on_request_failed(request):
+            url = request.url
+            if url in self._request_map:
+                req = self._request_map[url]
+                req["status"] = "failed"
+                req["duration"] = int((time.time() - req["start_time"]) * 1000)
+                self._network_requests.append(req)
+                del self._request_map[url]
+        
+        page.on("console", on_console)
+        page.on("pageerror", on_page_error)
+        page.on("request", on_request)
+        page.on("response", on_response)
+        page.on("requestfailed", on_request_failed)
     
     async def start(self) -> None:
         """Start the browser with persistent context."""
@@ -66,6 +146,9 @@ class BrowserManager:
             else:
                 self._page = await self._context.new_page()
             
+            # Set up event listeners
+            self._setup_page_listeners(self._page)
+            
             self._started = True
             logger.info("Browser started successfully")
             
@@ -94,6 +177,12 @@ class BrowserManager:
             self._playwright = None
         
         self._page = None
+        
+        # Clear dev tools data
+        self._console_logs.clear()
+        self._network_requests.clear()
+        self._page_errors.clear()
+        self._request_map.clear()
     
     async def ensure_started(self) -> None:
         """Ensure browser is started, restart if needed."""
@@ -107,6 +196,32 @@ class BrowserManager:
         if not self._page:
             raise RuntimeError("Browser not started. Call start() first.")
         return self._page
+    
+    # Developer tools methods
+    def get_console_logs(self) -> list[dict]:
+        """Get captured console logs."""
+        return self._console_logs.copy()
+    
+    def clear_console_logs(self) -> None:
+        """Clear captured console logs."""
+        self._console_logs.clear()
+    
+    def get_network_requests(self) -> list[dict]:
+        """Get captured network requests."""
+        return self._network_requests.copy()
+    
+    def clear_network_requests(self) -> None:
+        """Clear captured network requests."""
+        self._network_requests.clear()
+        self._request_map.clear()
+    
+    def get_page_errors(self) -> list[dict]:
+        """Get captured page errors."""
+        return self._page_errors.copy()
+    
+    def clear_page_errors(self) -> None:
+        """Clear captured page errors."""
+        self._page_errors.clear()
     
     async def get_interactive_elements(self) -> list[dict]:
         """Get all interactive elements with their bounding boxes."""

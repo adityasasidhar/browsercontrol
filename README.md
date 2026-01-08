@@ -87,6 +87,36 @@ Claude will navigate, find the star button, and click it—showing you screensho
 
 ---
 
+## 🔧 Developer Tools
+
+Built-in tools for web development and debugging:
+
+| Tool | What it does |
+|------|--------------|
+| `get_console_logs()` | Capture browser console output (errors, warnings, logs) |
+| `get_network_requests()` | Monitor API calls, status codes, response times |
+| `get_page_errors()` | See JavaScript exceptions and crashes |
+| `run_in_console(code)` | Execute JS in browser console, get results |
+| `inspect_element(id)` | Get computed styles, dimensions, properties |
+| `get_page_performance()` | Page load time, Core Web Vitals, memory usage |
+
+### Example: Debug a Web App
+
+```
+You: "Go to my app at localhost:3000 and check for any errors"
+
+Claude: *navigates to localhost:3000*
+        *calls get_console_logs()*
+        "I found 2 errors in the console:
+         [ERROR] Uncaught TypeError: Cannot read property 'map' of undefined
+         [ERROR] Failed to load resource: 404 /api/users"
+        
+        *calls get_network_requests()*
+        "The /api/users endpoint returned 404. Your API route might be misconfigured."
+```
+
+---
+
 ## ⚙️ Configuration
 
 ```bash
@@ -128,7 +158,7 @@ LOG_LEVEL=DEBUG browsercontrol
 │   AI Agent      │────▶│  BrowserControl  │────▶│   Browser   │
 │ (Claude/Gemini) │◀────│   MCP Server     │◀────│ (Chromium)  │
 └─────────────────┘     └──────────────────┘     └─────────────┘
-        │                        │                      │
+        │                       │                      │
         │   "click(5)"          │   mouse.click()      │
         │◀──────────────────────│◀─────────────────────│
         │   [screenshot +       │   [annotated         │
@@ -175,6 +205,6 @@ MIT - Use it however you want.
 
 ---
 
-**Built with ❤️ for the AI agent community.**
+**Built with ❤️ for the AI agent community which I love very much**
 
-*Inspired by the browser control capabilities in Google's AntiGravity IDE.*
+*Inspired to democratize the browser control capabilities in Google's AntiGravity IDE.*
