@@ -1,16 +1,33 @@
-# 🌐 BrowserControl
+<p align="center">
+  <img src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/logo.png" alt="BrowserControl" width="120">
+</p>
 
-**Give your AI agent real browser superpowers.**
+<h1 align="center">🌐 BrowserControl</h1>
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
+<p align="center">
+  <strong>Give your AI agent real browser superpowers.</strong>
+</p>
+
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python 3.11+"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
+  <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/MCP-Compatible-purple.svg" alt="MCP"></a>
+  <a href="https://github.com/adityasasidhar/browsercontrol"><img src="https://img.shields.io/github/stars/adityasasidhar/browsercontrol?style=social" alt="GitHub Stars"></a>
+</p>
+
+<p align="center">
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-features">Features</a> •
+  <a href="#-available-tools">Tools</a> •
+  <a href="#%EF%B8%8F-configuration">Configuration</a> •
+  <a href="#-examples">Examples</a>
+</p>
+
+---
 
 Ever wished Claude, Gemini, or your custom AI agent could actually browse the web? Not just fetch URLs, but truly **see**, **click**, **type**, and **interact** with any website like a human?
 
-**BrowserControl** is an MCP server that gives your AI agent full browser access with a vision-first approach inspired by Google's AntiGravity IDE.
-
----
+**BrowserControl** is an MCP server that gives your AI agent full browser access with a **vision-first approach** inspired by Google's AntiGravity IDE.
 
 ## ✨ What Makes This Different
 
@@ -21,10 +38,11 @@ Ever wished Claude, Gemini, or your custom AI agent could actually browse the we
 | Guess at selectors | Just say **"click 5"** |
 | No JavaScript support | Full **dynamic content** |
 | No login persistence | **Persistent sessions** |
+| No debugging tools | **Console, Network, Errors** |
 
-### The Secret: Set of Marks (SoM)
+### 🎯 The Secret: Set of Marks (SoM)
 
-Every screenshot comes annotated with numbered boxes on interactive elements:
+Every screenshot comes annotated with **numbered red boxes** on interactive elements:
 
 ```
 Found 15 interactive elements:
@@ -32,21 +50,39 @@ Found 15 interactive elements:
   [2] input - Search...
   [3] a - Products
   [4] a - Pricing
+  [5] button - Get Started
 ```
 
-Your agent sees the numbers and simply calls `click(1)` to sign in. No CSS selectors. No XPath. No guessing.
+Your agent sees the numbers and simply calls `click(1)` to sign in. **No CSS selectors. No XPath. No guessing.**
 
 ---
 
 ## 🚀 Quick Start
 
-```bash
-# Install
-pip install browsercontrol
-playwright install chromium
+### Installation
 
-# Run
+```bash
+# Install with pip
+pip install browsercontrol
+
+# Or with uv (recommended)
+uv add browsercontrol
+
+# Install Playwright browsers
+playwright install chromium
+```
+
+### Run the Server
+
+```bash
+# Using the CLI
 browsercontrol
+
+# Or as a module
+python -m browsercontrol
+
+# Or with FastMCP
+fastmcp run browsercontrol.server:mcp
 ```
 
 ### Connect to Claude Desktop
@@ -63,91 +99,207 @@ Add to `~/.config/Claude/claude_desktop_config.json`:
 }
 ```
 
-Then just ask:
+Then just ask Claude:
 
 > *"Go to GitHub and star the browsercontrol repo"*
 
-Claude will navigate, find the star button, and click it—showing you screenshots along the way.
+Claude will navigate, find the star button, and click it—showing you screenshots along the way!
+
+---
+
+## 🎯 Features
+
+### 1. Set of Marks (SoM) - Vision-First Interaction
+
+Every action returns an annotated screenshot with numbered elements. Your AI agent can:
+- **See** the page exactly as a human would
+- **Identify** clickable elements by number
+- **Act** with simple commands like `click(5)`
+
+### 2. 🔧 Developer Tools
+
+Built-in debugging tools for web development:
+
+| Tool | Description |
+|------|-------------|
+| `get_console_logs()` | Capture browser console (errors, warnings, logs) |
+| `get_network_requests()` | Monitor API calls, status codes, timing |
+| `get_page_errors()` | See JavaScript exceptions and crashes |
+| `run_in_console(code)` | Execute JS in browser console |
+| `inspect_element(id)` | Get computed styles, dimensions, properties |
+| `get_page_performance()` | Page load time, Core Web Vitals, memory |
+
+### 3. 🎬 Session Recording
+
+Record browser sessions for debugging and documentation:
+
+| Tool | Description |
+|------|-------------|
+| `start_recording()` | Begin recording the session |
+| `stop_recording()` | Save recording (Playwright trace format) |
+| `take_snapshot()` | Save screenshot + HTML + URL |
+| `list_recordings()` | View all saved sessions |
+
+View recordings with:
+```bash
+npx playwright show-trace ~/.browsercontrol/recordings/session.zip
+```
+
+### 4. 💾 Persistent Sessions
+
+- Cookies, localStorage, and session data persist across restarts
+- Stay logged into websites
+- Maintain shopping carts, preferences, etc.
 
 ---
 
 ## 🛠️ Available Tools
 
-| Tool | What it does |
-|------|--------------|
-| `navigate_to(url)` | Open any webpage |
-| `click(element_id)` | Click element by its number |
-| `type_text(element_id, text)` | Type into inputs |
+### Navigation
+| Tool | Description |
+|------|-------------|
+| `navigate_to(url)` | Go to a URL |
+| `go_back()` | Navigate back |
+| `go_forward()` | Navigate forward |
+| `refresh_page()` | Reload the page |
 | `scroll(direction, amount)` | Scroll the page |
-| `press_key(key)` | Press Enter, Tab, Escape, etc. |
-| `get_page_content()` | Extract page as markdown |
-| `screenshot()` | Capture current state |
+
+### Interaction
+| Tool | Description |
+|------|-------------|
+| `click(element_id)` | Click element by number |
+| `click_at(x, y)` | Click at coordinates |
+| `type_text(element_id, text)` | Type into input |
+| `press_key(key)` | Press keyboard key (Enter, Tab, etc.) |
+| `hover(element_id)` | Hover over element |
+| `scroll_to_element(element_id)` | Scroll element into view |
 | `wait(seconds)` | Wait for loading |
-| + 10 more... | Full browser control |
+
+### Forms
+| Tool | Description |
+|------|-------------|
+| `select_option(element_id, option)` | Select dropdown option |
+| `check_checkbox(element_id)` | Toggle checkbox |
+
+### Content
+| Tool | Description |
+|------|-------------|
+| `get_page_content()` | Get page as markdown |
+| `get_text(element_id)` | Get element text |
+| `get_page_info()` | Get URL and title |
+| `run_javascript(script)` | Execute JavaScript |
+| `screenshot(annotate, full_page)` | Take screenshot |
+
+### Developer Tools
+| Tool | Description |
+|------|-------------|
+| `get_console_logs()` | Browser console output |
+| `get_network_requests()` | API calls and responses |
+| `get_page_errors()` | JavaScript errors |
+| `run_in_console(code)` | Execute JS in console |
+| `inspect_element(id)` | Element styles/properties |
+| `get_page_performance()` | Load times, Web Vitals |
+
+### Recording
+| Tool | Description |
+|------|-------------|
+| `start_recording()` | Begin session recording |
+| `stop_recording()` | Save recording |
+| `take_snapshot()` | Save screenshot + HTML |
+| `list_recordings()` | View saved sessions |
 
 ---
 
-## 🔧 Developer Tools
+## ⚙️ Configuration
 
-Built-in tools for web development and debugging:
+Configure via environment variables:
 
-| Tool | What it does |
-|------|--------------|
-| `get_console_logs()` | Capture browser console output (errors, warnings, logs) |
-| `get_network_requests()` | Monitor API calls, status codes, response times |
-| `get_page_errors()` | See JavaScript exceptions and crashes |
-| `run_in_console(code)` | Execute JS in browser console, get results |
-| `inspect_element(id)` | Get computed styles, dimensions, properties |
-| `get_page_performance()` | Page load time, Core Web Vitals, memory usage |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BROWSER_HEADLESS` | `true` | Run without visible window |
+| `BROWSER_VIEWPORT_WIDTH` | `1280` | Viewport width in pixels |
+| `BROWSER_VIEWPORT_HEIGHT` | `720` | Viewport height in pixels |
+| `BROWSER_TIMEOUT` | `30000` | Navigation timeout (ms) |
+| `BROWSER_USER_DATA_DIR` | `~/.browsercontrol/user_data` | Browser profile path |
+| `BROWSER_EXTENSION_PATH` | - | Path to browser extension |
+| `LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
 
-### Example: Debug a Web App
+### Examples
+
+```bash
+# Run with visible browser (for debugging)
+BROWSER_HEADLESS=false browsercontrol
+
+# Custom viewport for mobile testing
+BROWSER_VIEWPORT_WIDTH=375 BROWSER_VIEWPORT_HEIGHT=812 browsercontrol
+
+# Verbose logging
+LOG_LEVEL=DEBUG browsercontrol
+```
+
+---
+
+## 📚 Examples
+
+### Example 1: Web Research
+
+```
+You: "Go to Wikipedia and find out when Python was created"
+
+Claude: *navigates to wikipedia.org*
+        *types "Python programming language" in search*
+        *clicks search result*
+        *reads the page*
+        
+        "Python was created by Guido van Rossum and first released in 1991."
+```
+
+### Example 2: Debug a Web App
 
 ```
 You: "Go to my app at localhost:3000 and check for any errors"
 
 Claude: *navigates to localhost:3000*
         *calls get_console_logs()*
-        "I found 2 errors in the console:
+        
+        "I found 2 errors:
          [ERROR] Uncaught TypeError: Cannot read property 'map' of undefined
          [ERROR] Failed to load resource: 404 /api/users"
         
         *calls get_network_requests()*
-        "The /api/users endpoint returned 404. Your API route might be misconfigured."
+        
+        "The /api/users endpoint returned 404. Check your API route."
 ```
 
----
+### Example 3: Automated Testing
 
-## ⚙️ Configuration
+```
+You: "Test the login flow on my site. Start recording."
 
-```bash
-# Run with visible browser (debugging)
-BROWSER_HEADLESS=false browsercontrol
-
-# Custom viewport
-BROWSER_VIEWPORT_WIDTH=1920 BROWSER_VIEWPORT_HEIGHT=1080 browsercontrol
-
-# Verbose logging
-LOG_LEVEL=DEBUG browsercontrol
+Claude: *calls start_recording()*
+        *navigates to site*
+        *types email in element 3*
+        *types password in element 4*
+        *clicks Login button (element 5)*
+        *verifies successful redirect*
+        *calls stop_recording()*
+        
+        "Login test passed! Recording saved to session_20260108.zip"
 ```
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BROWSER_HEADLESS` | `true` | Hide browser window |
-| `BROWSER_VIEWPORT_WIDTH` | `1280` | Width in pixels |
-| `BROWSER_VIEWPORT_HEIGHT` | `720` | Height in pixels |
-| `BROWSER_TIMEOUT` | `30000` | Navigation timeout (ms) |
-| `BROWSER_USER_DATA_DIR` | `~/.browsercontrol/user_data` | Persistent storage |
+### Example 4: Form Automation
 
----
+```
+You: "Fill out the contact form on example.com"
 
-## 🔮 Use Cases
-
-- **Automated Research**: Have your agent browse documentation, gather information
-- **Form Filling**: Fill out applications, surveys, registrations
-- **Testing**: Let AI test your web app like a real user
-- **Social Media**: Post updates, check notifications (carefully!)
-- **Shopping**: Compare prices, add to cart
-- **Anything a human can do in a browser**
+Claude: *navigates to example.com/contact*
+        *types name in element 2*
+        *types email in element 3*
+        *types message in element 4*
+        *clicks Submit (element 5)*
+        
+        "Form submitted successfully!"
+```
 
 ---
 
@@ -158,53 +310,123 @@ LOG_LEVEL=DEBUG browsercontrol
 │   AI Agent      │────▶│  BrowserControl  │────▶│   Browser   │
 │ (Claude/Gemini) │◀────│   MCP Server     │◀────│ (Chromium)  │
 └─────────────────┘     └──────────────────┘     └─────────────┘
-        │                       │                      │
-        │   "click(5)"          │   mouse.click()      │
-        │◀──────────────────────│◀─────────────────────│
-        │   [screenshot +       │   [annotated         │
-        │    element list]      │    image]            │
+        │                        │                      │
+        │   "click(5)"           │   mouse.click()      │
+        │◀───────────────────────│◀─────────────────────│
+        │   [annotated           │   [screenshot +      │
+        │    screenshot]         │    element map]      │
+```
+
+### How It Works
+
+1. **AI sends command**: `click(5)`
+2. **Server finds element**: Looks up element #5 from the last screenshot
+3. **Browser acts**: Clicks at the element's coordinates
+4. **Capture state**: Takes new screenshot, detects elements
+5. **Annotate**: Draws numbered boxes on interactive elements
+6. **Return to AI**: Sends annotated image + element list
+
+---
+
+## 📦 Project Structure
+
+```
+browsercontrol/
+├── __init__.py          # Package exports
+├── __main__.py          # CLI entry point
+├── server.py            # MCP server setup
+├── browser.py           # BrowserManager with SoM
+├── config.py            # Environment configuration
+└── tools/
+    ├── navigation.py    # Navigation tools
+    ├── interaction.py   # Click, type, hover tools
+    ├── forms.py         # Form handling tools
+    ├── content.py       # Content extraction tools
+    ├── devtools.py      # Developer tools
+    └── recording.py     # Session recording tools
 ```
 
 ---
 
-## 📦 Installation Options
+## 🔧 Troubleshooting
 
+### "Missing X server" Error
+
+Set `BROWSER_HEADLESS=true` or run with xvfb:
 ```bash
-# With pip
-pip install browsercontrol
-
-# With uv (recommended)
-uv add browsercontrol
-
-# From source
-git clone https://github.com/adityasasidhar/browsercontrol
-cd browsercontrol
-uv sync
+xvfb-run browsercontrol
 ```
 
-Don't forget to install Playwright browsers:
+### Browser Not Starting
+
+Make sure Playwright browsers are installed:
 ```bash
 playwright install chromium
+```
+
+### Session Not Persisting
+
+Check that `BROWSER_USER_DATA_DIR` is writable:
+```bash
+ls -la ~/.browsercontrol/
+```
+
+### Connection Refused
+
+Ensure no other instance is running:
+```bash
+pkill -f browsercontrol
+browsercontrol
 ```
 
 ---
 
 ## 🤝 Contributing
 
-PRs welcome! Some ideas:
+Contributions are welcome! Some ideas:
+
 - [ ] Multi-tab support
-- [ ] Video recording
-- [ ] Mobile viewport presets
+- [ ] Firefox/WebKit support
+- [ ] DOM diffing (detect changes)
+- [ ] Accessibility audit
+- [ ] Mobile emulation presets
 - [ ] Cookie import/export
+
+```bash
+# Clone and install
+git clone https://github.com/adityasasidhar/browsercontrol
+cd browsercontrol
+uv sync
+
+# Run tests
+uv run pytest
+
+# Run in development
+uv run fastmcp dev browsercontrol/server.py
+```
 
 ---
 
 ## 📄 License
 
-MIT - Use it however you want.
+MIT License - Use it however you want.
 
 ---
 
-**Built with ❤️ for the AI agent community which I love very much**
+## 🙏 Acknowledgments
 
-*Inspired to democratize the browser control capabilities in Google's AntiGravity IDE.*
+- Inspired by the browser control capabilities in **Google's AntiGravity IDE**
+- Built with [FastMCP](https://gofastmcp.com) and [Playwright](https://playwright.dev)
+- Thanks to the MCP community for making AI-tool integration accessible
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ for the AI agent community.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/adityasasidhar/browsercontrol">⭐ Star on GitHub</a> •
+  <a href="https://github.com/adityasasidhar/browsercontrol/issues">Report Bug</a> •
+  <a href="https://github.com/adityasasidhar/browsercontrol/issues">Request Feature</a>
+</p>
