@@ -188,7 +188,8 @@ class BrowserManager:
         args = [
             "--no-first-run", 
             "--no-default-browser-check",
-            "--proxy-bypass-list=<-loopback>"
+            "--proxy-bypass-list=<-loopback>",
+            "--no-proxy-server"
         ]
         if config.extension_path and config.extension_path.exists():
             args.extend([
