@@ -3,6 +3,7 @@ Browser lifecycle management with Set of Marks (SoM) annotation.
 Includes console, network, and error capture for developer tools.
 """
 
+
 import logging
 import time
 from io import BytesIO
@@ -365,13 +366,26 @@ class BrowserManager:
         draw = ImageDraw.Draw(img, "RGBA")
         
         # Try to use a reasonable font
-        try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12)
-        except Exception:
+        font = None
+        font_names = [
+            "Arial.ttf", "arial.ttf",  # Windows/macOS
+            "Helvetica.ttf", "helvetica.ttf",  # macOS
+            "DejaVuSans-Bold.ttf",  # Linux
+            "FreeSansBold.ttf",  # Linux
+            "LiberationSans-Bold.ttf",  # Linux
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", # Linux specific path
+            "/System/Library/Fonts/Helvetica.ttc", # macOS specific path
+        ]
+
+        for font_name in font_names:
             try:
-                font = ImageFont.truetype("arial.ttf", 12)
-            except Exception:
-                font = ImageFont.load_default()
+                font = ImageFont.truetype(font_name, 14)
+                break
+            except (OSError, IOError):
+                continue
+        
+        if font is None:
+            font = ImageFont.load_default()
         
         element_map = {}
         
