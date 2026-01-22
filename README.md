@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/logo.png" alt="BrowserControl" width="120">
 </p>
 
-<h1 align="center">🌐 BrowserControl</h1>
+<h1 align="center">BrowserControl</h1>
 
 <p align="center">
   <strong>Give your AI agent real browser superpowers.</strong>
@@ -16,11 +16,11 @@
 </p>
 
 <p align="center">
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-features">Features</a> •
-  <a href="#-available-tools">Tools</a> •
-  <a href="#%EF%B8%8F-configuration">Configuration</a> •
-  <a href="#-examples">Examples</a>
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#features">Features</a> •
+  <a href="#available-tools">Tools</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#examples">Examples</a>
 </p>
 
 ---
@@ -29,7 +29,7 @@ Ever wished Claude, Gemini, or your custom AI agent could actually browse the we
 
 **BrowserControl** is an MCP server that gives your AI agent full browser access with a **vision-first approach** inspired by Google's AntiGravity IDE.
 
-## ✨ What Makes This Different
+## What Makes This Different
 
 | Traditional Web Access | BrowserControl |
 |------------------------|----------------|
@@ -40,7 +40,7 @@ Ever wished Claude, Gemini, or your custom AI agent could actually browse the we
 | No login persistence | **Persistent sessions** |
 | No debugging tools | **Console, Network, Errors** |
 
-### 🎯 The Secret: Set of Marks (SoM)
+### The Secret: Set of Marks (SoM)
 
 Every screenshot comes annotated with **numbered red boxes** on interactive elements:
 
@@ -57,24 +57,24 @@ Your agent sees the numbers and simply calls `click(1)` to sign in. **No CSS sel
 
 ---
 
-## 🏆 Why BrowserControl Beats Every Alternative
+## Why BrowserControl Beats Every Alternative
 
 ### Head-to-Head Comparison
 
 | Feature | **BrowserControl** | Playwright MCP | Stagehand | Browser-Use | AgentQL |
 |---------|:------------------:|:--------------:|:---------:|:-----------:|:-------:|
-| **Vision-First (SoM)** | ✅ Numbered boxes | ❌ Text tree | ⚠️ AI vision | ⚠️ AI vision | ❌ Selectors |
-| **No Extra AI Calls** | ✅ Zero | ❌ Parses tree | ❌ GPT-4V per action | ❌ Vision model | ❌ Query model |
-| **Developer Tools** | ✅ 6 tools | ❌ None | ❌ None | ❌ None | ❌ None |
-| **Session Recording** | ✅ Built-in | ❌ Manual | ❌ None | ❌ None | ❌ None |
-| **Persistent Sessions** | ✅ Automatic | ⚠️ Manual setup | ❌ None | ❌ None | ❌ None |
-| **MCP Native** | ✅ FastMCP | ✅ Official | ❌ Python SDK | ⚠️ Custom | ❌ REST API |
-| **Install Complexity** | ✅ `pip install` | ⚠️ npx + config | ❌ Docker + setup | ⚠️ Docker | ❌ Cloud signup |
-| **Token Efficiency** | ✅ Tiny IDs | ⚠️ Large tree | ❌ Full images | ❌ Full images | ⚠️ Query results |
-| **Cost per Action** | ✅ $0 | ✅ $0 | ❌ ~$0.01-0.05 | ❌ ~$0.01-0.05 | ❌ API fees |
-| **Offline/Local** | ✅ 100% local | ✅ Local | ⚠️ Needs LLM API | ⚠️ Needs LLM API | ❌ Cloud only |
+| **Vision-First (SoM)** | Numbered boxes | Text tree | AI vision | AI vision | Selectors |
+| **No Extra AI Calls** | Zero | Parses tree | GPT-4V per action | Vision model | Query model |
+| **Developer Tools** | 6 tools | None | None | None | None |
+| **Session Recording** | Built-in | Manual | None | None | None |
+| **Persistent Sessions** | Automatic | Manual setup | None | None | None |
+| **MCP Native** | FastMCP | Official | Python SDK | Custom | REST API |
+| **Install Complexity** | `pip install` | npx + config | Docker + setup | Docker | Cloud signup |
+| **Token Efficiency** | Tiny IDs | Large tree | Full images | Full images | Query results |
+| **Cost per Action** | $0 | $0 | ~$0.01-0.05 | ~$0.01-0.05 | API fees |
+| **Offline/Local** | 100% local | Local | Needs LLM API | Needs LLM API | Cloud only |
 
-### 🎯 Key Advantages
+### Key Advantages
 
 #### 1. **Token Efficiency = Faster + Cheaper**
 
@@ -120,7 +120,7 @@ get_page_performance()  # Core Web Vitals
 ```
 start_recording()   →   Browse around   →   stop_recording()
                                               ↓
-                               📹 session_20260108.zip
+                               session_20260108.zip
                                (View with Playwright trace viewer)
 ```
 
@@ -130,35 +130,35 @@ start_recording()   →   Browse around   →   stop_recording()
 
 | What Persists | BrowserControl | Others |
 |---------------|:--------------:|:------:|
-| Cookies | ✅ | ❌ |
-| localStorage | ✅ | ❌ |
-| Session tokens | ✅ | ❌ |
-| Login state | ✅ | ❌ |
-| Browser history | ✅ | ❌ |
+| Cookies | Yes | No |
+| localStorage | Yes | No |
+| Session tokens | Yes | No |
+| Login state | Yes | No |
+| Browser history | Yes | No |
 
 **Result**: Log in once, stay logged in across sessions.
 
 #### 6. **Simpler Mental Model**
 
 ```
-❌ Other tools:
+Other tools:
    "Find the button with class 'btn-primary' that contains text 'Submit' 
     and is a descendant of form#contact-form..."
 
-✅ BrowserControl:
+BrowserControl:
    "click(7)"
 ```
 
-### 📊 Real-World Performance
+### Real-World Performance
 
 | Scenario | BrowserControl | Vision-Based Tools |
 |----------|:--------------:|:------------------:|
 | Click a button | ~50ms | ~2-5 seconds |
 | Fill a form (5 fields) | ~500ms | ~15-30 seconds |
 | Navigate + act | ~1 second | ~5-10 seconds |
-| Debug console errors | ✅ Instant | ❌ Not possible |
+| Debug console errors | Instant | Not possible |
 
-### 💰 Cost Comparison (1000 actions/month)
+### Cost Comparison (1000 actions/month)
 
 | Tool | Monthly Cost |
 |------|-------------|
@@ -169,7 +169,7 @@ start_recording()   →   Browse around   →   stop_recording()
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -218,7 +218,7 @@ Claude will navigate, find the star button, and click it—showing you screensho
 
 ---
 
-## 🎯 Features
+## Features
 
 ### 1. Set of Marks (SoM) - Vision-First Interaction
 
@@ -227,7 +227,7 @@ Every action returns an annotated screenshot with numbered elements. Your AI age
 - **Identify** clickable elements by number
 - **Act** with simple commands like `click(5)`
 
-### 2. 🔧 Developer Tools
+### 2. Developer Tools
 
 Built-in debugging tools for web development:
 
@@ -240,7 +240,7 @@ Built-in debugging tools for web development:
 | `inspect_element(id)` | Get computed styles, dimensions, properties |
 | `get_page_performance()` | Page load time, Core Web Vitals, memory |
 
-### 3. 🎬 Session Recording
+### 3. Session Recording
 
 Record browser sessions for debugging and documentation:
 
@@ -256,7 +256,7 @@ View recordings with:
 npx playwright show-trace ~/.browsercontrol/recordings/session.zip
 ```
 
-### 4. 💾 Persistent Sessions
+### 4. Persistent Sessions
 
 - Cookies, localStorage, and session data persist across restarts
 - Stay logged into websites
@@ -264,7 +264,7 @@ npx playwright show-trace ~/.browsercontrol/recordings/session.zip
 
 ---
 
-## 🛠️ Available Tools
+## Available Tools
 
 ### Navigation
 | Tool | Description |
@@ -321,7 +321,7 @@ npx playwright show-trace ~/.browsercontrol/recordings/session.zip
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 Configure via environment variables:
 
@@ -350,7 +350,7 @@ LOG_LEVEL=DEBUG browsercontrol
 
 ---
 
-## 📚 Examples
+## Examples
 
 ### Example 1: Web Research
 
@@ -414,7 +414,7 @@ Claude: *navigates to example.com/contact*
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────┐
@@ -439,7 +439,7 @@ Claude: *navigates to example.com/contact*
 
 ---
 
-## 📦 Project Structure
+## Project Structure
 
 ```
 browsercontrol/
@@ -459,7 +459,7 @@ browsercontrol/
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### "Missing X server" Error
 
@@ -492,7 +492,7 @@ browsercontrol
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Some ideas:
 
@@ -518,13 +518,13 @@ uv run fastmcp dev browsercontrol/server.py
 
 ---
 
-## 📄 License
+## License
 
 MIT License - Use it however you want.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by the browser control capabilities in **Google's AntiGravity IDE**
 - Built with [FastMCP](https://gofastmcp.com) and [Playwright](https://playwright.dev)
@@ -533,11 +533,11 @@ MIT License - Use it however you want.
 ---
 
 <p align="center">
-  <strong>Built with ❤️ for the AI agent community.</strong>
+  <strong>Built for the AI agent community.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/adityasasidhar/browsercontrol">⭐ Star on GitHub</a> •
+  <a href="https://github.com/adityasasidhar/browsercontrol">Star on GitHub</a> •
   <a href="https://github.com/adityasasidhar/browsercontrol/issues">Report Bug</a> •
   <a href="https://github.com/adityasasidhar/browsercontrol/issues">Request Feature</a>
 </p>
