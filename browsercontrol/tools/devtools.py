@@ -1,5 +1,3 @@
-"""Developer tools for browser control - console, network, errors."""
-
 import logging
 from typing import Optional
 

@@ -1,5 +1,3 @@
-"""Content extraction tools for browser control."""
-
 import logging
 
 from fastmcp import FastMCP

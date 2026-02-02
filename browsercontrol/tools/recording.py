@@ -1,5 +1,3 @@
-"""Session recording tools for browser control."""
-
 import logging
 from datetime import datetime
 from pathlib import Path

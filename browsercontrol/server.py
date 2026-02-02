@@ -1,9 +1,3 @@
-"""
-Browser Control MCP Server
-
-Main server module that sets up the MCP server with all tools.
-"""
-
 import logging
 from contextlib import asynccontextmanager
 

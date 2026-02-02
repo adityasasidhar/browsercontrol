@@ -1,9 +1,3 @@
-"""
-Browser lifecycle management with Set of Marks (SoM) annotation.
-Includes console, network, and error capture for developer tools.
-"""
-
-
 import logging
 import time
 from io import BytesIO
@@ -33,7 +27,7 @@ class BrowserManager:
         self._console_logs: list[dict] = []
         self._network_requests: list[dict] = []
         self._page_errors: list[dict] = []
-        self._request_map: dict[str, dict] = {}  # Track in-flight requests
+        self._request_map: dict[str, dict] = {}
     
     @property
     def is_started(self) -> bool:
