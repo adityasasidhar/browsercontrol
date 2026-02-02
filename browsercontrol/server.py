@@ -6,11 +6,11 @@ from fastmcp import FastMCP
 from browsercontrol.browser import browser
 from browsercontrol.config import config
 from browsercontrol.tools import (
-    register_navigation_tools,
-    register_interaction_tools,
-    register_form_tools,
     register_content_tools,
     register_devtools,
+    register_form_tools,
+    register_interaction_tools,
+    register_navigation_tools,
     register_recording_tools,
     register_tab_tools,
 )
@@ -94,5 +94,3 @@ register_recording_tools(mcp)
 register_tab_tools(mcp)
 
 logger.info("Browser Control MCP server initialized with all tools")
-
-

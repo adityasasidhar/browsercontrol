@@ -45,4 +45,33 @@ packages = ["browsercontrol"]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+    "pre-commit>=4.0.0",
 ]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+exclude = [".git", ".venv", "__pycache__", "build", "dist", "*.egg-info"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "TCH", "RUF"]
+ignore = ["E501", "B008", "N805", "SIM117", "B904"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403"]
+"tests/**/*.py" = ["F401", "F811"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+asyncio_mode = "auto"
+addopts = ["-v", "--strict-markers", "--tb=short"]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+skips = ["B404", "B603"]  # Allow subprocess usage for Playwright installation

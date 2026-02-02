@@ -23,7 +23,11 @@ We love your input! We want to make contributing to BrowserControl as easy and t
    ```bash
    uv run playwright install chromium
    ```
-5. **Run the server in dev mode**:
+5. **Install pre-commit hooks**:
+   ```bash
+   uv run pre-commit install
+   ```
+6. **Run the server in dev mode**:
    ```bash
    uv run fastmcp dev browsercontrol/server.py
    ```
@@ -33,11 +37,13 @@ We love your input! We want to make contributing to BrowserControl as easy and t
 We use [uv](https://github.com/astral-sh/uv) for dependency management and packaging. It's fast and reliable.
 
 ### Project Structure
+
 - `browsercontrol/server.py`: Main MCP server definition
 - `browsercontrol/browser.py`: Core logic (Playwright + Set of Marks)
 - `browsercontrol/tools/`: Tool implementations split by category
 
 ### Making Changes
+
 1. Create a branch for your feature: `git checkout -b feature/amazing-feature`
 2. Implement your changes
 3. Run tests (see below)
@@ -48,17 +54,33 @@ We use [uv](https://github.com/astral-sh/uv) for dependency management and packa
 
 ## 🧪 Testing
 
-We use `pytest`. Please ensure all tests pass before submitting a PR.
+We use `pytest` for testing and `ruff` for code quality. Please ensure all checks pass before submitting a PR.
 
 ```bash
 # Run all tests
 uv run pytest
 
+# Run tests with coverage
+uv run pytest --cov=browsercontrol
+
+# Check code formatting and linting
+uv run ruff check .
+uv run ruff format .
+
+# Run all pre-commit hooks
+uv run pre-commit run --all-files
+```
+
+See [CODE_QUALITY.md](CODE_QUALITY.md) for more details on code formatting and quality tools.
+
 # Run specific test file
+
 uv run pytest tests/test_navigation.py
+
 ```
 
 If you add a new tool or feature, please add a corresponding test case covering:
+
 - Happy path (it works)
 - Error handling (it fails gracefully)
 
@@ -82,3 +104,4 @@ Bugs are tracked as GitHub issues. When filing an issue, please explain the prob
 ## 📄 License
 
 By contributing, you agree that your contributions will be licensed under its MIT License.
+```

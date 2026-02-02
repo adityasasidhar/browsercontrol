@@ -9,11 +9,11 @@ from browsercontrol.tools.recording import register_recording_tools
 from browsercontrol.tools.tabs import register_tab_tools
 
 __all__ = [
-    "register_navigation_tools",
-    "register_interaction_tools",
-    "register_form_tools",
     "register_content_tools",
     "register_devtools",
+    "register_form_tools",
+    "register_interaction_tools",
+    "register_navigation_tools",
     "register_recording_tools",
     "register_tab_tools",
 ]

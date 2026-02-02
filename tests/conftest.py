@@ -1,9 +1,10 @@
 """Pytest fixtures for BrowserControl tests."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from pathlib import Path
 import tempfile
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 @pytest.fixture
@@ -19,7 +20,7 @@ def mock_page():
     page.screenshot = AsyncMock(return_value=b"fake_screenshot_data")
     page.title = AsyncMock(return_value="Test Page")
     page.url = "https://example.com"
-    
+
     # Mouse and keyboard
     page.mouse = AsyncMock()
     page.mouse.click = AsyncMock()
@@ -27,7 +28,7 @@ def mock_page():
     page.keyboard = AsyncMock()
     page.keyboard.type = AsyncMock()
     page.keyboard.press = AsyncMock()
-    
+
     return page
 
 
@@ -72,7 +73,7 @@ def sample_element_map():
             "width": 80,
             "height": 40,
             "centerX": 140,
-            "centerY": 220
+            "centerY": 220,
         },
         2: {
             "tag": "input",
@@ -82,7 +83,7 @@ def sample_element_map():
             "width": 200,
             "height": 30,
             "centerX": 150,
-            "centerY": 115
+            "centerY": 115,
         },
         3: {
             "tag": "a",
@@ -92,8 +93,8 @@ def sample_element_map():
             "width": 60,
             "height": 20,
             "centerX": 330,
-            "centerY": 60
-        }
+            "centerY": 60,
+        },
     }
 
 
@@ -107,7 +108,7 @@ def temp_recordings_dir():
 @pytest.fixture
 def mock_browser_manager(mock_page, mock_context, mock_browser):
     """Mock BrowserManager instance."""
-    with patch('browsercontrol.browser.browser') as mock_mgr:
+    with patch("browsercontrol.browser.browser") as mock_mgr:
         mock_mgr._browser = mock_browser
         mock_mgr._context = mock_context
         mock_mgr._page = mock_page
@@ -115,9 +116,7 @@ def mock_browser_manager(mock_page, mock_context, mock_browser):
         mock_mgr.ensure_started = AsyncMock()
         mock_mgr.start = AsyncMock()
         mock_mgr.stop = AsyncMock()
-        mock_mgr.screenshot_with_som = AsyncMock(
-            return_value=(b"fake_screenshot", {})
-        )
+        mock_mgr.screenshot_with_som = AsyncMock(return_value=(b"fake_screenshot", {}))
         mock_mgr.get_console_logs = MagicMock(return_value=[])
         mock_mgr.get_network_requests = MagicMock(return_value=[])
         mock_mgr.get_page_errors = MagicMock(return_value=[])
