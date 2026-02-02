@@ -119,12 +119,18 @@ python -m browsercontrol
 fastmcp run browsercontrol.server:mcp
 ```
 
-### Connect to Claude Desktop
+### Connect to Your AI Agent
+
+BrowserControl works with any MCP-compatible AI agent or IDE. Choose your platform:
+
+<details>
+<summary><b>Claude Desktop</b></summary>
 
 Add to your Claude configuration file:
 
-<details>
-<summary><b>📁 macOS</b> — <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></summary>
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Linux:** `~/.config/Claude/claude_desktop_config.json`
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -136,43 +142,186 @@ Add to your Claude configuration file:
 }
 ```
 
-</details>
-
-<details>
-<summary><b>📁 Linux</b> — <code>~/.config/Claude/claude_desktop_config.json</code></summary>
-
-```json
-{
-  "mcpServers": {
-    "browsercontrol": {
-      "command": "browsercontrol"
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>📁 Windows</b> — <code>%APPDATA%\Claude\claude_desktop_config.json</code></summary>
-
-```json
-{
-  "mcpServers": {
-    "browsercontrol": {
-      "command": "browsercontrol"
-    }
-  }
-}
-```
-
-</details>
-
-Then ask Claude:
+Restart Claude Desktop, then ask:
 
 > _"Go to GitHub and star the browsercontrol repo"_
 
-Claude will navigate, find the star button, and click it—showing you screenshots along the way!
+</details>
+
+<details>
+<summary><b>� Gemini CLI / Google AI Studio</b></summary>
+
+If using the Gemini CLI or Google AI Studio with MCP support:
+
+```bash
+# Set up MCP configuration
+export MCP_SERVERS='{"browsercontrol": {"command": "browsercontrol"}}'
+
+# Or add to your Gemini config file
+```
+
+For Google AI Studio, configure in the MCP settings panel.
+
+</details>
+
+<details>
+<summary><b>🔧 Cline (VS Code Extension)</b></summary>
+
+1. Install the [Cline extension](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev)
+2. Open Cline settings (gear icon)
+3. Navigate to "MCP Servers"
+4. Add a new server:
+
+```json
+{
+  "browsercontrol": {
+    "command": "browsercontrol"
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>🤖 Continue.dev (VS Code/JetBrains)</b></summary>
+
+Add to your Continue configuration (`~/.continue/config.json`):
+
+```json
+{
+  "mcpServers": [
+    {
+      "name": "browsercontrol",
+      "command": "browsercontrol"
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary><b>🎯 Cursor IDE</b></summary>
+
+1. Open Cursor Settings
+2. Navigate to "Features" → "Model Context Protocol"
+3. Add server configuration:
+
+```json
+{
+  "browsercontrol": {
+    "command": "browsercontrol"
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>🔌 Zed Editor</b></summary>
+
+Add to your Zed settings (`~/.config/zed/settings.json`):
+
+```json
+{
+  "context_servers": {
+    "browsercontrol": {
+      "command": {
+        "path": "browsercontrol"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>🐍 Custom Python Integration</b></summary>
+
+Use the MCP Python SDK to integrate BrowserControl into your own agent:
+
+```python
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+# Connect to BrowserControl
+server_params = StdioServerParameters(
+    command="browsercontrol",
+    args=[],
+)
+
+async with stdio_client(server_params) as (read, write):
+    async with ClientSession(read, write) as session:
+        # Initialize
+        await session.initialize()
+
+        # List available tools
+        tools = await session.list_tools()
+
+        # Call a tool
+        result = await session.call_tool("navigate_to", {
+            "url": "https://github.com"
+        })
+```
+
+</details>
+
+<details>
+<summary><b>🚀 Using with uv or pipx</b></summary>
+
+If you installed with `uv` or `pipx`, use the full path:
+
+```json
+{
+  "mcpServers": {
+    "browsercontrol": {
+      "command": "uvx",
+      "args": ["browsercontrol"]
+    }
+  }
+}
+```
+
+Or with pipx:
+
+```json
+{
+  "mcpServers": {
+    "browsercontrol": {
+      "command": "pipx",
+      "args": ["run", "browsercontrol"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>🔧 Advanced Configuration</b></summary>
+
+You can pass environment variables to customize BrowserControl:
+
+```json
+{
+  "mcpServers": {
+    "browsercontrol": {
+      "command": "browsercontrol",
+      "env": {
+        "BROWSER_HEADLESS": "false",
+        "BROWSER_VIEWPORT_WIDTH": "1920",
+        "BROWSER_VIEWPORT_HEIGHT": "1080",
+        "LOG_LEVEL": "DEBUG"
+      }
+    }
+  }
+}
+```
+
+See [Configuration](#-configuration) for all available options.
+
+</details>
 
 <br>
 
