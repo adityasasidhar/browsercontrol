@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Give your AI agent real browser superpowers.</strong><br>
-  <sub>Vision-first browser automation for Claude, Gemini, and any MCP-compatible AI agent.</sub>
+  <sub>Vision-first browser automation for any MCP-compatible AI agent.</sub>
 </p>
 
 <p align="center">
