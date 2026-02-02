@@ -1,6 +1,5 @@
-"""Form handling tools for browser control."""
-
 import logging
+
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
@@ -92,5 +91,48 @@ def register_form_tools(mcp: FastMCP) -> None:
         except Exception as e:
             logger.error(f"Check checkbox failed: {e}")
             raise RuntimeError(f"Check checkbox failed: {e}")
-    
+
+    @mcp.tool()
+    async def upload_file(element_id: int, file_path: str) -> tuple[str, Image]:
+        """
+        Upload a file to a file input element.
+        
+        Args:
+            element_id: The number label of the file input
+            file_path: The absolute path to the file to upload
+        """
+        try:
+            import pathlib
+            path = pathlib.Path(file_path)
+            if not path.exists():
+                 raise ValueError(f"File not found: {file_path}")
+
+            await browser.ensure_started()
+            elem_map = get_element_map()
+            
+            if element_id not in elem_map:
+                image, summary = await _get_screenshot_with_summary()
+                return f"Error: Element {element_id} not found.\n\n{summary}", image
+            
+            elem = elem_map[element_id]
+            logger.info(f"Uploading file '{file_path}' to element {element_id}")
+            
+            # Get element handle via coordinates
+            handle = await browser.page.evaluate_handle(
+                f"document.elementFromPoint({elem['centerX']}, {elem['centerY']})"
+            )
+            
+            # Ensure it's an element handle
+            if not handle.as_element():
+                 raise RuntimeError(f"Could not find DOM element at ID {element_id}")
+                 
+            await handle.as_element().set_input_files(str(path))
+            
+            image, summary = await _get_screenshot_with_summary()
+            return f"Uploaded '{path.name}' to element {element_id}\n\n{summary}", image
+            
+        except Exception as e:
+            logger.error(f"Upload file failed: {e}")
+            raise RuntimeError(f"Upload file failed: {e}")
+
     logger.debug("Registered form tools")

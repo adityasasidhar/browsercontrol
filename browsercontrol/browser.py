@@ -7,10 +7,9 @@ Includes console, network, and error capture for developer tools.
 import logging
 import time
 from io import BytesIO
-from pathlib import Path
 
-from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 from PIL import Image as PILImage, ImageDraw, ImageFont
+from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 
 from browsercontrol.config import config
 
@@ -44,8 +43,7 @@ class BrowserManager:
     async def _ensure_browser_installed(self) -> None:
         """Ensure Chromium browser is installed, auto-install if missing."""
         import subprocess
-        import sys
-        
+
         # Check if Chromium is already installed by looking for the executable
         try:
             from playwright._impl._driver import compute_driver_executable
@@ -206,6 +204,9 @@ class BrowserManager:
                 args=args,
                 viewport={"width": config.viewport_width, "height": config.viewport_height},
             )
+
+            # Auto-attach listeners to new pages (including popups)
+            self._context.on("page", self._setup_page_listeners)
             
             # Get or create initial page
             if self._context.pages:
@@ -213,8 +214,9 @@ class BrowserManager:
             else:
                 self._page = await self._context.new_page()
             
-            # Set up event listeners
-            self._setup_page_listeners(self._page)
+            # Set up event listeners for the initial page(s)
+            for page in self._context.pages:
+                self._setup_page_listeners(page)
             
             self._started = True
             logger.info("Browser started successfully")
@@ -260,9 +262,76 @@ class BrowserManager:
     @property
     def page(self) -> Page:
         """Get the current active page."""
-        if not self._page:
+        if not self.is_started:
             raise RuntimeError("Browser not started. Call start() first.")
+        
+        # If the explicit _page reference is stale (closed), try to fallback
+        if self._page is None or self._page.is_closed():
+            pages = self._context.pages
+            if pages:
+                self._page = pages[-1]  # Default to last opened
+            else:
+                raise RuntimeError("No open pages.")
+                
         return self._page
+    
+    async def create_tab(self, url: str | None = None) -> None:
+        """Create a new tab and switch to it."""
+        if not self.is_started:
+            await self.start()
+        
+        self._page = await self._context.new_page()
+        if url:
+            await self._page.goto(url)
+
+    async def switch_to_tab(self, index: int) -> None:
+        """Switch to a specific tab index."""
+        if not self.is_started:
+            raise RuntimeError("Browser not started.")
+            
+        pages = self._context.pages
+        if 0 <= index < len(pages):
+            self._page = pages[index]
+            await self._page.bring_to_front()
+        else:
+            raise ValueError(f"Tab index {index} out of range (0-{len(pages)-1})")
+
+    async def close_tab(self, index: int) -> None:
+        """Close a specific tab index."""
+        if not self.is_started:
+            raise RuntimeError("Browser not started.")
+            
+        pages = self._context.pages
+        if 0 <= index < len(pages):
+            await pages[index].close()
+            # If we closed the active page, switch to the last available one
+            if self._page.is_closed():
+                pages = self._context.pages
+                if pages:
+                    self._page = pages[-1]
+                else:
+                    self._page = await self._context.new_page()
+        else:
+            raise ValueError(f"Tab index {index} out of range (0-{len(pages)-1})")
+
+    async def list_tabs(self) -> list[dict]:
+        """List all open tabs."""
+        if not self.is_started:
+            return []
+            
+        tabs = []
+        for i, page in enumerate(self._context.pages):
+            title = await page.title()
+            url = page.url
+            is_active = (page == self._page)
+            tabs.append({
+                "index": i,
+                "title": title,
+                "url": url,
+                "active": is_active
+            })
+        return tabs
+
     
     # Developer tools methods
     def get_console_logs(self) -> list[dict]:

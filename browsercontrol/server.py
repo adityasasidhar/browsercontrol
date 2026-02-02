@@ -18,6 +18,7 @@ from browsercontrol.tools import (
     register_content_tools,
     register_devtools,
     register_recording_tools,
+    register_tab_tools,
 )
 
 # Configure logging
@@ -55,18 +56,31 @@ Features:
 - Session Recording: Capture video traces and snapshots for debugging.
 - Persistent Session: Cookies and login state are saved automatically.
 - Smart Navigation: Auto-handles localhost/127.0.0.1 and bypasses proxies.
+- Multi-Tab Support: Create, switch, and close multiple browser tabs.
 
 Core Actions:
 - navigate_to(url)
 - click(element_id)
 - type_text(element_id, text)
 - scroll(direction, amount)
+- upload_file(element_id, file_path)
+
+Tab Management:
+- create_tab(url)
+- switch_tab(index)
+- close_tab(index)
+- list_tabs()
 
 Developer Tools:
 - get_console_logs()
 - get_network_requests()
 - get_page_errors()
 - inspect_element(id)
+- get_cookies()
+- set_cookie(name, value)
+- delete_cookie(name)
+- clear_cookies()
+- set_viewport(width, height)
 
 Session Recording:
 - start_recording()
@@ -83,6 +97,7 @@ register_form_tools(mcp)
 register_content_tools(mcp)
 register_devtools(mcp)
 register_recording_tools(mcp)
+register_tab_tools(mcp)
 
 logger.info("Browser Control MCP server initialized with all tools")
 

@@ -1,6 +1,5 @@
-"""Interaction tools for browser control."""
-
 import logging
+
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 

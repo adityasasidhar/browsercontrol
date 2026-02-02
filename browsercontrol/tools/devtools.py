@@ -1,6 +1,8 @@
 """Developer tools for browser control - console, network, errors."""
 
 import logging
+from typing import Optional
+
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
@@ -70,11 +72,12 @@ def register_devtools(mcp: FastMCP) -> None:
             raise RuntimeError(f"Get console logs failed: {e}")
     
     @mcp.tool()
-    async def get_network_requests(clear: bool = False) -> tuple[str, Image]:
+    async def get_network_requests(num_requests: Optional[int] = None, clear: bool = False) -> tuple[str, Image]:
         """
         Get captured network requests (API calls, resources, etc.).
         
         Args:
+            num_requests: Number of recent requests to return. Defaults to 30.
             clear: If True, clear the captured requests after returning them
             
         Returns:
@@ -88,8 +91,9 @@ def register_devtools(mcp: FastMCP) -> None:
             if not requests:
                 request_text = "No network requests captured."
             else:
+                num_to_show = num_requests if num_requests is not None else 30
                 request_lines = []
-                for req in requests[-30:]:  # Last 30 requests
+                for req in requests[-num_to_show:]:
                     method = req.get("method", "GET")
                     url = req.get("url", "")
                     status = req.get("status", "pending")
@@ -167,8 +171,7 @@ def register_devtools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             logger.info(f"Executing in console: {code[:100]}...")
-            
-            # Wrap in try-catch to capture errors nicely
+
             wrapped_code = f"""
             (() => {{
                 try {{
@@ -351,5 +354,117 @@ def register_devtools(mcp: FastMCP) -> None:
         except Exception as e:
             logger.error(f"Get performance failed: {e}")
             raise RuntimeError(f"Get performance failed: {e}")
-    
+
+    @mcp.tool()
+    async def get_cookies() -> tuple[str, Image]:
+        """Get all cookies for the current context."""
+        try:
+            await browser.ensure_started()
+            cookies = await browser._context.cookies()
+            
+            if not cookies:
+                return "No cookies found.", (await _get_screenshot_with_summary())[0]
+            
+            lines = ["Cookies:"]
+            for c in cookies:
+                lines.append(f"  {c['name']}={c['value'][:20]}... (domain={c['domain']})")
+                
+            image, summary = await _get_screenshot_with_summary()
+            return "\n".join(lines) + f"\n\n{summary}", image
+            
+        except Exception as e:
+            logger.error(f"Get cookies failed: {e}")
+            raise RuntimeError(f"Get cookies failed: {e}")
+
+    @mcp.tool()
+    async def set_cookie(name: str, value: str, domain: str | None = None, path: str = "/") -> tuple[str, Image]:
+        """
+        Set a cookie.
+        
+        Args:
+            name: Cookie name
+            value: Cookie value
+            domain: Cookie domain (optional, defaults to current page domain)
+            path: Cookie path (default: "/")
+        """
+        try:
+            await browser.ensure_started()
+            
+            if not domain:
+                # Try to infer domain from current URL
+                from urllib.parse import urlparse
+                current_url = browser.page.url
+                if current_url:
+                    domain = urlparse(current_url).hostname
+            
+            if not domain:
+                raise ValueError("Domain is required and could not be inferred.")
+                
+            cookie = {"name": name, "value": value, "domain": domain, "path": path}
+            await browser._context.add_cookies([cookie])
+            
+            image, summary = await _get_screenshot_with_summary()
+            return f"Cookie set: {name}={value} for {domain}\n\n{summary}", image
+            
+        except Exception as e:
+            logger.error(f"Set cookie failed: {e}")
+            raise RuntimeError(f"Set cookie failed: {e}")
+
+    @mcp.tool()
+    async def delete_cookie(name: str) -> tuple[str, Image]:
+        """
+        Delete a cookie by name.
+        Note: This deletes all cookies with this name across all domains in context.
+        """
+        try:
+            await browser.ensure_started()
+            cookies = await browser._context.cookies()
+            # Filter out the one to delete
+            new_cookies = [c for c in cookies if c["name"] != name]
+            
+            await browser._context.clear_cookies()
+            if new_cookies:
+                await browser._context.add_cookies(new_cookies)
+                
+            image, summary = await _get_screenshot_with_summary()
+            return f"Deleted cookie(s) with name: {name}\n\n{summary}", image
+            
+        except Exception as e:
+            logger.error(f"Delete cookie failed: {e}")
+            raise RuntimeError(f"Delete cookie failed: {e}")
+
+    @mcp.tool()
+    async def clear_cookies() -> tuple[str, Image]:
+        """Clear all cookies."""
+        try:
+            await browser.ensure_started()
+            await browser._context.clear_cookies()
+            
+            image, summary = await _get_screenshot_with_summary()
+            return f"All cookies cleared.\n\n{summary}", image
+            
+        except Exception as e:
+            logger.error(f"Clear cookies failed: {e}")
+            raise RuntimeError(f"Clear cookies failed: {e}")
+
+    @mcp.tool()
+    async def set_viewport(width: int, height: int) -> tuple[str, Image]:
+        """
+        Set the browser viewport size.
+        
+        Args:
+            width: Width in pixels
+            height: Height in pixels
+        """
+        try:
+            await browser.ensure_started()
+            await browser.page.set_viewport_size({"width": width, "height": height})
+            
+            image, summary = await _get_screenshot_with_summary()
+            return f"Viewport set to {width}x{height}\n\n{summary}", image
+            
+        except Exception as e:
+            logger.error(f"Set viewport failed: {e}")
+            raise RuntimeError(f"Set viewport failed: {e}")
+
     logger.debug("Registered developer tools")

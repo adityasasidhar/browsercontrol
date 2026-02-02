@@ -1,6 +1,7 @@
 """Content extraction tools for browser control."""
 
 import logging
+
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
@@ -120,7 +121,13 @@ def register_content_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             
-            if annotate and not full_page:
+            if annotate and full_page:
+                # Annotation not supported for full page, fallback to clean
+                screenshot_bytes = await browser.page.screenshot(type="png", full_page=True)
+                image = Image(data=screenshot_bytes, format="png")
+                return "Screenshot captured (clean) - Note: Annotation disabled for full-page screenshot.", image
+
+            elif annotate:
                 image, summary = await _get_screenshot_with_summary()
                 return f"Screenshot captured (annotated)\n\n{summary}", image
             else:

@@ -1,9 +1,8 @@
 """Session recording tools for browser control."""
 
 import logging
-import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
