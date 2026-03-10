@@ -184,8 +184,8 @@ class TestScrollToElement:
             tool = mcp_server._tool_manager._tools["scroll_to_element"]
             await tool.fn(element_id=1)
 
-            # Element at y=200, should scroll to y=100 (200-100)
-            mock_page.evaluate.assert_called_once_with("window.scrollTo(0, 100)")
+            # Element at y=200, should scroll relative by y-100 (200-100)
+            mock_page.evaluate.assert_called_once_with("window.scrollBy(0, 200 - 100)")
 
 
 class TestWait:

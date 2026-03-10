@@ -37,7 +37,7 @@ class BrowserManager:
 
     async def _ensure_browser_installed(self) -> None:
         """Ensure Chromium browser is installed, auto-install if missing."""
-        import subprocess
+        import asyncio
 
         # Check if Chromium is already installed by looking for the executable
         try:
@@ -46,49 +46,56 @@ class BrowserManager:
             driver_executable = compute_driver_executable()
 
             # Try to get browser path - this will fail if not installed
-            result = subprocess.run(
-                [driver_executable, "install", "--dry-run", "chromium"],
-                capture_output=True,
-                text=True,
-                timeout=10,
+            process = await asyncio.create_subprocess_exec(
+                driver_executable, "install", "--dry-run", "chromium",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
 
-            # If dry-run shows it needs installation, do it
-            if "chromium" in result.stdout.lower() or result.returncode != 0:
-                logger.info("Chromium not found, installing automatically...")
-                self._install_chromium()
-            else:
-                logger.debug("Chromium already installed")
+            try:
+                stdout, _ = await asyncio.wait_for(process.communicate(), timeout=10)
+                
+                # If dry-run shows it needs installation, do it
+                if "chromium" in stdout.decode('utf-8').lower() or process.returncode != 0:
+                    logger.info("Chromium not found, installing automatically...")
+                    await self._install_chromium()
+                else:
+                    logger.debug("Chromium already installed")
+            except asyncio.TimeoutError:
+                process.kill()
+                logger.warning("Dry-run check timed out, attempting install anyway...")
+                await self._install_chromium()
 
         except Exception as e:
             # If check fails, try to install anyway
             logger.info(f"Checking browser installation: {e}")
-            self._install_chromium()
+            await self._install_chromium()
 
-    def _install_chromium(self) -> None:
+    async def _install_chromium(self) -> None:
         """Install Chromium browser using Playwright."""
-        import subprocess
+        import asyncio
         import sys
 
         logger.info("Installing Chromium browser (one-time setup)...")
 
         try:
             # Use playwright install command
-            result = subprocess.run(
-                [sys.executable, "-m", "playwright", "install", "chromium"],
-                capture_output=True,
-                text=True,
-                timeout=300,  # 5 minutes timeout for download
+            process = await asyncio.create_subprocess_exec(
+                sys.executable, "-m", "playwright", "install", "chromium",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
+            
+            try:
+                _, stderr = await asyncio.wait_for(process.communicate(), timeout=300)
+                if process.returncode == 0:
+                    logger.info("Chromium installed successfully!")
+                else:
+                    logger.warning(f"Chromium installation output: {stderr.decode('utf-8')}")
+            except asyncio.TimeoutError:
+                process.kill()
+                logger.error("Chromium installation timed out. Please run: playwright install chromium")
 
-            if result.returncode == 0:
-                logger.info("Chromium installed successfully!")
-            else:
-                logger.warning(f"Chromium installation output: {result.stderr}")
-                # Don't fail - let Playwright try to launch and give better error
-
-        except subprocess.TimeoutExpired:
-            logger.error("Chromium installation timed out. Please run: playwright install chromium")
         except Exception as e:
             logger.error(f"Failed to install Chromium: {e}")
             logger.info("Please run manually: playwright install chromium")

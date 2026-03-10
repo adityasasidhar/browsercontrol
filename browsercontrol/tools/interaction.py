@@ -107,7 +107,9 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             elem = elem_map[element_id]
             logger.info(f"Typing into element {element_id}")
             await browser.page.mouse.click(elem["centerX"], elem["centerY"])
-            await browser.page.keyboard.press("Control+a")
+            # Clear existing text safely across OSes
+            await browser.page.evaluate("() => document.execCommand('selectAll', false, null)")
+            await browser.page.keyboard.press("Backspace")
             await browser.page.keyboard.type(text)
 
             image, summary = await _get_screenshot_with_summary()
@@ -181,7 +183,8 @@ def register_interaction_tools(mcp: FastMCP) -> None:
                 return f"Error: Element {element_id} not found.\n\n{summary}", image
 
             elem = elem_map[element_id]
-            await browser.page.evaluate(f"window.scrollTo(0, {elem['y'] - 100})")
+            # elem['y'] is viewport-relative, so we use scrollBy or calculate absolute Y
+            await browser.page.evaluate(f"window.scrollBy(0, {elem['y']} - 100)")
             await browser.page.wait_for_timeout(300)
 
             image, summary = await _get_screenshot_with_summary()
