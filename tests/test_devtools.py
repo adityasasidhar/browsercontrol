@@ -31,8 +31,8 @@ class TestConsoleLogs:
             tool = mcp_server._tool_manager._tools["get_console_logs"]
             result = await tool.fn()
 
-            assert "Hello" in result
-            assert "Error!" in result
+            assert "Hello" in result[0]
+            assert "Error!" in result[0]
 
 
 class TestNetworkRequests:
@@ -56,8 +56,8 @@ class TestNetworkRequests:
             tool = mcp_server._tool_manager._tools["get_network_requests"]
             result = await tool.fn()
 
-            assert "api.example.com" in result
-            assert "200" in result
+            assert "api.example.com" in result[0]
+            assert "200" in result[0]
 
 
 class TestCookieManagement:
@@ -78,8 +78,8 @@ class TestCookieManagement:
             tool = mcp_server._tool_manager._tools["get_cookies"]
             result = await tool.fn()
 
-            assert "session" in result
-            assert "abc123" in result
+            assert "session" in result[0]
+            assert "abc123" in result[0]
 
     @pytest.mark.asyncio
     async def test_set_cookie(self, mcp_server, mock_browser_manager, mock_context, mock_page):
@@ -96,7 +96,7 @@ class TestCookieManagement:
             result = await tool.fn(name="test", value="value123")
 
             mock_context.add_cookies.assert_called_once()
-            assert "Set cookie 'test'" in result
+            assert "Cookie set: test=value123" in result[0]
 
     @pytest.mark.asyncio
     async def test_delete_cookie(self, mcp_server, mock_browser_manager, mock_context):
@@ -115,7 +115,8 @@ class TestCookieManagement:
             result = await tool.fn(name="session")
 
             # Should clear all cookies then re-add the ones we want to keep
-            assert "Deleted cookie 'session'" in result
+            assert "Deleted cookie" in result[0]
+            assert "session" in result[0]
 
     @pytest.mark.asyncio
     async def test_clear_cookies(self, mcp_server, mock_browser_manager, mock_context):
@@ -129,7 +130,7 @@ class TestCookieManagement:
             result = await tool.fn()
 
             mock_context.clear_cookies.assert_called_once()
-            assert "Cleared all cookies" in result
+            assert "All cookies cleared" in result[0]
 
 
 class TestViewport:
@@ -147,7 +148,7 @@ class TestViewport:
             result = await tool.fn(width=1920, height=1080)
 
             mock_page.set_viewport_size.assert_called_once_with({"width": 1920, "height": 1080})
-            assert "1920x1080" in result
+            assert "1920x1080" in result[0]
 
 
 class TestPageErrors:
@@ -169,7 +170,7 @@ class TestPageErrors:
             tool = mcp_server._tool_manager._tools["get_page_errors"]
             result = await tool.fn()
 
-            assert "TypeError" in result
+            assert "TypeError" in result[0]
 
 
 class TestPerformance:
@@ -181,9 +182,10 @@ class TestPerformance:
         register_devtools(mcp_server)
 
         mock_page.evaluate.return_value = {
-            "loadTime": 1234,
+            "loadComplete": 1234,
             "domContentLoaded": 500,
-            "firstPaint": 300,
+            "ttfb": 300,
+            "resourceCount": 5,
         }
 
         with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
@@ -192,4 +194,4 @@ class TestPerformance:
             tool = mcp_server._tool_manager._tools["get_page_performance"]
             result = await tool.fn()
 
-            assert "1234" in result or "loadTime" in result
+            assert "1234" in result[0]

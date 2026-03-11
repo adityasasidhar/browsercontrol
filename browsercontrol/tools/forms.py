@@ -15,8 +15,8 @@ async def _get_screenshot_with_summary() -> tuple[Image, str]:
 
     summary_lines = [f"Found {len(elem_map)} interactive elements:"]
     for eid, elem in list(elem_map.items())[:30]:
-        desc = elem["text"][:40] if elem["text"] else elem["tag"]
-        summary_lines.append(f"  [{eid}] {elem['tag']} - {desc}")
+        desc = elem.get("text", "")[:40] if elem.get("text") else elem.get("tag", "unknown")
+        summary_lines.append(f"  [{eid}] {elem.get('tag', 'unknown')} - {desc}")
 
     if len(elem_map) > 30:
         summary_lines.append(f"  ... and {len(elem_map) - 30} more")

@@ -25,15 +25,15 @@ class TestGetPageContent:
         mock_page.content.return_value = "<html><body><h1>Test</h1><p>Content</p></body></html>"
 
         with patch("browsercontrol.tools.content.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.content.markdownify") as mock_md:
+            with patch("markdownify.markdownify") as mock_md:
                 mock_md.return_value = "# Test\n\nContent"
                 mock_browser_manager.page = mock_page
 
                 tool = mcp_server._tool_manager._tools["get_page_content"]
                 result = await tool.fn()
 
-                assert "# Test" in result
-                assert "Content" in result
+                assert "# Test" in result[0]
+                assert "Content" in result[0]
 
 
 class TestGetText:
@@ -55,7 +55,7 @@ class TestGetText:
             tool = mcp_server._tool_manager._tools["get_text"]
             result = await tool.fn(element_id=1)
 
-            assert "Sign In" in result
+            assert "Sign In" in result[0]
 
 
 class TestGetPageInfo:
@@ -75,8 +75,8 @@ class TestGetPageInfo:
             tool = mcp_server._tool_manager._tools["get_page_info"]
             result = await tool.fn()
 
-            assert "https://example.com" in result
-            assert "Example Page" in result
+            assert "https://example.com" in result[0]
+            assert "Example Page" in result[0]
 
 
 class TestRunJavaScript:

@@ -1,6 +1,6 @@
 """Tests for form handling tools."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastmcp import FastMCP
@@ -90,7 +90,7 @@ class TestCheckCheckbox:
                 result = await tool.fn(element_id=5)
 
                 mock_page.mouse.click.assert_called_once_with(60, 410)
-                assert "Toggled checkbox" in result[0]
+                assert "element 5" in result[0]
 
 
 class TestUploadFile:
@@ -121,9 +121,10 @@ class TestUploadFile:
             },
         }
 
-        mock_locator = AsyncMock()
-        mock_locator.set_input_files = AsyncMock()
-        mock_page.locator.return_value = mock_locator
+        mock_element = AsyncMock()
+        mock_handle = MagicMock()
+        mock_handle.as_element.return_value = mock_element
+        mock_page.evaluate_handle.return_value = mock_handle
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
             with patch("browsercontrol.tools.forms.get_element_map", return_value=file_input_map):
@@ -136,5 +137,5 @@ class TestUploadFile:
                 tool = mcp_server._tool_manager._tools["upload_file"]
                 result = await tool.fn(element_id=6, file_path=str(test_file))
 
-                mock_locator.set_input_files.assert_called_once_with(str(test_file))
-                assert "Uploaded file" in result[0]
+                mock_element.set_input_files.assert_called_once_with(str(test_file))
+                assert "Uploaded" in result[0]

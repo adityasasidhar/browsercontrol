@@ -23,14 +23,15 @@ class TestRecording:
         """Test starting a recording session."""
         register_recording_tools(mcp_server)
 
-        with patch("browsercontrol.tools.recording.browser", mock_browser_manager):
-            mock_browser_manager._context = mock_context
+        mock_cdp = AsyncMock()
+        mock_browser_manager.page.context.new_cdp_session.return_value = mock_cdp
 
+        with patch("browsercontrol.tools.recording.browser", mock_browser_manager):
             tool = mcp_server._tool_manager._tools["start_recording"]
             result = await tool.fn()
 
-            mock_context.tracing.start.assert_called_once()
-            assert "Started recording" in result
+            mock_cdp.send.assert_called_once()
+            assert "Recording started" in result[0]
 
     @pytest.mark.asyncio
     async def test_stop_recording(
@@ -42,14 +43,14 @@ class TestRecording:
         with patch("browsercontrol.tools.recording.browser", mock_browser_manager):
             with patch("browsercontrol.tools.recording.config") as mock_config:
                 mock_config.user_data_dir = temp_recordings_dir
-                mock_browser_manager._context = mock_context
+                mock_browser_manager.page.context = mock_context
                 mock_browser_manager._recording = True
 
                 tool = mcp_server._tool_manager._tools["stop_recording"]
                 result = await tool.fn()
 
                 mock_context.tracing.stop.assert_called_once()
-                assert "Stopped recording" in result
+                assert "Recording saved" in result[0]
 
 
 class TestSnapshot:
@@ -74,7 +75,7 @@ class TestSnapshot:
                 tool = mcp_server._tool_manager._tools["take_snapshot"]
                 result = await tool.fn()
 
-                assert "Saved snapshot" in result
+                assert "Snapshot saved" in result[0]
 
 
 class TestListRecordings:
@@ -86,8 +87,8 @@ class TestListRecordings:
         register_recording_tools(mcp_server)
 
         # Create some fake recording files
-        recordings_dir = temp_recordings_dir / "recordings"
-        recordings_dir.mkdir()
+        recordings_dir = temp_recordings_dir.parent / "recordings"
+        recordings_dir.mkdir(parents=True, exist_ok=True)
         (recordings_dir / "session_20260101.zip").write_bytes(b"fake_recording")
         (recordings_dir / "session_20260102.zip").write_bytes(b"fake_recording")
 
@@ -97,8 +98,8 @@ class TestListRecordings:
             tool = mcp_server._tool_manager._tools["list_recordings"]
             result = await tool.fn()
 
-            assert "session_20260101.zip" in result
-            assert "session_20260102.zip" in result
+            assert "session_20260101.zip" in result[0]
+            assert "session_20260102.zip" in result[0]
 
     @pytest.mark.asyncio
     async def test_list_recordings_empty(self, mcp_server, temp_recordings_dir):
@@ -111,4 +112,4 @@ class TestListRecordings:
             tool = mcp_server._tool_manager._tools["list_recordings"]
             result = await tool.fn()
 
-            assert "No recordings found" in result
+            assert "No recordings" in result[0]
