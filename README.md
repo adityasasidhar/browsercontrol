@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/logo.png" alt="BrowserControl" width="140">
+  <img src="assets/logo-main.png" alt="BrowserControl" width="140">
 </p>
 
 <h1 align="center">BrowserControl</h1>
