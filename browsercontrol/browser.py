@@ -47,21 +47,24 @@ class BrowserManager:
 
             # Try to get browser path - this will fail if not installed
             process = await asyncio.create_subprocess_exec(
-                driver_executable, "install", "--dry-run", "chromium",
+                driver_executable,
+                "install",
+                "--dry-run",
+                "chromium",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             try:
                 stdout, _ = await asyncio.wait_for(process.communicate(), timeout=10)
-                
+
                 # If dry-run shows it needs installation, do it
-                if "chromium" in stdout.decode('utf-8').lower() or process.returncode != 0:
+                if "chromium" in stdout.decode("utf-8").lower() or process.returncode != 0:
                     logger.info("Chromium not found, installing automatically...")
                     await self._install_chromium()
                 else:
                     logger.debug("Chromium already installed")
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
                 logger.warning("Dry-run check timed out, attempting install anyway...")
                 await self._install_chromium()
@@ -81,20 +84,26 @@ class BrowserManager:
         try:
             # Use playwright install command
             process = await asyncio.create_subprocess_exec(
-                sys.executable, "-m", "playwright", "install", "chromium",
+                sys.executable,
+                "-m",
+                "playwright",
+                "install",
+                "chromium",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
-            
+
             try:
                 _, stderr = await asyncio.wait_for(process.communicate(), timeout=300)
                 if process.returncode == 0:
                     logger.info("Chromium installed successfully!")
                 else:
                     logger.warning(f"Chromium installation output: {stderr.decode('utf-8')}")
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
-                logger.error("Chromium installation timed out. Please run: playwright install chromium")
+                logger.error(
+                    "Chromium installation timed out. Please run: playwright install chromium"
+                )
 
         except Exception as e:
             logger.error(f"Failed to install Chromium: {e}")

@@ -215,7 +215,7 @@ class TestElementMapping:
                 "width": 80,
                 "height": 40,
                 "centerX": 140,
-                "centerY": 220
+                "centerY": 220,
             }
         ]
 
