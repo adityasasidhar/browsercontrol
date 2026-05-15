@@ -11,3 +11,5 @@ dist/
 
 # Virtual environments
 .venv/
+.ruff_cache/
+.pytest_cache/
