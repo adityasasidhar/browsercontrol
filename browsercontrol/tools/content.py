@@ -48,7 +48,7 @@ def register_content_tools(mcp: FastMCP) -> None:
             raise RuntimeError(f"Get page content failed: {e}")
 
     @mcp.tool()
-    async def get_text(element_id: int) -> tuple[str, Image]:
+    async def get_text(element_id: int) -> str:
         """
         Get the text content of an element by its ID.
 
@@ -60,29 +60,26 @@ def register_content_tools(mcp: FastMCP) -> None:
             elem_map = get_element_map()
 
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
-                return f"Error: Element {element_id} not found.\n\n{summary}", image
+                return f"Error: Element {element_id} not found."
 
             elem = elem_map[element_id]
             text = elem.get("text", "")
 
-            image, summary = await _get_screenshot_with_summary()
-            return f"Element {element_id} text: {text}\n\n{summary}", image
+            return f"Element {element_id} text: {text}"
 
         except Exception as e:
             logger.error(f"Get text failed: {e}")
             raise RuntimeError(f"Get text failed: {e}")
 
     @mcp.tool()
-    async def get_page_info() -> tuple[str, Image]:
+    async def get_page_info() -> str:
         """Get current page URL and title."""
         try:
             await browser.ensure_started()
             url = browser.page.url
             title = await browser.page.title()
 
-            image, summary = await _get_screenshot_with_summary()
-            return f"Title: {title}\nURL: {url}\n\n{summary}", image
+            return f"Title: {title}\nURL: {url}"
 
         except Exception as e:
             logger.error(f"Get page info failed: {e}")

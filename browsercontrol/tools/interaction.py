@@ -1,3 +1,4 @@
+import contextlib
 import logging
 
 from fastmcp import FastMCP
@@ -50,8 +51,17 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             logger.info(
                 f"Clicking element {element_id}: {elem['tag']} - {elem.get('text', '')[:30]}"
             )
-            await browser.page.mouse.click(elem["centerX"], elem["centerY"])
-            await browser.page.wait_for_timeout(500)
+            handle = await browser.page.evaluate_handle(
+                f"document.elementFromPoint({elem['centerX']}, {elem['centerY']})"
+            )
+            element = handle.as_element()
+            if element:
+                await element.scroll_into_view_if_needed()
+                await element.click()
+            else:
+                await browser.page.mouse.click(elem["centerX"], elem["centerY"])  # fallback
+            with contextlib.suppress(Exception):
+                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
 
             image, summary = await _get_screenshot_with_summary()
             return (
@@ -80,7 +90,8 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             logger.info(f"Clicking at ({x}, {y})")
             await browser.page.mouse.click(x, y)
-            await browser.page.wait_for_timeout(500)
+            with contextlib.suppress(Exception):
+                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
             image, summary = await _get_screenshot_with_summary()
             return f"Clicked at ({x}, {y})\n\n{summary}", image
         except Exception as e:
@@ -106,11 +117,17 @@ def register_interaction_tools(mcp: FastMCP) -> None:
 
             elem = elem_map[element_id]
             logger.info(f"Typing into element {element_id}")
-            await browser.page.mouse.click(elem["centerX"], elem["centerY"])
-            # Clear existing text safely across OSes
-            await browser.page.evaluate("() => document.execCommand('selectAll', false, null)")
-            await browser.page.keyboard.press("Backspace")
-            await browser.page.keyboard.type(text)
+            handle = await browser.page.evaluate_handle(
+                f"document.elementFromPoint({elem['centerX']}, {elem['centerY']})"
+            )
+            element = handle.as_element()
+            if element:
+                await element.scroll_into_view_if_needed()
+                await element.fill(text)
+            else:
+                # fallback: mouse-click + keyboard.type
+                await browser.page.mouse.click(elem["centerX"], elem["centerY"])
+                await browser.page.keyboard.type(text)
 
             image, summary = await _get_screenshot_with_summary()
             return f"Typed '{text}' into element {element_id}\n\n{summary}", image
@@ -131,7 +148,8 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             logger.info(f"Pressing key: {key}")
             await browser.page.keyboard.press(key)
-            await browser.page.wait_for_timeout(300)
+            with contextlib.suppress(Exception):
+                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
             image, summary = await _get_screenshot_with_summary()
             return f"Pressed key '{key}'\n\n{summary}", image
         except Exception as e:

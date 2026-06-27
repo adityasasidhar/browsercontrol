@@ -29,7 +29,7 @@ class TestGetPageContent:
                 mock_md.return_value = "# Test\n\nContent"
                 mock_browser_manager.page = mock_page
 
-                tool = mcp_server._tool_manager._tools["get_page_content"]
+                tool = await mcp_server.get_tool("get_page_content")
                 result = await tool.fn()
 
                 assert "# Test" in result[0]
@@ -52,10 +52,10 @@ class TestGetText:
         ):
             mock_browser_manager.page = mock_page
 
-            tool = mcp_server._tool_manager._tools["get_text"]
+            tool = await mcp_server.get_tool("get_text")
             result = await tool.fn(element_id=1)
 
-            assert "Sign In" in result[0]
+            assert "Sign In" in result
 
 
 class TestGetPageInfo:
@@ -72,11 +72,11 @@ class TestGetPageInfo:
         with patch("browsercontrol.tools.content.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
 
-            tool = mcp_server._tool_manager._tools["get_page_info"]
+            tool = await mcp_server.get_tool("get_page_info")
             result = await tool.fn()
 
-            assert "https://example.com" in result[0]
-            assert "Example Page" in result[0]
+            assert "https://example.com" in result
+            assert "Example Page" in result
 
 
 class TestRunJavaScript:
@@ -92,7 +92,7 @@ class TestRunJavaScript:
         with patch("browsercontrol.tools.content.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
 
-            tool = mcp_server._tool_manager._tools["run_javascript"]
+            tool = await mcp_server.get_tool("run_javascript")
             result = await tool.fn(script="return 1 + 1")
 
             mock_page.evaluate.assert_called_once_with("return 1 + 1")
@@ -113,7 +113,7 @@ class TestScreenshot:
                 {1: {"tag": "button"}},
             )
 
-            tool = mcp_server._tool_manager._tools["screenshot"]
+            tool = await mcp_server.get_tool("screenshot")
             result = await tool.fn(annotate=True)
 
             mock_browser_manager.screenshot_with_som.assert_called_once()
@@ -129,7 +129,7 @@ class TestScreenshot:
         with patch("browsercontrol.tools.content.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
 
-            tool = mcp_server._tool_manager._tools["screenshot"]
+            tool = await mcp_server.get_tool("screenshot")
             await tool.fn(annotate=False)
 
             mock_page.screenshot.assert_called_once()

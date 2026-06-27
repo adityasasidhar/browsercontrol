@@ -1,6 +1,6 @@
 """Tests for interaction tools."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastmcp import FastMCP
@@ -24,6 +24,12 @@ class TestClick:
         """Test clicking a valid element by ID."""
         register_interaction_tools(mcp_server)
 
+        element = AsyncMock()
+        handle = MagicMock()
+        handle.as_element = MagicMock(return_value=element)
+        mock_page.evaluate_handle = AsyncMock(return_value=handle)
+        mock_page.wait_for_load_state = AsyncMock()
+
         with (
             patch("browsercontrol.tools.interaction.browser", mock_browser_manager),
             patch(
@@ -36,10 +42,11 @@ class TestClick:
                 sample_element_map,
             )
 
-            tool = mcp_server._tool_manager._tools["click"]
+            tool = await mcp_server.get_tool("click")
             result = await tool.fn(element_id=1)
 
-            mock_page.mouse.click.assert_called_once_with(140, 220)
+            element.scroll_into_view_if_needed.assert_called()
+            element.click.assert_called()
             assert "Clicked element 1" in result[0]
 
     @pytest.mark.asyncio
@@ -61,7 +68,7 @@ class TestClick:
                 sample_element_map,
             )
 
-            tool = mcp_server._tool_manager._tools["click"]
+            tool = await mcp_server.get_tool("click")
             result = await tool.fn(element_id=999)
 
             assert "Error: Element 999 not found" in result[0]
@@ -75,7 +82,7 @@ class TestClick:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["click_at"]
+            tool = await mcp_server.get_tool("click_at")
             result = await tool.fn(x=100, y=200)
 
             mock_page.mouse.click.assert_called_once_with(100, 200)
@@ -92,6 +99,11 @@ class TestTypeText:
         """Test typing text into an input element."""
         register_interaction_tools(mcp_server)
 
+        element = AsyncMock()
+        handle = MagicMock()
+        handle.as_element = MagicMock(return_value=element)
+        mock_page.evaluate_handle = AsyncMock(return_value=handle)
+
         with (
             patch("browsercontrol.tools.interaction.browser", mock_browser_manager),
             patch(
@@ -104,10 +116,11 @@ class TestTypeText:
                 sample_element_map,
             )
 
-            tool = mcp_server._tool_manager._tools["type_text"]
+            tool = await mcp_server.get_tool("type_text")
             result = await tool.fn(element_id=2, text="Hello World")
 
-            mock_page.keyboard.type.assert_called_once_with("Hello World")
+            element.scroll_into_view_if_needed.assert_called()
+            element.fill.assert_called_with("Hello World")
             assert "Typed 'Hello World'" in result[0]
 
 
@@ -123,7 +136,7 @@ class TestKeyboard:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["press_key"]
+            tool = await mcp_server.get_tool("press_key")
             result = await tool.fn(key="Enter")
 
             mock_page.keyboard.press.assert_called_once_with("Enter")
@@ -152,7 +165,7 @@ class TestHover:
                 sample_element_map,
             )
 
-            tool = mcp_server._tool_manager._tools["hover"]
+            tool = await mcp_server.get_tool("hover")
             result = await tool.fn(element_id=3)
 
             mock_page.mouse.move.assert_called_once_with(330, 60)
@@ -181,7 +194,7 @@ class TestScrollToElement:
                 sample_element_map,
             )
 
-            tool = mcp_server._tool_manager._tools["scroll_to_element"]
+            tool = await mcp_server.get_tool("scroll_to_element")
             await tool.fn(element_id=1)
 
             # Element at y=200, should scroll relative by y-100 (200-100)
@@ -200,7 +213,7 @@ class TestWait:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["wait"]
+            tool = await mcp_server.get_tool("wait")
             result = await tool.fn()
 
             mock_page.wait_for_timeout.assert_called_once_with(1000)
@@ -215,7 +228,7 @@ class TestWait:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["wait"]
+            tool = await mcp_server.get_tool("wait")
             result = await tool.fn(seconds=2.5)
 
             mock_page.wait_for_timeout.assert_called_once_with(2500)

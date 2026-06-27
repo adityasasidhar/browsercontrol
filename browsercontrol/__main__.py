@@ -10,7 +10,7 @@ Usage:
 from browsercontrol.server import mcp
 
 
-def main():
+def main() -> None:
     """Run the MCP server."""
     mcp.run()
 

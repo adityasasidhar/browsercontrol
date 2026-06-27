@@ -12,7 +12,7 @@ class TestBrowserLifecycle:
 
     @pytest.mark.asyncio
     async def test_browser_starts_successfully(self, mock_playwright, mock_context, mock_page):
-        """Test that browser starts and creates context."""
+        """Test that browser starts and creates context when Chromium is present."""
         mock_playwright.chromium.launch_persistent_context.return_value = mock_context
         mock_context.pages = [mock_page]
 
@@ -54,6 +54,74 @@ class TestBrowserLifecycle:
 
         await browser_mgr.ensure_started()
         browser_mgr.start.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_browser_installs_chromium_if_missing(
+        self, mock_playwright, mock_context, mock_page
+    ):
+        """Test install-on-failure: Chromium is installed then launch is retried."""
+        missing_exc = Exception("Executable doesn't exist at /path/to/chromium")
+        # First launch raises a missing-executable error; second succeeds.
+        mock_playwright.chromium.launch_persistent_context.side_effect = [
+            missing_exc,
+            mock_context,
+        ]
+        mock_context.pages = [mock_page]
+
+        with patch("browsercontrol.browser.async_playwright") as pw_patch:
+            mock_playwright_instance = AsyncMock()
+            mock_playwright_instance.start = AsyncMock(return_value=mock_playwright)
+            pw_patch.return_value = mock_playwright_instance
+
+            browser_mgr = BrowserManager()
+            browser_mgr._install_chromium = AsyncMock()
+            await browser_mgr.start()
+
+            browser_mgr._install_chromium.assert_called_once()
+            assert browser_mgr.is_started
+            assert mock_playwright.chromium.launch_persistent_context.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_browser_raises_if_still_missing_after_install(
+        self, mock_playwright, mock_context, mock_page
+    ):
+        """Test that the error propagates when launch still fails after install."""
+        missing_exc = Exception("Executable doesn't exist at /path/to/chromium")
+        mock_playwright.chromium.launch_persistent_context.side_effect = [
+            missing_exc,
+            missing_exc,
+        ]
+
+        with patch("browsercontrol.browser.async_playwright") as pw_patch:
+            mock_playwright_instance = AsyncMock()
+            mock_playwright_instance.start = AsyncMock(return_value=mock_playwright)
+            pw_patch.return_value = mock_playwright_instance
+
+            browser_mgr = BrowserManager()
+            browser_mgr._install_chromium = AsyncMock()
+            with pytest.raises(Exception, match="Executable doesn't exist"):
+                await browser_mgr.start()
+
+    @pytest.mark.asyncio
+    async def test_non_missing_browser_error_does_not_install(
+        self, mock_playwright, mock_context, mock_page
+    ):
+        """Test that unrelated launch errors are not treated as missing-browser errors."""
+        other_exc = Exception("Permission denied: /some/path")
+        mock_playwright.chromium.launch_persistent_context.side_effect = other_exc
+
+        with patch("browsercontrol.browser.async_playwright") as pw_patch:
+            mock_playwright_instance = AsyncMock()
+            mock_playwright_instance.start = AsyncMock(return_value=mock_playwright)
+            pw_patch.return_value = mock_playwright_instance
+
+            browser_mgr = BrowserManager()
+            browser_mgr._install_chromium = AsyncMock()
+            with pytest.raises(Exception, match="Permission denied"):
+                await browser_mgr.start()
+
+            # _install_chromium must NOT have been called for a non-missing error
+            browser_mgr._install_chromium.assert_not_called()
 
 
 class TestTabManagement:
@@ -198,6 +266,46 @@ class TestDevToolsCapture:
         errors = browser_mgr.get_page_errors()
         assert len(errors) == 1
         assert "TypeError" in errors[0]["message"]
+
+    def test_request_map_keyed_by_request_object(self):
+        """Test that _request_map uses request object identity, not URL strings."""
+        browser_mgr = BrowserManager()
+
+        # Two distinct objects with the same URL must be tracked separately
+        req_a = MagicMock()
+        req_a.url = "https://api.example.com/data"
+        req_a.method = "GET"
+        req_a.resource_type = "xhr"
+
+        req_b = MagicMock()
+        req_b.url = "https://api.example.com/data"  # same URL
+        req_b.method = "GET"
+        req_b.resource_type = "xhr"
+
+        browser_mgr._request_map[req_a] = {"url": req_a.url, "status": "pending"}
+        browser_mgr._request_map[req_b] = {"url": req_b.url, "status": "pending"}
+
+        # Both must exist as separate entries (no URL collision)
+        assert len(browser_mgr._request_map) == 2
+        assert req_a in browser_mgr._request_map
+        assert req_b in browser_mgr._request_map
+
+        # Removing one must leave the other
+        del browser_mgr._request_map[req_a]
+        assert len(browser_mgr._request_map) == 1
+        assert req_b in browser_mgr._request_map
+
+    def test_clear_network_requests_also_clears_request_map(self):
+        """Test that clear_network_requests clears the in-flight map too."""
+        browser_mgr = BrowserManager()
+        req = MagicMock()
+        browser_mgr._request_map[req] = {"url": "https://example.com", "status": "pending"}
+        browser_mgr._network_requests = [{"url": "https://example.com", "status": 200}]
+
+        browser_mgr.clear_network_requests()
+
+        assert len(browser_mgr._network_requests) == 0
+        assert len(browser_mgr._request_map) == 0
 
 
 class TestElementMapping:

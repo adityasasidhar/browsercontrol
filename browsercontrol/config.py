@@ -39,11 +39,13 @@ class Config:
             config.timeout_ms = int(os.getenv("BROWSER_TIMEOUT", "30000"))
 
         # Paths
-        if os.getenv("BROWSER_USER_DATA_DIR"):
-            config.user_data_dir = Path(os.getenv("BROWSER_USER_DATA_DIR"))
+        user_data_dir = os.getenv("BROWSER_USER_DATA_DIR")
+        if user_data_dir:
+            config.user_data_dir = Path(user_data_dir)
 
-        if os.getenv("BROWSER_EXTENSION_PATH"):
-            config.extension_path = Path(os.getenv("BROWSER_EXTENSION_PATH"))
+        extension_path = os.getenv("BROWSER_EXTENSION_PATH")
+        if extension_path:
+            config.extension_path = Path(extension_path)
 
         # Logging
         config.log_level = os.getenv("LOG_LEVEL", "INFO")

@@ -43,12 +43,17 @@ class TestSelectOption:
         mock_locator.select_option = AsyncMock()
         mock_page.locator.return_value = mock_locator
 
+        element = AsyncMock()
+        handle = MagicMock()
+        handle.as_element = MagicMock(return_value=element)
+        mock_page.evaluate_handle = AsyncMock(return_value=handle)
+
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
             with patch("browsercontrol.tools.forms.get_element_map", return_value=select_map):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", select_map)
 
-                tool = mcp_server._tool_manager._tools["select_option"]
+                tool = await mcp_server.get_tool("select_option")
                 result = await tool.fn(element_id=4, option="Option 1")
 
                 assert "Selected 'Option 1'" in result[0]
@@ -78,6 +83,11 @@ class TestCheckCheckbox:
             },
         }
 
+        element = AsyncMock()
+        handle = MagicMock()
+        handle.as_element = MagicMock(return_value=element)
+        mock_page.evaluate_handle = AsyncMock(return_value=handle)
+
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
             with patch("browsercontrol.tools.forms.get_element_map", return_value=checkbox_map):
                 mock_browser_manager.page = mock_page
@@ -86,10 +96,10 @@ class TestCheckCheckbox:
                     checkbox_map,
                 )
 
-                tool = mcp_server._tool_manager._tools["check_checkbox"]
+                tool = await mcp_server.get_tool("check_checkbox")
                 result = await tool.fn(element_id=5)
 
-                mock_page.mouse.click.assert_called_once_with(60, 410)
+                element.click.assert_awaited_once()
                 assert "element 5" in result[0]
 
 
@@ -134,7 +144,7 @@ class TestUploadFile:
                     file_input_map,
                 )
 
-                tool = mcp_server._tool_manager._tools["upload_file"]
+                tool = await mcp_server.get_tool("upload_file")
                 result = await tool.fn(element_id=6, file_path=str(test_file))
 
                 mock_element.set_input_files.assert_called_once_with(str(test_file))

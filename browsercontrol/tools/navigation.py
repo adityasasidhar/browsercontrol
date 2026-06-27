@@ -1,3 +1,4 @@
+import contextlib
 import logging
 
 from fastmcp import FastMCP
@@ -59,7 +60,8 @@ def register_navigation_tools(mcp: FastMCP) -> None:
                 else:
                     raise e
 
-            await browser.page.wait_for_timeout(500)
+            with contextlib.suppress(Exception):
+                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
             image, summary = await _get_screenshot_with_summary()
             return f"Navigated to {url}\n\n{summary}", image
         except Exception as e:
@@ -76,7 +78,8 @@ def register_navigation_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             await browser.page.go_back(timeout=config.timeout_ms)
-            await browser.page.wait_for_timeout(500)
+            with contextlib.suppress(Exception):
+                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
             image, summary = await _get_screenshot_with_summary()
             return f"Navigated back\n\n{summary}", image
         except Exception as e:
@@ -90,7 +93,8 @@ def register_navigation_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             await browser.page.go_forward(timeout=config.timeout_ms)
-            await browser.page.wait_for_timeout(500)
+            with contextlib.suppress(Exception):
+                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
             image, summary = await _get_screenshot_with_summary()
             return f"Navigated forward\n\n{summary}", image
         except Exception as e:
@@ -104,7 +108,8 @@ def register_navigation_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             await browser.page.reload(timeout=config.timeout_ms)
-            await browser.page.wait_for_timeout(500)
+            with contextlib.suppress(Exception):
+                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
             image, summary = await _get_screenshot_with_summary()
             return f"Page refreshed\n\n{summary}", image
         except Exception as e:

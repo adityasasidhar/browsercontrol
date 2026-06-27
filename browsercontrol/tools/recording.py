@@ -3,7 +3,6 @@ from datetime import datetime
 from pathlib import Path
 
 from fastmcp import FastMCP
-from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.config import config
@@ -19,123 +18,69 @@ def register_recording_tools(mcp: FastMCP) -> None:
     """Register session recording tools with the MCP server."""
 
     @mcp.tool()
-    async def start_recording(name: str = "") -> tuple[str, Image]:
+    async def start_recording(name: str = "") -> str:
         """
-        Start recording the browser session as a video.
-        The video will be saved when stop_recording is called.
+        Start recording the browser session as a Playwright trace.
+        The trace will be saved when stop_recording is called.
 
         Args:
             name: Optional name for the recording (default: timestamp)
 
         Returns:
-            Status message and screenshot
+            Status message
         """
         global _recording_path, _recording_active
 
-        try:
-            await browser.ensure_started()
+        await browser.ensure_started()
 
-            if _recording_active:
-                screenshot_bytes, _elem_map = await browser.screenshot_with_som()
-                image = Image(data=screenshot_bytes, format="png")
-                return "Recording already in progress. Call stop_recording() first.", image
+        if _recording_active:
+            return "Recording already in progress. Call stop_recording() first."
 
-            # Create recordings directory
-            recordings_dir = config.user_data_dir.parent / "recordings"
-            recordings_dir.mkdir(parents=True, exist_ok=True)
+        # Create recordings directory
+        recordings_dir = config.user_data_dir.parent / "recordings"
+        recordings_dir.mkdir(parents=True, exist_ok=True)
 
-            # Generate filename
-            if not name:
-                name = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Generate filename
+        if not name:
+            name = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-            _recording_path = recordings_dir / f"{name}.webm"
+        _recording_path = recordings_dir / f"{name}.zip"
 
-            # Start video recording via CDP
-            cdp = await browser.page.context.new_cdp_session(browser.page)
-            await cdp.send(
-                "Page.startScreencast", {"format": "png", "quality": 80, "everyNthFrame": 2}
-            )
+        # Start tracing on the context
+        await browser.page.context.tracing.start(screenshots=True, snapshots=True, sources=True)
 
-            _recording_active = True
-            logger.info(f"Started recording: {_recording_path}")
+        _recording_active = True
+        logger.info(f"Started recording: {_recording_path}")
 
-            screenshot_bytes, _elem_map = await browser.screenshot_with_som()
-            image = Image(data=screenshot_bytes, format="png")
-            return (
-                f"Recording started: {_recording_path.name}\n\nCall stop_recording() when done.",
-                image,
-            )
-
-        except Exception as e:
-            logger.error(f"Start recording failed: {e}")
-            # Fallback: use Playwright's built-in tracing
-            try:
-                await browser.page.context.tracing.start(screenshots=True, snapshots=True)
-                _recording_active = True
-
-                screenshot_bytes, _elem_map = await browser.screenshot_with_som()
-                image = Image(data=screenshot_bytes, format="png")
-                return (
-                    "Recording started (trace mode)\n\nCall stop_recording() when done.",
-                    image,
-                )
-            except Exception as e2:
-                raise RuntimeError(f"Failed to start recording: {e2}")
+        return f"Recording started: {_recording_path.name}\nCall stop_recording() when done."
 
     @mcp.tool()
-    async def stop_recording() -> tuple[str, Image]:
+    async def stop_recording() -> str:
         """
-        Stop recording and save the session.
+        Stop recording and save the session trace.
 
         Returns:
-            Path to saved recording and screenshot
+            Path to saved recording
         """
         global _recording_path, _recording_active
 
-        try:
-            await browser.ensure_started()
+        await browser.ensure_started()
 
-            if not _recording_active:
-                screenshot_bytes, _elem_map = await browser.screenshot_with_som()
-                image = Image(data=screenshot_bytes, format="png")
-                return "No recording in progress. Call start_recording() first.", image
+        if not _recording_active:
+            return "No recording in progress. Call start_recording() first."
 
-            # Stop tracing and save
-            recordings_dir = config.user_data_dir.parent / "recordings"
-            recordings_dir.mkdir(parents=True, exist_ok=True)
+        await browser.page.context.tracing.stop(path=str(_recording_path))
+        result_path = _recording_path
 
-            if _recording_path is None:
-                _recording_path = (
-                    recordings_dir / f"recording_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
-                )
+        _recording_active = False
+        _recording_path = None
 
-            trace_path = _recording_path.with_suffix(".zip")
+        logger.info(f"Recording saved: {result_path}")
 
-            try:
-                await browser.page.context.tracing.stop(path=str(trace_path))
-                logger.info(f"Recording saved: {trace_path}")
-                result_path = trace_path
-            except Exception:
-                # If tracing wasn't active, just note it
-                result_path = _recording_path
-
-            _recording_active = False
-            _recording_path = None
-
-            screenshot_bytes, _elem_map = await browser.screenshot_with_som()
-            image = Image(data=screenshot_bytes, format="png")
-            return (
-                f"⏹️ Recording saved: {result_path}\n\nView with: npx playwright show-trace {result_path}",
-                image,
-            )
-
-        except Exception as e:
-            _recording_active = False
-            logger.error(f"Stop recording failed: {e}")
-            raise RuntimeError(f"Failed to stop recording: {e}")
+        return f"Recording saved: {result_path}\nView with: npx playwright show-trace {result_path}"
 
     @mcp.tool()
-    async def take_snapshot(name: str = "") -> tuple[str, Image]:
+    async def take_snapshot(name: str = "") -> str:
         """
         Take a named snapshot (screenshot + HTML) for later reference.
 
@@ -143,7 +88,7 @@ def register_recording_tools(mcp: FastMCP) -> None:
             name: Optional name for the snapshot (default: timestamp)
 
         Returns:
-            Path to saved snapshot and screenshot
+            Paths to saved snapshot files
         """
         try:
             await browser.ensure_started()
@@ -171,11 +116,11 @@ def register_recording_tools(mcp: FastMCP) -> None:
 
             logger.info(f"Snapshot saved: {screenshot_path}")
 
-            screenshot_bytes, _elem_map = await browser.screenshot_with_som()
-            image = Image(data=screenshot_bytes, format="png")
             return (
-                f"📸 Snapshot saved:\n  - {screenshot_path.name}\n  - {html_path.name}\n  - {url_path.name}",
-                image,
+                f"Snapshot saved:\n"
+                f"  - {screenshot_path.name}\n"
+                f"  - {html_path.name}\n"
+                f"  - {url_path.name}"
             )
 
         except Exception as e:
@@ -183,48 +128,39 @@ def register_recording_tools(mcp: FastMCP) -> None:
             raise RuntimeError(f"Failed to take snapshot: {e}")
 
     @mcp.tool()
-    async def list_recordings() -> tuple[str, Image]:
+    async def list_recordings() -> str:
         """
         List all saved recordings and snapshots.
 
         Returns:
-            List of recordings and screenshot
+            List of recordings
         """
-        try:
-            await browser.ensure_started()
+        base_dir = config.user_data_dir.parent
+        recordings_dir = base_dir / "recordings"
+        snapshots_dir = base_dir / "snapshots"
 
-            base_dir = config.user_data_dir.parent
-            recordings_dir = base_dir / "recordings"
-            snapshots_dir = base_dir / "snapshots"
+        lines = ["Saved Sessions:\n"]
 
-            lines = ["📁 Saved Sessions:\n"]
+        # List recordings
+        if recordings_dir.exists():
+            recordings = list(recordings_dir.glob("*"))
+            if recordings:
+                lines.append("Recordings:")
+                for r in sorted(recordings)[-10:]:  # Last 10
+                    size = r.stat().st_size // 1024
+                    lines.append(f"  {r.name} ({size}KB)")
 
-            # List recordings
-            if recordings_dir.exists():
-                recordings = list(recordings_dir.glob("*"))
-                if recordings:
-                    lines.append("Recordings:")
-                    for r in sorted(recordings)[-10:]:  # Last 10
-                        size = r.stat().st_size // 1024
-                        lines.append(f"  📹 {r.name} ({size}KB)")
+        # List snapshots
+        if snapshots_dir.exists():
+            snapshots = list(snapshots_dir.glob("*.png"))
+            if snapshots:
+                lines.append("\nSnapshots:")
+                for s in sorted(snapshots)[-10:]:  # Last 10
+                    lines.append(f"  {s.stem}")
 
-            # List snapshots
-            if snapshots_dir.exists():
-                snapshots = list(snapshots_dir.glob("*.png"))
-                if snapshots:
-                    lines.append("\nSnapshots:")
-                    for s in sorted(snapshots)[-10:]:  # Last 10
-                        lines.append(f"  📸 {s.stem}")
+        if len(lines) == 1:
+            lines.append("No recordings or snapshots found.")
 
-            if len(lines) == 1:
-                lines.append("No recordings or snapshots found.")
-
-            screenshot_bytes, _elem_map = await browser.screenshot_with_som()
-            image = Image(data=screenshot_bytes, format="png")
-            return "\n".join(lines), image
-
-        except Exception as e:
-            logger.error(f"List recordings failed: {e}")
-            raise RuntimeError(f"Failed to list recordings: {e}")
+        return "\n".join(lines)
 
     logger.debug("Registered recording tools")

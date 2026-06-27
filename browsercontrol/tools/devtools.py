@@ -28,7 +28,7 @@ def register_devtools(mcp: FastMCP) -> None:
     """Register developer tools with the MCP server."""
 
     @mcp.tool()
-    async def get_console_logs(clear: bool = False) -> tuple[str, Image]:
+    async def get_console_logs(clear: bool = False) -> str:
         """
         Get browser console logs (errors, warnings, info, log messages).
 
@@ -36,7 +36,7 @@ def register_devtools(mcp: FastMCP) -> None:
             clear: If True, clear the captured logs after returning them
 
         Returns:
-            Console logs and screenshot
+            Console logs
         """
         try:
             await browser.ensure_started()
@@ -61,17 +61,14 @@ def register_devtools(mcp: FastMCP) -> None:
             if clear:
                 browser.clear_console_logs()
 
-            image, summary = await _get_screenshot_with_summary()
-            return f"Console Logs:\n{log_text}\n\n{summary}", image
+            return f"Console Logs:\n{log_text}"
 
         except Exception as e:
             logger.error(f"Get console logs failed: {e}")
             raise RuntimeError(f"Get console logs failed: {e}")
 
     @mcp.tool()
-    async def get_network_requests(
-        num_requests: int | None = None, clear: bool = False
-    ) -> tuple[str, Image]:
+    async def get_network_requests(num_requests: int | None = None, clear: bool = False) -> str:
         """
         Get captured network requests (API calls, resources, etc.).
 
@@ -80,7 +77,7 @@ def register_devtools(mcp: FastMCP) -> None:
             clear: If True, clear the captured requests after returning them
 
         Returns:
-            Network requests and screenshot
+            Network requests
         """
         try:
             await browser.ensure_started()
@@ -112,20 +109,19 @@ def register_devtools(mcp: FastMCP) -> None:
             if clear:
                 browser.clear_network_requests()
 
-            image, summary = await _get_screenshot_with_summary()
-            return f"Network Requests:\n{request_text}\n\n{summary}", image
+            return f"Network Requests:\n{request_text}"
 
         except Exception as e:
             logger.error(f"Get network requests failed: {e}")
             raise RuntimeError(f"Get network requests failed: {e}")
 
     @mcp.tool()
-    async def get_page_errors() -> tuple[str, Image]:
+    async def get_page_errors() -> str:
         """
         Get JavaScript errors that occurred on the page.
 
         Returns:
-            Page errors and screenshot
+            Page errors
         """
         try:
             await browser.ensure_started()
@@ -148,8 +144,7 @@ def register_devtools(mcp: FastMCP) -> None:
 
                 error_text = "\n".join(error_lines)
 
-            image, summary = await _get_screenshot_with_summary()
-            return f"Page Errors:\n{error_text}\n\n{summary}", image
+            return f"Page Errors:\n{error_text}"
 
         except Exception as e:
             logger.error(f"Get page errors failed: {e}")
@@ -205,7 +200,7 @@ def register_devtools(mcp: FastMCP) -> None:
                 raise RuntimeError(f"Run in console failed: {e}")
 
     @mcp.tool()
-    async def inspect_element(element_id: int) -> tuple[str, Image]:
+    async def inspect_element(element_id: int) -> str:
         """
         Inspect an element to get its computed styles, dimensions, and properties.
 
@@ -213,7 +208,7 @@ def register_devtools(mcp: FastMCP) -> None:
             element_id: The number label of the element to inspect
 
         Returns:
-            Element details and screenshot
+            Element details
         """
         try:
             await browser.ensure_started()
@@ -221,8 +216,7 @@ def register_devtools(mcp: FastMCP) -> None:
 
             elem_map = get_element_map()
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
-                return f"Error: Element {element_id} not found.\n\n{summary}", image
+                return f"Error: Element {element_id} not found."
 
             elem = elem_map[element_id]
 
@@ -289,20 +283,19 @@ def register_devtools(mcp: FastMCP) -> None:
                 f"    font: {styles.get('fontSize', '?')} {styles.get('fontFamily', '?')[:30]}"
             )
 
-            image, summary = await _get_screenshot_with_summary()
-            return "\n".join(lines) + f"\n\n{summary}", image
+            return "\n".join(lines)
 
         except Exception as e:
             logger.error(f"Inspect element failed: {e}")
             raise RuntimeError(f"Inspect element failed: {e}")
 
     @mcp.tool()
-    async def get_page_performance() -> tuple[str, Image]:
+    async def get_page_performance() -> str:
         """
         Get page performance metrics (load time, Core Web Vitals).
 
         Returns:
-            Performance metrics and screenshot
+            Performance metrics
         """
         try:
             await browser.ensure_started()
@@ -349,38 +342,34 @@ def register_devtools(mcp: FastMCP) -> None:
                 mem = metrics["memory"]
                 lines.append(f" JS Heap: {mem['usedJSHeapSize']}MB / {mem['totalJSHeapSize']}MB")
 
-            image, summary = await _get_screenshot_with_summary()
-            return "\n".join(lines) + f"\n\n{summary}", image
+            return "\n".join(lines)
 
         except Exception as e:
             logger.error(f"Get performance failed: {e}")
             raise RuntimeError(f"Get performance failed: {e}")
 
     @mcp.tool()
-    async def get_cookies() -> tuple[str, Image]:
+    async def get_cookies() -> str:
         """Get all cookies for the current context."""
         try:
             await browser.ensure_started()
-            cookies = await browser._context.cookies()
+            cookies = await browser._context.cookies()  # type: ignore[union-attr]
 
             if not cookies:
-                return "No cookies found.", (await _get_screenshot_with_summary())[0]
+                return "No cookies found."
 
             lines = ["Cookies:"]
             for c in cookies:
                 lines.append(f"  {c['name']}={c['value'][:20]}... (domain={c['domain']})")
 
-            image, summary = await _get_screenshot_with_summary()
-            return "\n".join(lines) + f"\n\n{summary}", image
+            return "\n".join(lines)
 
         except Exception as e:
             logger.error(f"Get cookies failed: {e}")
             raise RuntimeError(f"Get cookies failed: {e}")
 
     @mcp.tool()
-    async def set_cookie(
-        name: str, value: str, domain: str | None = None, path: str = "/"
-    ) -> tuple[str, Image]:
+    async def set_cookie(name: str, value: str, domain: str | None = None, path: str = "/") -> str:
         """
         Set a cookie.
 
@@ -404,48 +393,37 @@ def register_devtools(mcp: FastMCP) -> None:
             if not domain:
                 raise ValueError("Domain is required and could not be inferred.")
 
-            cookie = {"name": name, "value": value, "domain": domain, "path": path}
-            await browser._context.add_cookies([cookie])
+            cookie: dict[str, str] = {"name": name, "value": value, "domain": domain, "path": path}
+            await browser._context.add_cookies([cookie])  # type: ignore[union-attr, list-item]
 
-            image, summary = await _get_screenshot_with_summary()
-            return f"Cookie set: {name}={value} for {domain}\n\n{summary}", image
+            return f"Cookie set: {name}={value} for {domain}"
 
         except Exception as e:
             logger.error(f"Set cookie failed: {e}")
             raise RuntimeError(f"Set cookie failed: {e}")
 
     @mcp.tool()
-    async def delete_cookie(name: str) -> tuple[str, Image]:
+    async def delete_cookie(name: str) -> str:
         """
         Delete a cookie by name.
         Note: This deletes all cookies with this name across all domains in context.
         """
         try:
             await browser.ensure_started()
-            cookies = await browser._context.cookies()
-            # Filter out the one to delete
-            new_cookies = [c for c in cookies if c["name"] != name]
-
-            await browser._context.clear_cookies()
-            if new_cookies:
-                await browser._context.add_cookies(new_cookies)
-
-            image, summary = await _get_screenshot_with_summary()
-            return f"Deleted cookie(s) with name: {name}\n\n{summary}", image
+            await browser._context.clear_cookies(name=name)  # type: ignore[union-attr]
+            return f"Deleted cookie(s) with name: {name}"
 
         except Exception as e:
             logger.error(f"Delete cookie failed: {e}")
             raise RuntimeError(f"Delete cookie failed: {e}")
 
     @mcp.tool()
-    async def clear_cookies() -> tuple[str, Image]:
+    async def clear_cookies() -> str:
         """Clear all cookies."""
         try:
             await browser.ensure_started()
-            await browser._context.clear_cookies()
-
-            image, summary = await _get_screenshot_with_summary()
-            return f"All cookies cleared.\n\n{summary}", image
+            await browser._context.clear_cookies()  # type: ignore[union-attr]
+            return "All cookies cleared."
 
         except Exception as e:
             logger.error(f"Clear cookies failed: {e}")

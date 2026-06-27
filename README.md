@@ -430,7 +430,6 @@ Test responsive designs or emulate mobile screens on the fly:
 | `press_key(key)`                | Press keyboard key (Enter, Tab, etc.) |
 | `hover(element_id)`             | Hover over element                    |
 | `scroll_to_element(element_id)` | Scroll element into view              |
-| `upload_file(element_id, path)` | Upload a file to an input             |
 | `wait(seconds)`                 | Wait for page loading                 |
 
 ### Tab Management

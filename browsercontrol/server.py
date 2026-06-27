@@ -1,4 +1,5 @@
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastmcp import FastMCP
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastMCP):
+async def lifespan(app: FastMCP) -> AsyncGenerator[None, None]:
     """Manage browser lifecycle with the MCP server."""
     logger.info("Starting Browser Control MCP server")
     try:

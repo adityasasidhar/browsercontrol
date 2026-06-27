@@ -1,78 +1,77 @@
 import logging
 import time
 from io import BytesIO
+from typing import Any, cast
 
 from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
-from playwright.async_api import Browser, BrowserContext, Page, async_playwright
+from playwright.async_api import (
+    Browser,
+    BrowserContext,
+    Page,
+    Playwright,
+    Request,
+    async_playwright,
+)
 
 from browsercontrol.config import config
 
 logger = logging.getLogger(__name__)
 
 # Store element mapping for click-by-ID
-element_map: dict[int, dict] = {}
+element_map: dict[int, dict[str, Any]] = {}
+
+# Module-level cached font (loaded once, reused across screenshots)
+_cached_font: ImageFont.FreeTypeFont | ImageFont.ImageFont | None = None
+
+
+def _get_label_font() -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Load and cache the label font for SoM overlays (loaded once per process)."""
+    global _cached_font
+    if _cached_font is not None:
+        return _cached_font
+    font_names = [
+        "Arial.ttf",
+        "arial.ttf",  # Windows/macOS
+        "Helvetica.ttf",
+        "helvetica.ttf",  # macOS
+        "DejaVuSans-Bold.ttf",  # Linux
+        "FreeSansBold.ttf",  # Linux
+        "LiberationSans-Bold.ttf",  # Linux
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  # Linux specific path
+        "/System/Library/Fonts/Helvetica.ttc",  # macOS specific path
+    ]
+    for font_name in font_names:
+        try:
+            _cached_font = ImageFont.truetype(font_name, 14)
+            return _cached_font
+        except OSError:
+            continue
+    _cached_font = ImageFont.load_default()
+    return _cached_font
 
 
 class BrowserManager:
     """Manages the browser lifecycle and provides access to pages."""
 
-    def __init__(self):
-        self._playwright = None
+    def __init__(self) -> None:
+        self._playwright: Playwright | None = None
         self._browser: Browser | None = None
         self._context: BrowserContext | None = None
         self._page: Page | None = None
         self._started = False
 
         # Developer tools storage
-        self._console_logs: list[dict] = []
-        self._network_requests: list[dict] = []
-        self._page_errors: list[dict] = []
-        self._request_map: dict[str, dict] = {}
+        self._console_logs: list[dict[str, Any]] = []
+        self._network_requests: list[dict[str, Any]] = []
+        self._page_errors: list[dict[str, Any]] = []
+        # Keyed by Request object identity to avoid URL-collision mis-pairings
+        self._request_map: dict[Any, dict[str, Any]] = {}
 
     @property
     def is_started(self) -> bool:
         """Check if browser is started."""
         return self._started and self._context is not None
-
-    async def _ensure_browser_installed(self) -> None:
-        """Ensure Chromium browser is installed, auto-install if missing."""
-        import asyncio
-
-        # Check if Chromium is already installed by looking for the executable
-        try:
-            from playwright._impl._driver import compute_driver_executable
-
-            driver_executable = compute_driver_executable()
-
-            # Try to get browser path - this will fail if not installed
-            process = await asyncio.create_subprocess_exec(
-                driver_executable,
-                "install",
-                "--dry-run",
-                "chromium",
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-
-            try:
-                stdout, _ = await asyncio.wait_for(process.communicate(), timeout=10)
-
-                # If dry-run shows it needs installation, do it
-                if "chromium" in stdout.decode("utf-8").lower() or process.returncode != 0:
-                    logger.info("Chromium not found, installing automatically...")
-                    await self._install_chromium()
-                else:
-                    logger.debug("Chromium already installed")
-            except TimeoutError:
-                process.kill()
-                logger.warning("Dry-run check timed out, attempting install anyway...")
-                await self._install_chromium()
-
-        except Exception as e:
-            # If check fails, try to install anyway
-            logger.info(f"Checking browser installation: {e}")
-            await self._install_chromium()
 
     async def _install_chromium(self) -> None:
         """Install Chromium browser using Playwright."""
@@ -113,7 +112,7 @@ class BrowserManager:
         """Set up event listeners for console, network, and errors."""
 
         # Console messages
-        def on_console(msg):
+        def on_console(msg: Any) -> None:
             self._console_logs.append(
                 {
                     "level": msg.type,
@@ -129,7 +128,7 @@ class BrowserManager:
                 self._console_logs = self._console_logs[-200:]
 
         # Page errors (uncaught exceptions)
-        def on_page_error(error):
+        def on_page_error(error: Any) -> None:
             self._page_errors.append(
                 {
                     "message": str(error),
@@ -140,9 +139,9 @@ class BrowserManager:
             if len(self._page_errors) > 100:
                 self._page_errors = self._page_errors[-100:]
 
-        # Network request started
-        def on_request(request):
-            self._request_map[request.url] = {
+        # Network request started — keyed by Request object to avoid URL collisions
+        def on_request(request: Request) -> None:
+            self._request_map[request] = {
                 "method": request.method,
                 "url": request.url,
                 "start_time": time.time(),
@@ -151,19 +150,19 @@ class BrowserManager:
             }
 
         # Network request completed
-        def on_response(response):
-            url = response.url
-            if url in self._request_map:
-                req = self._request_map[url]
+        def on_response(response: Any) -> None:
+            req_obj = response.request
+            if req_obj in self._request_map:
+                req = self._request_map[req_obj]
                 req["status"] = response.status
                 req["duration"] = int((time.time() - req["start_time"]) * 1000)
                 self._network_requests.append(req)
-                del self._request_map[url]
+                del self._request_map[req_obj]
             else:
                 self._network_requests.append(
                     {
                         "method": response.request.method,
-                        "url": url,
+                        "url": response.url,
                         "status": response.status,
                         "resource_type": response.request.resource_type,
                     }
@@ -174,14 +173,13 @@ class BrowserManager:
                 self._network_requests = self._network_requests[-100:]
 
         # Network request failed
-        def on_request_failed(request):
-            url = request.url
-            if url in self._request_map:
-                req = self._request_map[url]
+        def on_request_failed(request: Request) -> None:
+            if request in self._request_map:
+                req = self._request_map[request]
                 req["status"] = "failed"
                 req["duration"] = int((time.time() - req["start_time"]) * 1000)
                 self._network_requests.append(req)
-                del self._request_map[url]
+                del self._request_map[request]
 
         page.on("console", on_console)
         page.on("pageerror", on_page_error)
@@ -194,8 +192,6 @@ class BrowserManager:
         if self._started:
             logger.warning("Browser already started")
             return
-
-        await self._ensure_browser_installed()
 
         config.user_data_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Starting browser with user data dir: {config.user_data_dir}")
@@ -219,13 +215,34 @@ class BrowserManager:
             )
             logger.info(f"Loading extension from: {config.extension_path}")
 
+        # Substrings that indicate the Chromium executable is missing
+        missing_hints = ("executable doesn't exist", "playwright install", "looks like playwright")
+
         try:
-            self._context = await self._playwright.chromium.launch_persistent_context(
-                user_data_dir=str(config.user_data_dir),
-                headless=config.headless,
-                args=args,
-                viewport={"width": config.viewport_width, "height": config.viewport_height},
-            )
+            try:
+                self._context = await self._playwright.chromium.launch_persistent_context(
+                    user_data_dir=str(config.user_data_dir),
+                    headless=config.headless,
+                    args=args,
+                    viewport={"width": config.viewport_width, "height": config.viewport_height},
+                )
+            except Exception as launch_exc:
+                # Only retry after installing if the error is a missing-executable error
+                if any(hint in str(launch_exc).lower() for hint in missing_hints):
+                    logger.info("Chromium executable not found, installing automatically...")
+                    await self._install_chromium()
+                    # Retry the launch exactly once after install
+                    self._context = await self._playwright.chromium.launch_persistent_context(
+                        user_data_dir=str(config.user_data_dir),
+                        headless=config.headless,
+                        args=args,
+                        viewport={
+                            "width": config.viewport_width,
+                            "height": config.viewport_height,
+                        },
+                    )
+                else:
+                    raise
 
             # Auto-attach listeners to new pages (including popups)
             self._context.on("page", self._setup_page_listeners)
@@ -289,7 +306,7 @@ class BrowserManager:
 
         # If the explicit _page reference is stale (closed), try to fallback
         if self._page is None or self._page.is_closed():
-            pages = self._context.pages
+            pages = self._context.pages  # type: ignore[union-attr]
             if pages:
                 self._page = pages[-1]  # Default to last opened
             else:
@@ -302,7 +319,7 @@ class BrowserManager:
         if not self.is_started:
             await self.start()
 
-        self._page = await self._context.new_page()
+        self._page = await self._context.new_page()  # type: ignore[union-attr]
         if url:
             await self._page.goto(url)
 
@@ -311,7 +328,7 @@ class BrowserManager:
         if not self.is_started:
             raise RuntimeError("Browser not started.")
 
-        pages = self._context.pages
+        pages = self._context.pages  # type: ignore[union-attr]
         if 0 <= index < len(pages):
             self._page = pages[index]
             await self._page.bring_to_front()
@@ -323,26 +340,26 @@ class BrowserManager:
         if not self.is_started:
             raise RuntimeError("Browser not started.")
 
-        pages = self._context.pages
+        pages = self._context.pages  # type: ignore[union-attr]
         if 0 <= index < len(pages):
             await pages[index].close()
             # If we closed the active page, switch to the last available one
-            if self._page.is_closed():
-                pages = self._context.pages
+            if self._page.is_closed():  # type: ignore[union-attr]
+                pages = self._context.pages  # type: ignore[union-attr]
                 if pages:
                     self._page = pages[-1]
                 else:
-                    self._page = await self._context.new_page()
+                    self._page = await self._context.new_page()  # type: ignore[union-attr]
         else:
             raise ValueError(f"Tab index {index} out of range (0-{len(pages) - 1})")
 
-    async def list_tabs(self) -> list[dict]:
+    async def list_tabs(self) -> list[dict[str, Any]]:
         """List all open tabs."""
         if not self.is_started:
             return []
 
         tabs = []
-        for i, page in enumerate(self._context.pages):
+        for i, page in enumerate(self._context.pages):  # type: ignore[union-attr]
             title = await page.title()
             url = page.url
             is_active = page == self._page
@@ -350,7 +367,7 @@ class BrowserManager:
         return tabs
 
     # Developer tools methods
-    def get_console_logs(self) -> list[dict]:
+    def get_console_logs(self) -> list[dict[str, Any]]:
         """Get captured console logs."""
         return self._console_logs.copy()
 
@@ -358,7 +375,7 @@ class BrowserManager:
         """Clear captured console logs."""
         self._console_logs.clear()
 
-    def get_network_requests(self) -> list[dict]:
+    def get_network_requests(self) -> list[dict[str, Any]]:
         """Get captured network requests."""
         return self._network_requests.copy()
 
@@ -367,7 +384,7 @@ class BrowserManager:
         self._network_requests.clear()
         self._request_map.clear()
 
-    def get_page_errors(self) -> list[dict]:
+    def get_page_errors(self) -> list[dict[str, Any]]:
         """Get captured page errors."""
         return self._page_errors.copy()
 
@@ -375,8 +392,13 @@ class BrowserManager:
         """Clear captured page errors."""
         self._page_errors.clear()
 
-    async def get_interactive_elements(self) -> list[dict]:
-        """Get all interactive elements with their bounding boxes."""
+    async def get_interactive_elements(self) -> list[dict[str, Any]]:
+        """Get all interactive elements with their bounding boxes.
+
+        Recurses into open shadow roots and same-origin iframes so that
+        elements hidden behind a shadow boundary or a same-origin frame are
+        included alongside top-document elements.
+        """
         js_code = """
         () => {
             const interactiveSelectors = [
@@ -398,15 +420,25 @@ class BrowserManager:
             const elements = [];
             const seen = new Set();
 
-            for (const selector of interactiveSelectors) {
-                for (const el of document.querySelectorAll(selector)) {
+            function collect(root, offsetX, offsetY) {
+                let nodes = [];
+                for (const selector of interactiveSelectors) {
+                    try {
+                        nodes = nodes.concat(Array.from(root.querySelectorAll(selector)));
+                    } catch (e) {}
+                }
+                for (const el of nodes) {
                     if (seen.has(el)) continue;
                     seen.add(el);
 
                     const rect = el.getBoundingClientRect();
                     if (rect.width === 0 || rect.height === 0) continue;
-                    if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
-                    if (rect.right < 0 || rect.left > window.innerWidth) continue;
+
+                    const x = rect.x + offsetX;
+                    const y = rect.y + offsetY;
+
+                    if (y + rect.height < 0 || y > window.innerHeight) continue;
+                    if (x + rect.width < 0 || x > window.innerWidth) continue;
 
                     let text = el.innerText?.trim()?.substring(0, 50) || '';
                     let placeholder = el.placeholder || '';
@@ -416,12 +448,12 @@ class BrowserManager:
                     let href = el.href || '';
 
                     elements.push({
-                        x: rect.x,
-                        y: rect.y,
+                        x: x,
+                        y: y,
                         width: rect.width,
                         height: rect.height,
-                        centerX: rect.x + rect.width / 2,
-                        centerY: rect.y + rect.height / 2,
+                        centerX: x + rect.width / 2,
+                        centerY: y + rect.height / 2,
                         tag: el.tagName.toLowerCase(),
                         type: type,
                         text: text || placeholder || ariaLabel || title,
@@ -430,14 +462,35 @@ class BrowserManager:
                         className: el.className || null
                     });
                 }
+
+                // Open shadow roots report coordinates in the same viewport space
+                try {
+                    for (const el of root.querySelectorAll('*')) {
+                        if (el.shadowRoot) collect(el.shadowRoot, offsetX, offsetY);
+                    }
+                } catch (e) {}
+
+                // Same-origin iframes: add the iframe's on-screen position as an offset
+                try {
+                    for (const frame of root.querySelectorAll('iframe')) {
+                        try {
+                            const doc = frame.contentDocument;
+                            if (doc) {
+                                const frect = frame.getBoundingClientRect();
+                                collect(doc, offsetX + frect.x, offsetY + frect.y);
+                            }
+                        } catch (e) { /* cross-origin frame — skip */ }
+                    }
+                } catch (e) {}
             }
 
+            collect(document, 0, 0);
             return elements;
         }
         """
-        return await self.page.evaluate(js_code)
+        return cast("list[dict[str, Any]]", await self.page.evaluate(js_code))
 
-    async def screenshot_with_som(self) -> tuple[bytes, dict[int, dict]]:
+    async def screenshot_with_som(self) -> tuple[bytes, dict[int, dict[str, Any]]]:
         """
         Take a screenshot and overlay Set of Marks (numbered bounding boxes).
         Returns the annotated image bytes and the element mapping.
@@ -450,29 +503,7 @@ class BrowserManager:
         img = PILImage.open(BytesIO(screenshot_bytes))
         draw = ImageDraw.Draw(img, "RGBA")
 
-        # Try to use a reasonable font
-        font = None
-        font_names = [
-            "Arial.ttf",
-            "arial.ttf",  # Windows/macOS
-            "Helvetica.ttf",
-            "helvetica.ttf",  # macOS
-            "DejaVuSans-Bold.ttf",  # Linux
-            "FreeSansBold.ttf",  # Linux
-            "LiberationSans-Bold.ttf",  # Linux
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  # Linux specific path
-            "/System/Library/Fonts/Helvetica.ttc",  # macOS specific path
-        ]
-
-        for font_name in font_names:
-            try:
-                font = ImageFont.truetype(font_name, 14)
-                break
-            except OSError:
-                continue
-
-        if font is None:
-            font = ImageFont.load_default()
+        font = _get_label_font()
 
         element_map = {}
 
@@ -510,6 +541,6 @@ class BrowserManager:
 browser = BrowserManager()
 
 
-def get_element_map() -> dict[int, dict]:
+def get_element_map() -> dict[int, dict[str, Any]]:
     """Get the current element map."""
     return element_map

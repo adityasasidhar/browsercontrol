@@ -30,7 +30,7 @@ class TestNavigateTo:
             )
 
             # Get the registered tool
-            tool = mcp_server._tool_manager._tools["navigate_to"]
+            tool = await mcp_server.get_tool("navigate_to")
             result = await tool.fn(url="https://example.com")
 
             mock_page.goto.assert_called_once()
@@ -48,7 +48,7 @@ class TestNavigateTo:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["navigate_to"]
+            tool = await mcp_server.get_tool("navigate_to")
             await tool.fn(url="http://localhost:3000")
 
             assert mock_page.goto.call_count == 2
@@ -67,7 +67,7 @@ class TestNavigationActions:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["go_back"]
+            tool = await mcp_server.get_tool("go_back")
             result = await tool.fn()
 
             mock_page.go_back.assert_called_once()
@@ -82,7 +82,7 @@ class TestNavigationActions:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["go_forward"]
+            tool = await mcp_server.get_tool("go_forward")
             result = await tool.fn()
 
             mock_page.go_forward.assert_called_once()
@@ -97,7 +97,7 @@ class TestNavigationActions:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["refresh_page"]
+            tool = await mcp_server.get_tool("refresh_page")
             result = await tool.fn()
 
             mock_page.reload.assert_called_once()
@@ -116,7 +116,7 @@ class TestScroll:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["scroll"]
+            tool = await mcp_server.get_tool("scroll")
             result = await tool.fn(direction="down", amount="medium")
 
             mock_page.evaluate.assert_called_with("window.scrollBy(0, 400)")
@@ -131,7 +131,7 @@ class TestScroll:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["scroll"]
+            tool = await mcp_server.get_tool("scroll")
             result = await tool.fn(direction="down", amount="top")
 
             mock_page.evaluate.assert_called_with("window.scrollTo(0, 0)")
@@ -146,7 +146,7 @@ class TestScroll:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["scroll"]
+            tool = await mcp_server.get_tool("scroll")
             result = await tool.fn(direction="down", amount="bottom")
 
             mock_page.evaluate.assert_called_with("window.scrollTo(0, document.body.scrollHeight)")
@@ -161,7 +161,7 @@ class TestScroll:
             mock_browser_manager.page = mock_page
             mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", {})
 
-            tool = mcp_server._tool_manager._tools["scroll"]
+            tool = await mcp_server.get_tool("scroll")
             await tool.fn(direction="down", amount="500")
 
             mock_page.evaluate.assert_called_with("window.scrollBy(0, 500)")

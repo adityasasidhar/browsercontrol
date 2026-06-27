@@ -47,7 +47,15 @@ def register_form_tools(mcp: FastMCP) -> None:
             elem = elem_map[element_id]
             logger.info(f"Selecting option '{option}' from element {element_id}")
 
-            await browser.page.mouse.click(elem["centerX"], elem["centerY"])
+            handle = await browser.page.evaluate_handle(
+                f"document.elementFromPoint({elem['centerX']}, {elem['centerY']})"
+            )
+            element = handle.as_element()
+            if element:
+                await element.scroll_into_view_if_needed()
+                await element.click()
+            else:
+                await browser.page.mouse.click(elem["centerX"], elem["centerY"])  # fallback
             await browser.page.wait_for_timeout(200)
 
             try:
@@ -82,7 +90,15 @@ def register_form_tools(mcp: FastMCP) -> None:
 
             elem = elem_map[element_id]
             logger.info(f"{'Checking' if check else 'Unchecking'} element {element_id}")
-            await browser.page.mouse.click(elem["centerX"], elem["centerY"])
+            handle = await browser.page.evaluate_handle(
+                f"document.elementFromPoint({elem['centerX']}, {elem['centerY']})"
+            )
+            element = handle.as_element()
+            if element:
+                await element.scroll_into_view_if_needed()
+                await element.click()
+            else:
+                await browser.page.mouse.click(elem["centerX"], elem["centerY"])  # fallback
 
             image, summary = await _get_screenshot_with_summary()
             action = "Checked" if check else "Toggled"
@@ -124,10 +140,11 @@ def register_form_tools(mcp: FastMCP) -> None:
             )
 
             # Ensure it's an element handle
-            if not handle.as_element():
+            elem_handle = handle.as_element()
+            if elem_handle is None:
                 raise RuntimeError(f"Could not find DOM element at ID {element_id}")
 
-            await handle.as_element().set_input_files(str(path))
+            await elem_handle.set_input_files(str(path))
 
             image, summary = await _get_screenshot_with_summary()
             return f"Uploaded '{path.name}' to element {element_id}\n\n{summary}", image

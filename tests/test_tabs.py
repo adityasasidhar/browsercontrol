@@ -26,7 +26,7 @@ class TestCreateTab:
             with patch("browsercontrol.tools.tabs._get_screenshot_with_summary") as mock_screenshot:
                 mock_screenshot.return_value = (None, "Summary")
 
-                tool = mcp_server._tool_manager._tools["create_tab"]
+                tool = await mcp_server.get_tool("create_tab")
                 result = await tool.fn()
 
                 mock_browser_manager.create_tab.assert_called_once_with(None)
@@ -41,7 +41,7 @@ class TestCreateTab:
             with patch("browsercontrol.tools.tabs._get_screenshot_with_summary") as mock_screenshot:
                 mock_screenshot.return_value = (None, "Summary")
 
-                tool = mcp_server._tool_manager._tools["create_tab"]
+                tool = await mcp_server.get_tool("create_tab")
                 result = await tool.fn(url="https://example.com")
 
                 mock_browser_manager.create_tab.assert_called_once_with("https://example.com")
@@ -60,7 +60,7 @@ class TestSwitchTab:
             with patch("browsercontrol.tools.tabs._get_screenshot_with_summary") as mock_screenshot:
                 mock_screenshot.return_value = (None, "Summary")
 
-                tool = mcp_server._tool_manager._tools["switch_tab"]
+                tool = await mcp_server.get_tool("switch_tab")
                 result = await tool.fn(index=1)
 
                 mock_browser_manager.switch_to_tab.assert_called_once_with(1)
@@ -79,7 +79,7 @@ class TestCloseTab:
             with patch("browsercontrol.tools.tabs._get_screenshot_with_summary") as mock_screenshot:
                 mock_screenshot.return_value = (None, "Summary")
 
-                tool = mcp_server._tool_manager._tools["close_tab"]
+                tool = await mcp_server.get_tool("close_tab")
                 result = await tool.fn(index=1)
 
                 mock_browser_manager.close_tab.assert_called_once_with(1)
@@ -100,7 +100,7 @@ class TestListTabs:
         ]
 
         with patch("browsercontrol.tools.tabs.browser", mock_browser_manager):
-            tool = mcp_server._tool_manager._tools["list_tabs"]
+            tool = await mcp_server.get_tool("list_tabs")
             result = await tool.fn()
 
             assert "Open Tabs:" in result
