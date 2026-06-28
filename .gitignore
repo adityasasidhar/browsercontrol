@@ -13,6 +13,3 @@ dist/
 .venv/
 .ruff_cache/
 .pytest_cache/
-
-# Claude Code
-CLAUDE.md
