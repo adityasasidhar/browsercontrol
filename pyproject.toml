@@ -49,6 +49,16 @@ dev = [
     "pre-commit>=4.0.0",
     "mypy>=1.0.0",
     "bandit>=1.7.0",
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "pymdown-extensions>=10.7.0",
+]
+
+[project.optional-dependencies]
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "pymdown-extensions>=10.7.0",
 ]
 
 [tool.ruff]

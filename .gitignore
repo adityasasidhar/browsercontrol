@@ -13,3 +13,10 @@ dist/
 .venv/
 .ruff_cache/
 .pytest_cache/
+
+# MkDocs build output
+/site/
+
+# OS
+.DS_Store
+Thumbs.db

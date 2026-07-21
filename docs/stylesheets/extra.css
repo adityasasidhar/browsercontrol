@@ -1,0 +1,59 @@
+/* Hero section on the homepage */
+.hero {
+  margin: -1.5rem 0 2rem;
+  padding: 3rem 1.5rem;
+  background: linear-gradient(135deg, #6750a4 0%, #4f378b 100%);
+  color: white;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.hero h1 {
+  margin: 0 0 0.5rem !important;
+  font-size: 3rem !important;
+  font-weight: 800;
+  color: white !important;
+}
+
+.hero p {
+  margin: 0 0 1.5rem;
+  font-size: 1.25rem;
+  opacity: 0.9;
+}
+
+.hero .md-button {
+  margin: 0 0.5rem;
+}
+
+.hero-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Badges row */
+.badges {
+  text-align: center;
+  margin: 1rem 0 2rem;
+}
+
+.badges img {
+  display: inline-block;
+  margin: 0 0.2rem;
+}
+
+/* Grid card tweaks */
+.grid.cards > ul > li > hr {
+  margin: 0.5rem 0;
+}
+
+/* Better code blocks */
+.highlight pre {
+  border-radius: 0.4rem;
+}
+
+/* Tighter ToC on landing */
+@media screen and (min-width: 60em) {
+  .md-content article h1:first-of-type {
+    margin-top: 0;
+  }
+}

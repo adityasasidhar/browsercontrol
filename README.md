@@ -16,9 +16,11 @@
   <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/MCP-compatible-7c3aed.svg" alt="MCP Compatible"></a>
   <a href="https://github.com/adityasasidhar/browsercontrol/actions"><img src="https://img.shields.io/github/actions/workflow/status/adityasasidhar/browsercontrol/ci.yml?branch=main&label=CI" alt="CI"></a>
   <a href="https://github.com/adityasasidhar/browsercontrol/stargazers"><img src="https://img.shields.io/github/stars/adityasasidhar/browsercontrol?style=social" alt="GitHub Stars"></a>
+  <a href="https://adityasasidhar.github.io/browsercontrol/"><img src="https://img.shields.io/badge/docs-adityasasidhar.github.io-blue.svg" alt="Documentation"></a>
 </p>
 
 <p align="center">
+  <a href="https://adityasasidhar.github.io/browsercontrol/">📚 Documentation</a> •
   <a href="#what-it-is">What it is</a> •
   <a href="#how-it-looks">How it looks</a> •
   <a href="#quick-start">Quick start</a> •

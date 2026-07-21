@@ -1,0 +1,142 @@
+site_name: BrowserControl
+site_description: Vision-first browser automation for AI agents — local, private, zero-cost.
+site_url: https://adityasasidhar.github.io/browsercontrol/
+repo_url: https://github.com/adityasasidhar/browsercontrol
+repo_name: adityasasidhar/browsercontrol
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+    - content.action.view
+    - content.tooltips
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to system preference
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/robot
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/adityasasidhar/browsercontrol
+      name: BrowserControl on GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/browsercontrol/
+      name: BrowserControl on PyPI
+  generator: false
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.smartsymbols
+  - pymdownx.keys
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - Connect your AI: getting-started/connect-your-ai.md
+      - First session: getting-started/first-session.md
+  - Tools:
+      - tools/index.md
+      - Navigation: tools/navigation.md
+      - Interaction: tools/interaction.md
+      - Tabs: tools/tabs.md
+      - Forms: tools/forms.md
+      - Content: tools/content.md
+      - DevTools: tools/devtools.md
+      - Recording: tools/recording.md
+  - Guides:
+      - guides/index.md
+      - Web research: guides/web-research.md
+      - Debug a web app: guides/debug-web-app.md
+      - Record a test run: guides/record-tests.md
+      - Fill a form: guides/fill-forms.md
+      - Multi-tab research: guides/multi-tab.md
+      - Mobile responsive check: guides/mobile-responsive.md
+      - Upload a file: guides/upload-files.md
+  - Concepts:
+      - concepts/index.md
+      - Set of Marks (SoM): concepts/set-of-marks.md
+      - Architecture: concepts/architecture.md
+      - How it compares: concepts/comparison.md
+  - Configuration: configuration.md
+  - Troubleshooting: troubleshooting.md
+  - Development: development.md
+  - About:
+      - about/index.md
+      - License: about/license.md
+      - Changelog: about/changelog.md
