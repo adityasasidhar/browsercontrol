@@ -117,8 +117,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem 0.7rem;
-  background: var(--bc-ink);
-  color: var(--bc-paper);
+  background: var(--bc-deep);
+  color: #FFF9F0;
   border-radius: 999px;
   font-family: var(--bc-sans);
   font-weight: 700;
