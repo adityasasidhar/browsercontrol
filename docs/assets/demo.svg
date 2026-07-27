@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 460" role="img" aria-labelledby="demo-title demo-desc" class="bc-demo">
+  <title id="demo-title">BrowserControl demo: Set of Marks annotated screenshot and element map</title>
+  <desc id="demo-desc">A browser frame shows a GitHub-style header with five numbered red marks over the search bar, nav links, and sign-in button. Beside it, an element map lists each numbered element, and a click(5) action card shows the successful result.</desc>
+
+  <defs>
+    <filter id="bc-card-shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#101820" flood-opacity="0.18"/>
+    </filter>
+    <filter id="bc-chip-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#101820" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <style>
+    .bc-demo-bg         { fill: #FFF9F0; }
+    .bc-card            { fill: #FFFFFF; stroke: #101820; stroke-width: 1.5; }
+    .bc-card-titlebar   { fill: #101820; }
+    .bc-urlbar          { fill: #2A2A2A; }
+    .bc-divider         { stroke: #EAE3D2; stroke-width: 1; }
+    .bc-text            { fill: #101820; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; }
+    .bc-muted           { fill: #6B6B6B; }
+    .bc-mark-box        { fill: none; stroke: #EF3E3E; stroke-width: 2.5; }
+    .bc-mark-chip       { fill: #EF3E3E; }
+    .bc-mark-num        { fill: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; font-weight: 800; font-size: 16px; }
+    .bc-link            { fill: #101820; }
+    .bc-search-bg       { fill: #F4EFE3; stroke: #E0D9C2; stroke-width: 1; }
+    .bc-search-icon     { fill: #6B6B6B; }
+    .bc-cta             { fill: #FFFFFF; stroke: #101820; stroke-width: 1.5; }
+    .bc-tab-active      { fill: #101820; }
+    .bc-tab-line        { stroke: #101820; stroke-width: 2.5; stroke-linecap: round; }
+    .bc-list-bg         { fill: #FFFFFF; stroke: #101820; stroke-width: 1.5; }
+    .bc-list-row        { fill: #F8F3E5; }
+    .bc-list-row-num    { fill: #EF3E3E; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; font-weight: 800; font-size: 13px; }
+    .bc-list-row-type   { fill: #7A63D2; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; font-weight: 700; }
+    .bc-list-row-label  { fill: #101820; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+    .bc-action-card     { fill: #FFF4F0; stroke: #EF3E3E; stroke-width: 1.5; }
+    .bc-action-mono     { fill: #101820; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; font-weight: 700; }
+    .bc-result-card     { fill: #E8F6EF; stroke: #101820; stroke-width: 1.5; }
+    .bc-result-text     { fill: #101820; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; font-weight: 600; font-size: 13px; }
+    .bc-brand-strip     { fill: #8EDCC8; }
+    .bc-foot-label      { fill: #6B6B6B; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+    @media (prefers-color-scheme: dark) {
+      .bc-demo-bg         { fill: #0F1620; }
+      .bc-card            { fill: #1A2330; stroke: #E5E5E5; }
+      .bc-card-titlebar   { fill: #050B12; }
+      .bc-urlbar          { fill: #1F2A38; }
+      .bc-divider         { stroke: #2A3543; }
+      .bc-text            { fill: #F4EFE3; }
+      .bc-muted           { fill: #98A2B3; }
+      .bc-link            { fill: #F4EFE3; }
+      .bc-search-bg       { fill: #243044; stroke: #2F3D52; }
+      .bc-search-icon     { fill: #98A2B3; }
+      .bc-cta             { fill: #1A2330; stroke: #E5E5E5; }
+      .bc-tab-active      { fill: #F4EFE3; }
+      .bc-tab-line        { stroke: #F4EFE3; }
+      .bc-list-bg         { fill: #1A2330; stroke: #E5E5E5; }
+      .bc-list-row        { fill: #243044; }
+      .bc-list-row-label  { fill: #F4EFE3; }
+      .bc-action-card     { fill: #2A1A1A; }
+      .bc-action-mono     { fill: #FFD2CB; }
+      .bc-result-card     { fill: #1F3A2E; stroke: #E5E5E5; }
+      .bc-result-text     { fill: #F4EFE3; }
+      .bc-foot-label      { fill: #98A2B3; }
+    }
+  </style>
+
+  <!-- Background -->
+  <rect class="bc-demo-bg" width="760" height="460"/>
+
+  <!-- ============ BROWSER FRAME (annotated page) ============ -->
+  <g filter="url(#bc-card-shadow)">
+    <rect class="bc-card" x="20" y="30" width="460" height="320" rx="14"/>
+    <!-- Titlebar -->
+    <path class="bc-card-titlebar" d="M 20 44 Q 20 30 34 30 L 466 30 Q 480 30 480 44 L 480 64 L 20 64 Z"/>
+    <!-- Traffic lights -->
+    <circle cx="40" cy="47" r="5.5" fill="#EF6055"/>
+    <circle cx="58" cy="47" r="5.5" fill="#F7BE4F"/>
+    <circle cx="76" cy="47" r="5.5" fill="#7BC96F"/>
+    <!-- URL pill -->
+    <rect class="bc-urlbar" x="200" y="38" width="220" height="18" rx="9"/>
+    <text class="bc-text" x="310" y="51" font-size="11" text-anchor="middle" fill="#F4EFE3">github.com</text>
+    <!-- Tab indicator dots -->
+    <circle cx="495" cy="47" r="3" fill="#6B6B6B"/>
+    <circle cx="507" cy="47" r="3" fill="#6B6B6B"/>
+  </g>
+
+  <!-- Content area: GitHub-style top nav -->
+  <!-- Header divider -->
+  <line class="bc-divider" x1="20" y1="116" x2="480" y2="116"/>
+  <!-- GitHub mark (octocat-ish) -->
+  <g transform="translate(40,90)">
+    <circle class="bc-text" cx="0" cy="0" r="13"/>
+    <text class="bc-text" x="20" y="5" font-size="18" font-weight="700">GitHub</text>
+  </g>
+
+  <!-- Search bar [1] -->
+  <rect class="bc-search-bg" x="170" y="78" width="180" height="28" rx="6"/>
+  <!-- Search icon (simple magnifier) -->
+  <g transform="translate(184,92)">
+    <circle class="bc-search-icon" cx="0" cy="0" r="5" fill="none" stroke="#6B6B6B" stroke-width="1.5"/>
+    <line class="bc-search-icon" x1="3.5" y1="3.5" x2="7" y2="7" stroke="#6B6B6B" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  <text class="bc-muted" x="200" y="96" font-size="12">Search or jump to…</text>
+
+  <!-- Nav links [2] Pulls, [3] Issues, [4] Codespaces -->
+  <text class="bc-link" x="370" y="97" font-size="13" font-weight="600">Pulls</text>
+  <text class="bc-link" x="412" y="97" font-size="13" font-weight="600">Issues</text>
+  <text class="bc-link" x="460" y="97" font-size="13" font-weight="600">Codespaces</text>
+
+  <!-- Sign in CTA [5] -->
+  <rect class="bc-cta" x="412" y="135" width="50" height="24" rx="6"/>
+  <text class="bc-text" x="437" y="151" font-size="12" font-weight="600" text-anchor="middle">Sign in</text>
+
+  <!-- Content skeleton (gives the page some weight) -->
+  <line class="bc-divider" x1="40" y1="190" x2="460" y2="190"/>
+  <rect class="bc-search-bg" x="40" y="210" width="240" height="22" rx="4"/>
+  <rect class="bc-search-bg" x="40" y="244" width="200" height="14" rx="3"/>
+  <rect class="bc-search-bg" x="40" y="266" width="180" height="14" rx="3"/>
+  <rect class="bc-search-bg" x="40" y="288" width="220" height="14" rx="3"/>
+  <rect class="bc-search-bg" x="320" y="210" width="140" height="92" rx="6"/>
+
+  <!-- ============ SoM ANNOTATIONS ============ -->
+  <!-- [1] Search input -->
+  <rect class="bc-mark-box" x="166" y="74" width="188" height="36" rx="8"/>
+  <!-- [2] Pulls -->
+  <rect class="bc-mark-box" x="354" y="83" width="38" height="22" rx="4"/>
+  <!-- [3] Issues -->
+  <rect class="bc-mark-box" x="400" y="83" width="42" height="22" rx="4"/>
+  <!-- [4] Codespaces -->
+  <rect class="bc-mark-box" x="448" y="83" width="74" height="22" rx="4"/>
+  <!-- [5] Sign in -->
+  <rect class="bc-mark-box" x="408" y="131" width="58" height="32" rx="8"/>
+
+  <!-- Number chips -->
+  <g filter="url(#bc-chip-shadow)">
+    <circle class="bc-mark-chip" cx="166" cy="74" r="11"/>
+    <text class="bc-mark-num" x="166" y="79" text-anchor="middle">1</text>
+
+    <circle class="bc-mark-chip" cx="354" cy="83" r="11"/>
+    <text class="bc-mark-num" x="354" y="88" text-anchor="middle">2</text>
+
+    <circle class="bc-mark-chip" cx="400" cy="83" r="11"/>
+    <text class="bc-mark-num" x="400" y="88" text-anchor="middle">3</text>
+
+    <circle class="bc-mark-chip" cx="448" cy="83" r="11"/>
+    <text class="bc-mark-num" x="448" y="88" text-anchor="middle">4</text>
+
+    <circle class="bc-mark-chip" cx="408" cy="131" r="11"/>
+    <text class="bc-mark-num" x="408" y="136" text-anchor="middle">5</text>
+  </g>
+
+  <!-- ============ RIGHT SIDE: ELEMENT MAP + ACTION ============ -->
+  <text class="bc-foot-label" x="500" y="22" text-anchor="start">TOOL OUTPUT</text>
+
+  <!-- Element list card -->
+  <g filter="url(#bc-card-shadow)">
+    <rect class="bc-list-bg" x="500" y="30" width="240" height="216" rx="12"/>
+  </g>
+
+  <text class="bc-text" x="514" y="52" font-size="12" font-weight="700">Found 5 interactive elements</text>
+
+  <!-- Row 1 -->
+  <rect class="bc-list-row" x="508" y="62" width="224" height="34" rx="6"/>
+  <text class="bc-list-row-num" x="518" y="84">[1]</text>
+  <text class="bc-list-row-type" x="542" y="78">input</text>
+  <text class="bc-list-row-label" x="542" y="91">Search or jump to…</text>
+
+  <!-- Row 2 -->
+  <rect class="bc-list-row" x="508" y="100" width="224" height="26" rx="6"/>
+  <text class="bc-list-row-num" x="518" y="118">[2]</text>
+  <text class="bc-list-row-type" x="542" y="112">a</text>
+  <text class="bc-list-row-label" x="560" y="112">Pulls</text>
+
+  <!-- Row 3 -->
+  <rect class="bc-list-row" x="508" y="130" width="224" height="26" rx="6"/>
+  <text class="bc-list-row-num" x="518" y="148">[3]</text>
+  <text class="bc-list-row-type" x="542" y="142">a</text>
+  <text class="bc-list-row-label" x="560" y="142">Issues</text>
+
+  <!-- Row 4 -->
+  <rect class="bc-list-row" x="508" y="160" width="224" height="26" rx="6"/>
+  <text class="bc-list-row-num" x="518" y="178">[4]</text>
+  <text class="bc-list-row-type" x="542" y="172">a</text>
+  <text class="bc-list-row-label" x="560" y="172">Codespaces</text>
+
+  <!-- Row 5 (highlighted = agent's pick) -->
+  <rect class="bc-list-row" x="508" y="190" width="224" height="34" rx="6" fill="#FFD9D2"/>
+  <text class="bc-list-row-num" x="518" y="212">[5]</text>
+  <text class="bc-list-row-type" x="542" y="206">button</text>
+  <text class="bc-list-row-label" x="542" y="219">Sign in</text>
+
+  <!-- Action: click(5) -->
+  <rect class="bc-action-card" x="500" y="262" width="240" height="38" rx="10"/>
+  <text class="bc-foot-label" x="514" y="278" fill="#EF3E3E">AGENT CALLS</text>
+  <text class="bc-action-mono" x="514" y="293">→ click(5)</text>
+
+  <!-- Result card -->
+  <rect class="bc-result-card" x="500" y="312" width="240" height="38" rx="10"/>
+  <circle cx="518" cy="331" r="7" fill="#8EDCC8"/>
+  <path d="M 514 331 L 517 334 L 522 328" fill="none" stroke="#101820" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="bc-result-text" x="532" y="335">Clicked “Sign in”</text>
+
+  <!-- ============ BRAND STRIP / FOOT ============ -->
+  <rect class="bc-brand-strip" x="20" y="378" width="720" height="6" rx="3"/>
+  <text class="bc-foot-label" x="20" y="408">VISION-FIRST · SET OF MARKS · LOCAL MCP</text>
+  <text class="bc-foot-label" x="740" y="408" text-anchor="end">browsercontrol</text>
+</svg>
