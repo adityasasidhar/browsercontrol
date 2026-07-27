@@ -1,59 +1,942 @@
-/* Hero section on the homepage */
-.hero {
-  margin: -1.5rem 0 2rem;
-  padding: 3rem 1.5rem;
-  background: linear-gradient(135deg, #6750a4 0%, #4f378b 100%);
-  color: white;
-  border-radius: 0.5rem;
-  text-align: center;
+/* =========================================================================
+   BrowserControl docs — design system
+   Palette: paper #FFF9F0 / ink #101820 / SoM red #EF3E3E / mint #8EDCC8 /
+            violet #7A63D2
+   ========================================================================= */
+
+:root {
+  --bc-paper:        #FFF9F0;
+  --bc-paper-soft:   #F4EFE3;
+  --bc-paper-line:   #EAE3D2;
+  --bc-ink:          #101820;
+  --bc-ink-soft:     #2A2F38;
+  --bc-muted:        #6B6B6B;
+  --bc-red:          #EF3E3E;
+  --bc-red-soft:     #FFD9D2;
+  --bc-red-tint:     #FFF4F0;
+  --bc-mint:         #8EDCC8;
+  --bc-mint-deep:    #1F3A2E;
+  --bc-violet:       #7A63D2;
+  --bc-violet-soft:  #E8E2FA;
+  --bc-deep:         #101820;
+  --bc-deep-soft:    #1F2A38;
+  --bc-shadow:       0 1px 0 rgba(16, 24, 32, 0.06), 0 6px 18px rgba(16, 24, 32, 0.10);
+  --bc-shadow-soft:  0 1px 0 rgba(16, 24, 32, 0.04), 0 2px 6px rgba(16, 24, 32, 0.06);
+  --bc-radius:       10px;
+  --bc-radius-lg:    18px;
+  --bc-mono:         ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --bc-sans:         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-.hero h1 {
-  margin: 0 0 0.5rem !important;
-  font-size: 3rem !important;
-  font-weight: 800;
-  color: white !important;
+/* -------------------------------------------------------------------------
+   Landing-page layout overrides
+   Material's flex parent collapses `.md-content` to 0 width when both
+   sidebars are hidden, which collapses our landing-page grid. Force full
+   width only when the landing page is detected, so the rest of the docs
+   keep the standard Material layout.
+   ------------------------------------------------------------------------- */
+.md-content:has(> .md-content__inner .bc-page) {
+  width: 100%;
+  max-width: 100%;
 }
 
-.hero p {
-  margin: 0 0 1.5rem;
-  font-size: 1.25rem;
-  opacity: 0.9;
-}
-
-.hero .md-button {
-  margin: 0 0.5rem;
-}
-
-.hero-inner {
-  max-width: 720px;
+.md-content:has(> .md-content__inner .bc-page) > .md-content__inner {
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 0 1.5rem 1.5rem;
 }
 
-/* Badges row */
-.badges {
-  text-align: center;
-  margin: 1rem 0 2rem;
+[data-md-color-scheme="slate"] {
+  --bc-paper:        #0F1620;
+  --bc-paper-soft:   #1A2330;
+  --bc-paper-line:   #2A3543;
+  --bc-ink:          #F4EFE3;
+  --bc-ink-soft:     #D4CDB9;
+  --bc-muted:        #98A2B3;
+  --bc-red:          #EF3E3E;
+  --bc-red-soft:     #5A1F1A;
+  --bc-red-tint:     #2A1A1A;
+  --bc-mint:         #8EDCC8;
+  --bc-mint-deep:    #1F3A2E;
+  --bc-violet:       #A692EE;
+  --bc-violet-soft:  #2A2548;
+  --bc-deep:         #050B12;
+  --bc-deep-soft:    #111B2A;
+  --bc-shadow:       0 1px 0 rgba(0, 0, 0, 0.30), 0 8px 24px rgba(0, 0, 0, 0.45);
+  --bc-shadow-soft:  0 1px 0 rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.30);
 }
 
-.badges img {
+/* -------------------------------------------------------------------------
+   Base typography overrides for landing-page content.
+   These apply to top-level headings in the bc-page and do not cascade into
+   nested blocks (install, install-note, proof, etc.) which style their own
+   headings explicitly.
+   ------------------------------------------------------------------------- */
+.bc-page > h1,
+.bc-page > h2,
+.bc-page > h3,
+.bc-hero-headline,
+.bc-section-title,
+.bc-cap-title,
+.bc-doc-title,
+.bc-step-title {
+  color: var(--bc-ink);
+  letter-spacing: -0.01em;
+}
+
+.bc-hero-headline,
+.bc-section-title {
+  font-weight: 800;
+}
+
+.bc-page a:not(.md-button):not(.bc-badge):not(.bc-doc):not(.bc-cap) {
+  color: var(--bc-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--bc-red);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.bc-page a:not(.md-button):not(.bc-badge):not(.bc-doc):not(.bc-cap):hover {
+  text-decoration-color: var(--bc-violet);
+}
+
+/* -------------------------------------------------------------------------
+   Page frame
+   ------------------------------------------------------------------------- */
+.bc-page {
+  background: var(--bc-paper);
+}
+
+.md-main .md-content .bc-page {
+  background: var(--bc-paper);
+}
+
+.bc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.7rem;
+  background: var(--bc-deep);
+  color: #FFF9F0;
+  border-radius: 999px;
+  font-family: var(--bc-sans);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+
+.bc-eyebrow .bc-eyebrow-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--bc-red);
+  border-radius: 999px;
   display: inline-block;
-  margin: 0 0.2rem;
 }
 
-/* Grid card tweaks */
-.grid.cards > ul > li > hr {
-  margin: 0.5rem 0;
+/* -------------------------------------------------------------------------
+   HERO
+   ------------------------------------------------------------------------- */
+.bc-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: center;
+  padding: 2.75rem 0 2.5rem;
+  border-bottom: 1.5px solid var(--bc-ink);
 }
 
-/* Better code blocks */
-.highlight pre {
-  border-radius: 0.4rem;
+.bc-hero::before {
+  content: "";
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--bc-mint);
+  border-radius: 3px;
 }
 
-/* Tighter ToC on landing */
+.bc-hero-headline {
+  margin: 0.85rem 0 0.75rem;
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 5.6vw, 3.6rem);
+  line-height: 1.05;
+  color: var(--bc-ink);
+  letter-spacing: -0.02em;
+}
+
+.bc-hero-headline .bc-mark-red {
+  color: var(--bc-red);
+  white-space: nowrap;
+}
+
+.bc-hero-lede {
+  margin: 0 0 1.5rem;
+  font-size: 1.08rem;
+  line-height: 1.55;
+  color: var(--bc-ink-soft);
+  max-width: 36em;
+}
+
+.bc-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0 0 1.5rem;
+}
+
+.bc-hero-cta .md-button {
+  margin: 0;
+  border-radius: var(--bc-radius);
+  font-weight: 700;
+  border-width: 1.5px;
+}
+
+.bc-hero-cta .md-button--primary {
+  background: var(--bc-red);
+  border-color: var(--bc-red);
+  color: #FFFFFF;
+}
+
+.bc-hero-cta .md-button--primary:hover {
+  background: var(--bc-ink);
+  border-color: var(--bc-ink);
+  color: var(--bc-paper);
+}
+
+.bc-hero-cta .md-button:not(.md-button--primary) {
+  background: var(--bc-paper);
+  border-color: var(--bc-ink);
+  color: var(--bc-ink);
+}
+
+.bc-hero-cta .md-button:not(.md-button--primary):hover {
+  background: var(--bc-ink);
+  color: var(--bc-paper);
+}
+
+.bc-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-family: var(--bc-sans);
+  font-size: 0.85rem;
+  color: var(--bc-ink-soft);
+}
+
+.bc-trust-row > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  background: var(--bc-paper-soft);
+  border: 1px solid var(--bc-paper-line);
+  border-radius: 999px;
+}
+
+.bc-trust-row svg {
+  width: 14px;
+  height: 14px;
+  color: var(--bc-mint);
+}
+
+.bc-hero-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bc-hero-visual .bc-demo {
+  width: 100%;
+  height: auto;
+  max-width: 720px;
+  border-radius: var(--bc-radius-lg);
+  box-shadow: var(--bc-shadow);
+  background: var(--bc-paper);
+}
+
+.bc-hero-mascot {
+  position: absolute;
+  bottom: -22px;
+  right: -10px;
+  width: 96px;
+  height: 96px;
+  background: var(--bc-paper);
+  border: 1.5px solid var(--bc-ink);
+  border-radius: 14px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--bc-shadow-soft);
+}
+
 @media screen and (min-width: 60em) {
-  .md-content article h1:first-of-type {
-    margin-top: 0;
+  .bc-hero-mascot {
+    display: flex;
   }
+}
+
+.bc-hero-mascot img {
+  width: 78px;
+  height: 78px;
+}
+
+/* Hero responsive collapse */
+@media screen and (max-width: 60em) {
+  .bc-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 2rem 0 1.5rem;
+  }
+  .bc-hero-mascot {
+    display: none;
+  }
+  .bc-hero-visual {
+    margin-top: 0.5rem;
+  }
+}
+
+@media screen and (max-width: 30em) {
+  .bc-hero-cta .md-button {
+    width: 100%;
+    text-align: center;
+  }
+  .bc-hero-headline {
+    font-size: clamp(1.9rem, 9vw, 2.4rem);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   BADGE STRIP
+   ------------------------------------------------------------------------- */
+.bc-badge-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--bc-paper-line);
+}
+
+.bc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-family: var(--bc-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  border: 1.5px solid var(--bc-ink);
+  color: var(--bc-ink);
+  background: var(--bc-paper);
+  text-decoration: none;
+  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.bc-badge:hover {
+  background: var(--bc-ink);
+  color: var(--bc-paper);
+  transform: translateY(-1px);
+}
+
+.bc-badge .bc-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bc-mint);
+  flex-shrink: 0;
+}
+
+.bc-badge--red .bc-badge-dot     { background: var(--bc-red); }
+.bc-badge--violet .bc-badge-dot  { background: var(--bc-violet); }
+.bc-badge--ink .bc-badge-dot     { background: var(--bc-ink); }
+
+/* -------------------------------------------------------------------------
+   SECTION HEADINGS
+   ------------------------------------------------------------------------- */
+.bc-section {
+  padding: 3rem 0 0.5rem;
+}
+
+.bc-section + .bc-section {
+  border-top: 1px solid var(--bc-paper-line);
+}
+
+.bc-section-eyebrow {
+  display: inline-block;
+  font-family: var(--bc-sans);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bc-red);
+  margin: 0 0 0.6rem;
+}
+
+.bc-section-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3.4vw, 2.25rem);
+  line-height: 1.15;
+  color: var(--bc-ink);
+  letter-spacing: -0.01em;
+}
+
+.bc-section-lede {
+  margin: 0 0 1.75rem;
+  max-width: 56ch;
+  font-size: 1.02rem;
+  color: var(--bc-ink-soft);
+  line-height: 1.55;
+}
+
+/* -------------------------------------------------------------------------
+   THREE-STEP SoM EXPLANATION
+   ------------------------------------------------------------------------- */
+.bc-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.bc-step {
+  position: relative;
+  background: var(--bc-paper);
+  border: 1.5px solid var(--bc-ink);
+  border-radius: var(--bc-radius-lg);
+  padding: 1.25rem 1.25rem 1.1rem;
+}
+
+.bc-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--bc-red);
+  color: #FFFFFF;
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.bc-step-title {
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: 1.1rem;
+  margin: 0 0 0.4rem;
+  color: var(--bc-ink);
+}
+
+.bc-step-body {
+  margin: 0;
+  color: var(--bc-ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.bc-step-arrow {
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  background: var(--bc-paper);
+  border: 1.5px solid var(--bc-ink);
+  border-radius: 999px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--bc-ink);
+  font-weight: 800;
+}
+
+.bc-step:last-child .bc-step-arrow {
+  display: none;
+}
+
+@media screen and (min-width: 60em) {
+  .bc-step:not(:last-child) .bc-step-arrow {
+    display: flex;
+  }
+}
+
+@media screen and (max-width: 50em) {
+  .bc-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bc-step-arrow {
+    display: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   PROOF PANEL — full-width annotated screenshot
+   ------------------------------------------------------------------------- */
+.bc-proof {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 1.75rem;
+  align-items: center;
+  margin: 1.5rem 0 0;
+  padding: 1.75rem;
+  background: var(--bc-paper-soft);
+  border: 1.5px solid var(--bc-ink);
+  border-radius: var(--bc-radius-lg);
+}
+
+.bc-proof-copy h3 {
+  margin: 0 0 0.6rem;
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: clamp(1.25rem, 2.4vw, 1.65rem);
+  color: var(--bc-ink);
+}
+
+.bc-proof-copy p {
+  margin: 0 0 1rem;
+  color: var(--bc-ink-soft);
+  line-height: 1.55;
+}
+
+.bc-proof-legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bc-proof-legend li {
+  display: grid;
+  grid-template-columns: 28px 64px 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px dashed var(--bc-paper-line);
+  font-family: var(--bc-mono);
+  font-size: 0.85rem;
+  color: var(--bc-ink);
+}
+
+.bc-proof-legend li:last-child {
+  border-bottom: 0;
+}
+
+.bc-proof-legend .bc-proof-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--bc-red);
+  color: #FFFFFF;
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: 0.78rem;
+}
+
+.bc-proof-legend .bc-proof-type {
+  color: var(--bc-violet);
+  font-weight: 700;
+}
+
+.bc-proof-img img,
+.bc-proof-img svg {
+  width: 100%;
+  height: auto;
+  border-radius: var(--bc-radius);
+  border: 1.5px solid var(--bc-ink);
+  background: var(--bc-paper);
+  box-shadow: var(--bc-shadow);
+  display: block;
+}
+
+@media screen and (max-width: 60em) {
+  .bc-proof {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   CAPABILITY CARDS
+   ------------------------------------------------------------------------- */
+.bc-cap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+}
+
+@media screen and (max-width: 60em) {
+  .bc-cap-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 36em) {
+  .bc-cap-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.bc-cap {
+  position: relative;
+  background: var(--bc-paper);
+  border: 1.5px solid var(--bc-ink);
+  border-radius: var(--bc-radius-lg);
+  padding: 1.25rem 1.25rem 1.1rem;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.bc-cap:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--bc-shadow);
+}
+
+.bc-cap-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.7rem;
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.bc-cap-icon--red    { background: var(--bc-red-soft);  color: var(--bc-red); }
+.bc-cap-icon--mint   { background: var(--bc-mint-deep); color: var(--bc-mint); }
+.bc-cap-icon--violet { background: var(--bc-violet-soft); color: var(--bc-violet); }
+
+.bc-cap-title {
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: 1.05rem;
+  margin: 0 0 0.4rem;
+  color: var(--bc-ink);
+}
+
+.bc-cap-body {
+  margin: 0;
+  color: var(--bc-ink-soft);
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------------------------------
+   INSTALL BLOCK
+   ------------------------------------------------------------------------- */
+.bc-install {
+  margin: 1.5rem 0 0;
+  padding: 1.5rem;
+  background: var(--bc-deep);
+  color: #FFF9F0;
+  border-radius: var(--bc-radius-lg);
+  border: 1.5px solid var(--bc-deep);
+  box-shadow: var(--bc-shadow);
+}
+
+.bc-install h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #FFF9F0;
+}
+
+.bc-install > p {
+  margin: 0 0 1.1rem;
+  color: #FFF9F0;
+  opacity: 0.85;
+  font-size: 0.95rem;
+}
+
+.bc-install-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0 0 0.4rem;
+}
+
+@media screen and (max-width: 50em) {
+  .bc-install-tabs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.bc-install-tab {
+  background: var(--bc-deep-soft);
+  border: 1px solid #2F3741;
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.bc-install-tab-label {
+  font-family: var(--bc-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8EDCC8;
+}
+
+.bc-install-cmd {
+  margin: 0;
+  padding: 0;
+  font-family: var(--bc-mono);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: #FFF9F0;
+  background: transparent;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.bc-install-cmd .md-code__nav,
+.bc-install-cmd .md-code__button {
+  display: none !important;
+}
+
+.bc-install-cmd code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.bc-install-note {
+  margin: 0.85rem 0 0;
+  padding: 0.65rem 0.9rem;
+  background: #1F3A2E;
+  color: var(--bc-mint);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.bc-install-note code {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFF9F0;
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+/* -------------------------------------------------------------------------
+   DOC PATH CARDS
+   ------------------------------------------------------------------------- */
+.bc-doc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+}
+
+@media screen and (max-width: 70em) {
+  .bc-doc-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 36em) {
+  .bc-doc-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.bc-doc {
+  display: block;
+  padding: 1.1rem 1.1rem 1rem;
+  background: var(--bc-paper);
+  border: 1.5px solid var(--bc-ink);
+  border-radius: var(--bc-radius-lg);
+  text-decoration: none;
+  color: var(--bc-ink);
+  transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
+}
+
+.bc-doc:hover {
+  background: var(--bc-ink);
+  color: var(--bc-paper);
+  transform: translateY(-2px);
+}
+
+.bc-doc:hover .bc-doc-arrow {
+  color: var(--bc-paper);
+}
+
+.bc-doc-eyebrow {
+  display: inline-block;
+  font-family: var(--bc-sans);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bc-red);
+  margin-bottom: 0.4rem;
+}
+
+.bc-doc:hover .bc-doc-eyebrow {
+  color: var(--bc-mint);
+}
+
+.bc-doc-title {
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: 1.05rem;
+  margin: 0 0 0.3rem;
+}
+
+.bc-doc-body {
+  font-size: 0.88rem;
+  color: var(--bc-ink-soft);
+  line-height: 1.45;
+  margin: 0 0 0.6rem;
+}
+
+.bc-doc:hover .bc-doc-body {
+  color: var(--bc-paper);
+  opacity: 0.85;
+}
+
+.bc-doc-arrow {
+  font-family: var(--bc-mono);
+  color: var(--bc-red);
+  font-weight: 700;
+}
+
+/* -------------------------------------------------------------------------
+   FINAL CTA BAND
+   ------------------------------------------------------------------------- */
+.bc-final {
+  margin-top: 3rem;
+  padding: 2.25rem 1.75rem;
+  background: var(--bc-deep);
+  color: #FFF9F0;
+  border-radius: var(--bc-radius-lg);
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+  border: 1.5px solid var(--bc-deep);
+}
+
+.bc-final h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--bc-sans);
+  font-weight: 800;
+  font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+  color: #FFF9F0;
+}
+
+.bc-final p {
+  margin: 0;
+  color: #FFF9F0;
+  opacity: 0.85;
+  line-height: 1.5;
+}
+
+.bc-final-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.bc-final-cta .md-button {
+  margin: 0;
+  border-radius: var(--bc-radius);
+  font-weight: 700;
+  border-width: 1.5px;
+}
+
+.bc-final-cta .md-button--primary {
+  background: var(--bc-red);
+  border-color: var(--bc-red);
+  color: #FFFFFF;
+}
+
+.bc-final-cta .md-button--primary:hover {
+  background: #FFF9F0;
+  border-color: #FFF9F0;
+  color: var(--bc-deep);
+}
+
+.bc-final-cta .md-button:not(.md-button--primary) {
+  background: var(--bc-deep);
+  border-color: #FFF9F0;
+  color: #FFF9F0;
+}
+
+.bc-final-cta .md-button:not(.md-button--primary):hover {
+  background: #FFF9F0;
+  color: var(--bc-deep);
+}
+
+@media screen and (max-width: 60em) {
+  .bc-final {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1.75rem 1.25rem;
+  }
+  .bc-final-cta {
+    justify-content: flex-start;
+  }
+}
+
+@media screen and (max-width: 30em) {
+  .bc-final-cta .md-button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Reduced motion
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .bc-cap,
+  .bc-doc,
+  .bc-badge {
+    transition: none;
+  }
+  .bc-cap:hover,
+  .bc-doc:hover,
+  .bc-badge:hover {
+    transform: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Skip-link and accessibility helpers
+   ------------------------------------------------------------------------- */
+.bc-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

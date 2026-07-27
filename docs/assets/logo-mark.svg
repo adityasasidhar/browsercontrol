@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" role="img" aria-label="BrowserControl" class="bc-mark">
+  <style>
+    .bc-mark-frame  { fill: #101820; }
+    .bc-mark-stroke { fill: none; stroke: #FFF9F0; stroke-width: 1.4; }
+    .bc-mark-bar    { stroke: #FFF9F0; stroke-width: 1.4; stroke-linecap: round; }
+    .bc-mark-som    { fill: #EF3E3E; stroke: #FFF9F0; stroke-width: 1.4; }
+    @media (prefers-color-scheme: dark) {
+      .bc-mark-frame  { fill: #F4EFE3; }
+      .bc-mark-stroke { stroke: #101820; }
+      .bc-mark-bar    { stroke: #101820; }
+      .bc-mark-som    { fill: #EF3E3E; stroke: #101820; }
+    }
+  </style>
+  <rect class="bc-mark-frame" x="2" y="4" width="24" height="20" rx="3.5"/>
+  <line class="bc-mark-bar" x1="2" y1="10.5" x2="26" y2="10.5"/>
+  <circle cx="5.5" cy="7.25" r="0.9" fill="#EF6055"/>
+  <circle cx="8"   cy="7.25" r="0.9" fill="#F7BE4F"/>
+  <circle cx="10.5" cy="7.25" r="0.9" fill="#7BC96F"/>
+  <rect class="bc-mark-som" x="18.5" y="15.5" width="6" height="6" rx="1.2"/>
+</svg>
