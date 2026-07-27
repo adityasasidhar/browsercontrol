@@ -241,9 +241,16 @@ body,
   font-weight: 650;
 }
 
+/* The logo is an illustration rather than a glyph, so it needs a little more
+   room than Material's default to stay legible at header size. */
+.md-header__button.md-logo {
+  padding: 0.25rem;
+}
+
 .md-header__button.md-logo :is(img, svg) {
-  width: 1.3rem;
-  height: 1.3rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
 }
 
 .md-search__form {
