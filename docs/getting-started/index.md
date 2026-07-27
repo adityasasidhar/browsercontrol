@@ -7,6 +7,7 @@ Welcome to **BrowserControl** — the vision-first browser automation MCP server
 1. **[Install BrowserControl](installation.md)** — pip / uv / pipx in one command.
 2. **[Connect it to your AI](connect-your-ai.md)** — Claude Desktop, Cursor, Cline, Continue, Zed, or programmatic Python.
 3. **[Run your first session](first-session.md)** — navigate, click, type, and screenshot.
+4. **[Add the agent skill](agent-skill.md)** _(optional)_ — a playbook that teaches your agent to drive the browser well.
 
 ## What you'll need
 
@@ -54,5 +55,11 @@ That's the whole loop. No selectors, no XPath, no DOM debugging — just point a
     ---
 
     A guided walkthrough of the most common tools.
+
+-   :material-book-open-variant:{ .lg .middle } **[Add the agent skill](agent-skill.md)**
+
+    ---
+
+    A drop-in playbook that makes agents markedly more reliable.
 
 </div>

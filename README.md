@@ -127,6 +127,20 @@ Restart Claude Desktop, then try:
 
 That's it — your agent now has a browser.
 
+### 4 · Add the agent skill _(optional)_
+
+Connecting the server tells your agent **which** tools exist. The skill tells it **how to use them well** — that element numbers expire after every action, that a cookie banner will swallow a click, that a missing number means "scroll".
+
+```bash
+mkdir -p ~/.claude/skills/browsercontrol
+curl -fsSL https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/skills/browsercontrol/SKILL.md \
+  -o ~/.claude/skills/browsercontrol/SKILL.md
+```
+
+It loads on demand — only when a task actually involves a browser — so it costs one line of context the rest of the time. See [`skills/browsercontrol/SKILL.md`](skills/browsercontrol/SKILL.md) and the [agent skill docs](https://adityasasidhar.github.io/browsercontrol/getting-started/agent-skill/).
+
+Agents that prefer to read the docs directly can start from [`llms.txt`](https://adityasasidhar.github.io/browsercontrol/llms.txt).
+
 ---
 
 ## 🧠 Why BrowserControl?

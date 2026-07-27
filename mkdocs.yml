@@ -118,6 +118,7 @@ nav:
       - Installation: getting-started/installation.md
       - Connect your AI: getting-started/connect-your-ai.md
       - First session: getting-started/first-session.md
+      - Agent skill: getting-started/agent-skill.md
   - Tools:
       - tools/index.md
       - Navigation: tools/navigation.md

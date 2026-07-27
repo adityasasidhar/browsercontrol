@@ -1,0 +1,55 @@
+# BrowserControl
+
+> An MCP server that gives AI agents a real browser they can see. Every action returns an annotated screenshot in which each interactive element is overlaid with a numbered red box (the Set of Marks pattern), so the agent acts by referring to a number — `click(7)` — instead of a CSS selector or XPath. Runs locally on the user's machine via Playwright: no cloud API, no per-action cost, no data leaving the host.
+
+Written in Python 3.11+ on FastMCP + Playwright + Pillow. MIT licensed. Around 30 tools across seven categories: navigation, interaction, forms, content, tabs, devtools, and recording.
+
+Two facts govern correct use and are worth reading before anything else:
+
+- **Element IDs are ephemeral.** The element map is rebuilt from scratch after every click, type, scroll, navigation, tab switch, and screenshot. An ID is valid only against the most recent screenshot; never plan two actions from one screenshot.
+- **Only elements visible in the viewport are marked.** Off-screen elements are filtered out before numbering, so a missing number usually means "scroll", not "absent". Open shadow roots and same-origin iframes are traversed; cross-origin iframes are not.
+
+## Start here
+
+- [Agent skill (SKILL.md)](https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/skills/browsercontrol/SKILL.md): Complete operating playbook for an agent driving this server — the loop, the failure modes, recipes, and recovery. Read this first if you are the agent.
+- [Set of Marks (SoM)](https://adityasasidhar.github.io/browsercontrol/concepts/set-of-marks/): How the numbering works and why IDs are regenerated every action.
+- [Installation](https://adityasasidhar.github.io/browsercontrol/getting-started/installation/): `uv add browsercontrol` (or pip/pipx) plus the one-time Chromium download.
+- [Connect your AI](https://adityasasidhar.github.io/browsercontrol/getting-started/connect-your-ai/): MCP client configuration for Claude Code, Claude Desktop, Cursor, and others.
+- [First session](https://adityasasidhar.github.io/browsercontrol/getting-started/first-session/): An end-to-end walkthrough of a real browsing task.
+
+## Tool reference
+
+- [All tools](https://adityasasidhar.github.io/browsercontrol/tools/): Index of every tool with signatures and return types.
+- [Navigation](https://adityasasidhar.github.io/browsercontrol/tools/navigation/): `navigate_to`, `go_back`, `go_forward`, `refresh_page`, `scroll`.
+- [Interaction](https://adityasasidhar.github.io/browsercontrol/tools/interaction/): `click`, `click_at`, `type_text`, `press_key`, `hover`, `scroll_to_element`, `wait`.
+- [Forms](https://adityasasidhar.github.io/browsercontrol/tools/forms/): `select_option`, `check_checkbox`, `upload_file`.
+- [Content](https://adityasasidhar.github.io/browsercontrol/tools/content/): `get_page_content`, `get_text`, `get_page_info`, `run_javascript`, `screenshot`.
+- [Tabs](https://adityasasidhar.github.io/browsercontrol/tools/tabs/): `create_tab`, `switch_tab`, `close_tab`, `list_tabs`.
+- [DevTools](https://adityasasidhar.github.io/browsercontrol/tools/devtools/): `get_console_logs`, `get_network_requests`, `get_page_errors`, `run_in_console`, `inspect_element`, `get_page_performance`, cookie tools, `set_viewport`.
+- [Recording](https://adityasasidhar.github.io/browsercontrol/tools/recording/): `start_recording`, `stop_recording`, `take_snapshot`, `list_recordings`.
+
+## Guides
+
+- [Web research](https://adityasasidhar.github.io/browsercontrol/guides/web-research/): Gathering information from pages that need interaction.
+- [Debug a web app](https://adityasasidhar.github.io/browsercontrol/guides/debug-web-app/): Errors, then console, then network — in that order.
+- [Fill a form](https://adityasasidhar.github.io/browsercontrol/guides/fill-forms/): Re-locating fields between actions.
+- [Multi-tab research](https://adityasasidhar.github.io/browsercontrol/guides/multi-tab/): The element map belongs to the active tab.
+- [Mobile responsive check](https://adityasasidhar.github.io/browsercontrol/guides/mobile-responsive/): Driving `set_viewport` to test breakpoints.
+- [Upload a file](https://adityasasidhar.github.io/browsercontrol/guides/upload-files/): Native file inputs with absolute paths.
+- [Record a test run](https://adityasasidhar.github.io/browsercontrol/guides/record-tests/): Playwright traces and named snapshots.
+
+## Concepts and configuration
+
+- [Architecture](https://adityasasidhar.github.io/browsercontrol/concepts/architecture/): Tool call, Playwright page, annotated screenshot, element map.
+- [How it compares](https://adityasasidhar.github.io/browsercontrol/concepts/comparison/): Versus selector-based and cloud-hosted browser automation.
+- [Configuration](https://adityasasidhar.github.io/browsercontrol/configuration/): `BROWSER_*` and `LOG_LEVEL` environment variables, read once at import.
+- [Troubleshooting](https://adityasasidhar.github.io/browsercontrol/troubleshooting/): Common launch, proxy, and element-detection problems.
+
+## Optional
+
+- [Development](https://adityasasidhar.github.io/browsercontrol/development/): Local setup, tests, linting, and how to add a tool.
+- [About](https://adityasasidhar.github.io/browsercontrol/about/): Project mission, origin, and maintainers.
+- [Changelog](https://adityasasidhar.github.io/browsercontrol/about/changelog/): Release notes.
+- [License](https://adityasasidhar.github.io/browsercontrol/about/license/): MIT.
+- [Source](https://github.com/adityasasidhar/browsercontrol): Repository.
+- [PyPI](https://pypi.org/project/browsercontrol/): Published package.
