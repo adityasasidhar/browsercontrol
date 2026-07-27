@@ -343,7 +343,8 @@ hide:
        =================================================================== -->
   <section class="bc-cta">
     <div class="bc-wrap bc-cta-inner">
-      <div>
+      <img class="bc-cta-art" src="assets/mascot.png" alt="" width="512" height="512" loading="lazy" aria-hidden="true">
+      <div class="bc-cta-copy">
         <h2>Give your agent a browser that actually sees.</h2>
         <p>One install, no cloud, no key. The shortest path from &ldquo;ask the model&rdquo; to watching the browser do the thing.</p>
       </div>

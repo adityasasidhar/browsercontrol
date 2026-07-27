@@ -18,12 +18,18 @@
   {% if page and page.title and not page.is_homepage %}
     {% set title = page.title ~ " &middot; " ~ config.site_name %}
   {% endif %}
+  {% set og_image = config.site_url ~ 'assets/og-card.png' %}
   <meta property="og:type" content="website">
   <meta property="og:title" content="{{ title }}">
   <meta property="og:description" content="{{ config.site_description }}">
   <meta property="og:url" content="{{ page.canonical_url if page else config.site_url }}">
+  <meta property="og:image" content="{{ og_image }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="BrowserControl — your agent sees the page.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ title }}">
   <meta name="twitter:description" content="{{ config.site_description }}">
+  <meta name="twitter:image" content="{{ og_image }}">
   <meta name="theme-color" content="#0b0f16">
 {% endblock %}

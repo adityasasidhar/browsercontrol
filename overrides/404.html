@@ -1,0 +1,29 @@
+{% extends "main.html" %}
+
+{#- A 404 can be served from any path, so every link here must be absolute. -#}
+{% set root = config.site_url or '/' %}
+
+{% block site_nav %}{% endblock %}
+
+{% block content %}
+  <div class="bc-page bc-404">
+    <img class="bc-404-art"
+         src="{{ root }}assets/mascot.png"
+         alt=""
+         width="512" height="512" aria-hidden="true">
+    <p class="bc-404-code">404</p>
+    <h1 class="bc-404-title">This page isn&rsquo;t on the map.</h1>
+    <p class="bc-404-lede">
+      No element here to mark. The URL may be mistyped, or the page may have
+      moved since something linked to it.
+    </p>
+    <div class="bc-404-links">
+      <a class="bc-btn bc-btn--primary" href="{{ root }}">
+        Back to home
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>
+      </a>
+      <a class="bc-btn bc-btn--ghost" href="{{ root }}tools/">Tool reference</a>
+      <a class="bc-btn bc-btn--ghost" href="{{ root }}getting-started/">Getting started</a>
+    </div>
+  </div>
+{% endblock %}

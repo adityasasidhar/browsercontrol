@@ -2044,6 +2044,20 @@ body,
   gap: 1.5rem;
 }
 
+/* Mascot. Sits between the grid backdrop and the copy, and gets a soft violet
+   pool behind it so the cutout's own lavender shadow reads as intentional. */
+.bc-page .bc-cta-art {
+  flex: 0 0 auto;
+  width: clamp(4.5rem, 9vw, 6.4rem);
+  height: auto;
+  margin: -0.75rem 0;
+  filter: drop-shadow(0 0.6rem 1.4rem rgba(0, 0, 0, 0.45));
+}
+
+.bc-page .bc-cta-copy {
+  flex: 1 1 22rem;
+}
+
 .bc-page .bc-cta h2 {
   margin: 0 0 0.4rem;
   font-size: clamp(1.2rem, 2.4vw, 1.65rem);
@@ -2077,6 +2091,102 @@ body,
   background: #fff;
   border-color: #fff;
   color: var(--bc-deep) !important;
+}
+
+/* -------------------------------------------------------------------------
+   3k. 404
+   Rendered by overrides/404.html, which wraps its content in `.bc-page` so it
+   inherits the landing reset and can reuse `.bc-btn`.
+   ------------------------------------------------------------------------- */
+
+.bc-page.bc-404 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(2rem, 7vw, 4.5rem) 1.25rem clamp(3rem, 9vw, 6rem);
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.bc-page .bc-404-art {
+  width: clamp(9rem, 26vw, 13rem);
+  height: auto;
+  margin-bottom: 1.25rem;
+}
+
+.bc-page .bc-404-code {
+  font-family: var(--bc-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--bc-red-ink);
+  margin-bottom: 0.5rem;
+}
+
+.bc-page .bc-404-title {
+  font-size: clamp(1.35rem, 3.4vw, 1.9rem);
+  font-weight: 720;
+  letter-spacing: -0.032em;
+  line-height: 1.15;
+  color: var(--bc-ink);
+  margin-bottom: 0.6rem;
+  text-wrap: balance;
+}
+
+.bc-page .bc-404-lede {
+  font-size: 0.86rem;
+  line-height: 1.62;
+  color: var(--bc-ink-3);
+  margin-bottom: 1.5rem;
+  text-wrap: pretty;
+}
+
+.bc-page .bc-404-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+/* -------------------------------------------------------------------------
+   3m. Mascot intro row (interior pages)
+   A contained flex row rather than a float — a float this tall would run
+   underneath the following blockquote and headings.
+   ------------------------------------------------------------------------- */
+
+.md-typeset .bc-intro {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2rem);
+  margin: 0 0 1.4rem;
+}
+
+.md-typeset .bc-intro-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.md-typeset .bc-intro-copy > :last-child {
+  margin-bottom: 0;
+}
+
+.md-typeset .bc-intro-art {
+  flex: 0 0 auto;
+  width: clamp(6.5rem, 16vw, 9rem);
+  height: auto;
+}
+
+@media screen and (max-width: 44em) {
+  .md-typeset .bc-intro {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .md-typeset .bc-intro-art {
+    width: 7rem;
+  }
 }
 
 /* =========================================================================
@@ -2157,6 +2267,23 @@ body,
   .bc-page .bc-cta-row .bc-btn {
     flex: 1 1 100%;
     justify-content: center;
+  }
+
+  /* Stack the mascot above the copy rather than crowding it side-on. Note the
+     copy's `flex: 1 1 22rem` basis is a *height* once the axis turns vertical,
+     so it has to be reset or it reserves 22rem of empty space. */
+  .bc-page .bc-cta-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bc-page .bc-cta-copy {
+    flex: 0 1 auto;
+  }
+
+  .bc-page .bc-cta-art {
+    width: 4.5rem;
+    margin: 0;
   }
 
   .bc-page .bc-h1 .bc-marked::after {

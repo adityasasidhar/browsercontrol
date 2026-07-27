@@ -1,6 +1,12 @@
 # About BrowserControl
 
+<div class="bc-intro" markdown>
+<div class="bc-intro-copy" markdown>
 BrowserControl is an open-source MCP server that gives AI agents a real browser they can see, click, type, and debug — local, private, zero-cost.
+</div>
+<img class="bc-intro-art" src="../assets/mascot.png" width="512" height="512" loading="lazy"
+     alt="The BrowserControl mascot: a smiling retro desktop computer waving hello.">
+</div>
 
 ## Mission
 
