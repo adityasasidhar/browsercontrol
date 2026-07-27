@@ -38,45 +38,182 @@ hide:
       <!-- The hero visual is real markup, not a screenshot, so it follows
            the reader's colour scheme and stays crisp at any resolution. -->
       <div class="bc-hero-visual">
-        <div class="bc-scope">
+        <div class="bc-scope" role="img" aria-label="A browser cycling through four Set of Marks scenarios. Signing in: the search field, a nav link, the email and password fields and the Sign in button are outlined in red and numbered one to five, and the agent calls click(5). Filtering a shop search: the agent calls select_option(2) to re-sort 48 results. Debugging a local checkout page: the console shows errors and the agent calls get_page_errors(). Checking a mobile layout: the agent calls set_viewport(390, 844) and the page is re-marked.">
           <div class="bc-window">
             <div class="bc-window-bar">
               <span class="bc-dot"></span><span class="bc-dot"></span><span class="bc-dot"></span>
-              <span class="bc-window-url">app.example.com/sign-in</span>
+              <span class="bc-url-stack">
+                <span class="bc-window-url bc-urlscene" data-s="0" style="--s:0">app.example.com/sign-in</span>
+                <span class="bc-window-url bc-urlscene" data-s="1" style="--s:1">shop.example.com/search?q=desk+lamp</span>
+                <span class="bc-window-url bc-urlscene" data-s="2" style="--s:2">localhost:3000/checkout</span>
+                <span class="bc-window-url bc-urlscene" data-s="3" style="--s:3">app.example.com/signup &mdash; 390&times;844</span>
+              </span>
               <span class="bc-window-tag">SoM</span>
             </div>
-            <div class="bc-viewport" role="img" aria-label="A browser viewport with five interactive elements outlined in red and numbered one through five: the search field, a nav link, the email field, the password field, and the Sign in button.">
-              <span class="bc-topbar"></span>
-              <span class="bc-sk bc-sk--round" style="left:4%;top:4%;width:5%;height:5%"></span>
-              <span class="bc-sk" style="left:12%;top:5.2%;width:7%;height:2.6%"></span>
-              <span class="bc-sk" style="left:21%;top:5.2%;width:6%;height:2.6%"></span>
-              <span class="bc-sk" style="left:29%;top:5.2%;width:8%;height:2.6%"></span>
-              <span class="bc-sk bc-sk--field" style="left:58%;top:3.5%;width:26%;height:6%"></span>
-              <span class="bc-sk bc-sk--round" style="left:88%;top:3.5%;width:6%;height:6%"></span>
-              <span class="bc-panel"></span>
-              <span class="bc-sk bc-sk--strong" style="left:30%;top:30%;width:24%;height:4%"></span>
-              <span class="bc-sk" style="left:30%;top:36.5%;width:40%;height:2.2%"></span>
-              <span class="bc-sk bc-sk--field" style="left:30%;top:43%;width:40%;height:7%"></span>
-              <span class="bc-sk bc-sk--field" style="left:30%;top:53%;width:40%;height:7%"></span>
-              <span class="bc-sk bc-sk--btn" style="left:30%;top:64%;width:40%;height:7.5%"></span>
-              <span class="bc-sk" style="left:36%;top:76.5%;width:28%;height:2.2%"></span>
-              <span class="bc-mark" data-n="1" style="--x:57.5%;--y:3%;--w:27%;--h:7%;--i:0"></span>
-              <span class="bc-mark" data-n="2" style="--x:11%;--y:4.6%;--w:9%;--h:3.8%;--i:1"></span>
-              <span class="bc-mark" data-n="3" style="--x:29%;--y:42.2%;--w:42%;--h:8.6%;--i:2"></span>
-              <span class="bc-mark" data-n="4" style="--x:29%;--y:52.2%;--w:42%;--h:8.6%;--i:3"></span>
-              <span class="bc-mark" data-n="5" style="--x:29%;--y:63.2%;--w:42%;--h:9.1%;--i:4"></span>
+            <div class="bc-viewport">
+              <!-- Scene 1 — sign in -->
+              <div class="bc-scene" data-s="0" style="--s:0">
+                <span class="bc-topbar"></span>
+                <span class="bc-sk bc-sk--round" style="left:4%;top:4%;width:5%;height:5%"></span>
+                <span class="bc-sk" style="left:12%;top:5.2%;width:7%;height:2.6%"></span>
+                <span class="bc-sk" style="left:21%;top:5.2%;width:6%;height:2.6%"></span>
+                <span class="bc-sk" style="left:29%;top:5.2%;width:8%;height:2.6%"></span>
+                <span class="bc-sk bc-sk--field" style="left:58%;top:3.5%;width:26%;height:6%"></span>
+                <span class="bc-sk bc-sk--round" style="left:88%;top:3.5%;width:6%;height:6%"></span>
+                <span class="bc-panel"></span>
+                <span class="bc-sk bc-sk--strong" style="left:30%;top:30%;width:24%;height:4%"></span>
+                <span class="bc-sk" style="left:30%;top:36.5%;width:40%;height:2.2%"></span>
+                <span class="bc-sk bc-sk--field" style="left:30%;top:43%;width:40%;height:7%"></span>
+                <span class="bc-sk bc-sk--field" style="left:30%;top:53%;width:40%;height:7%"></span>
+                <span class="bc-sk bc-sk--btn" style="left:30%;top:64%;width:40%;height:7.5%"></span>
+                <span class="bc-sk" style="left:36%;top:76.5%;width:28%;height:2.2%"></span>
+                <span class="bc-mark" data-n="1" style="--x:57.5%;--y:3%;--w:27%;--h:7%;--i:0"></span>
+                <span class="bc-mark" data-n="2" style="--x:11%;--y:4.6%;--w:9%;--h:3.8%;--i:1"></span>
+                <span class="bc-mark" data-n="3" style="--x:29%;--y:42.2%;--w:42%;--h:8.6%;--i:2"></span>
+                <span class="bc-mark" data-n="4" style="--x:29%;--y:52.2%;--w:42%;--h:8.6%;--i:3"></span>
+                <span class="bc-mark" data-n="5" style="--x:29%;--y:63.2%;--w:42%;--h:9.1%;--i:4"></span>
+              </div>
+              <!-- Scene 2 — search results with filters -->
+              <div class="bc-scene" data-s="1" style="--s:1">
+                <span class="bc-topbar"></span>
+                <span class="bc-sk bc-sk--round" style="left:4%;top:4%;width:5%;height:5%"></span>
+                <span class="bc-sk bc-sk--field" style="left:14%;top:3.5%;width:40%;height:6%"></span>
+                <span class="bc-sk" style="left:60%;top:5.2%;width:7%;height:2.6%"></span>
+                <span class="bc-sk" style="left:70%;top:5.2%;width:6%;height:2.6%"></span>
+                <span class="bc-sk bc-sk--round" style="left:88%;top:3.5%;width:6%;height:6%"></span>
+                <span class="bc-sk bc-sk--field" style="left:4%;top:18%;width:20%;height:74%"></span>
+                <span class="bc-sk bc-sk--strong" style="left:6.5%;top:21%;width:12%;height:2.6%"></span>
+                <span class="bc-sk" style="left:6.5%;top:27%;width:3%;height:3%"></span>
+                <span class="bc-sk" style="left:11%;top:27.6%;width:11%;height:2.2%"></span>
+                <span class="bc-sk" style="left:6.5%;top:34%;width:3%;height:3%"></span>
+                <span class="bc-sk" style="left:11%;top:34.6%;width:9%;height:2.2%"></span>
+                <span class="bc-sk" style="left:6.5%;top:41%;width:3%;height:3%"></span>
+                <span class="bc-sk" style="left:11%;top:41.6%;width:12%;height:2.2%"></span>
+                <span class="bc-sk" style="left:6.5%;top:48%;width:3%;height:3%"></span>
+                <span class="bc-sk" style="left:11%;top:48.6%;width:10%;height:2.2%"></span>
+                <span class="bc-sk" style="left:6.5%;top:58%;width:14%;height:1.6%"></span>
+                <span class="bc-sk" style="left:6.5%;top:64%;width:3%;height:3%"></span>
+                <span class="bc-sk" style="left:11%;top:64.6%;width:11%;height:2.2%"></span>
+                <span class="bc-sk" style="left:6.5%;top:71%;width:3%;height:3%"></span>
+                <span class="bc-sk" style="left:11%;top:71.6%;width:9%;height:2.2%"></span>
+                <span class="bc-sk" style="left:6.5%;top:78%;width:3%;height:3%"></span>
+                <span class="bc-sk" style="left:11%;top:78.6%;width:12%;height:2.2%"></span>
+                <span class="bc-sk bc-sk--field" style="left:74%;top:17%;width:22%;height:6%"></span>
+                <span class="bc-sk" style="left:28%;top:19%;width:16%;height:2.4%"></span>
+                <span class="bc-sk bc-sk--field" style="left:28%;top:26%;width:20%;height:28%"></span>
+                <span class="bc-sk bc-sk--field" style="left:52%;top:26%;width:20%;height:28%"></span>
+                <span class="bc-sk bc-sk--field" style="left:76%;top:26%;width:20%;height:28%"></span>
+                <span class="bc-sk bc-sk--btn" style="left:28%;top:57%;width:20%;height:6.5%"></span>
+                <span class="bc-sk" style="left:52%;top:57%;width:20%;height:6.5%"></span>
+                <span class="bc-sk" style="left:76%;top:57%;width:20%;height:6.5%"></span>
+                <span class="bc-sk bc-sk--field" style="left:28%;top:69%;width:20%;height:23%"></span>
+                <span class="bc-sk bc-sk--field" style="left:52%;top:69%;width:20%;height:23%"></span>
+                <span class="bc-sk bc-sk--field" style="left:76%;top:69%;width:20%;height:23%"></span>
+                <span class="bc-mark" data-n="1" style="--x:13.5%;--y:3%;--w:41%;--h:7%;--i:0"></span>
+                <span class="bc-mark" data-n="2" style="--x:73.5%;--y:16.2%;--w:23%;--h:7.8%;--i:1"></span>
+                <span class="bc-mark" data-n="3" style="--x:6%;--y:26.2%;--w:18%;--h:4.6%;--i:2"></span>
+                <span class="bc-mark" data-n="4" style="--x:27.5%;--y:25.2%;--w:21%;--h:29.5%;--i:3"></span>
+                <span class="bc-mark" data-n="5" style="--x:27.5%;--y:56.2%;--w:21%;--h:8%;--i:4"></span>
+              </div>
+              <!-- Scene 3 — debugging a local checkout, console docked -->
+              <div class="bc-scene" data-s="2" style="--s:2">
+                <span class="bc-topbar"></span>
+                <span class="bc-sk bc-sk--round" style="left:4%;top:4%;width:5%;height:5%"></span>
+                <span class="bc-sk bc-sk--field" style="left:26%;top:3.5%;width:34%;height:6%"></span>
+                <span class="bc-sk bc-sk--round" style="left:88%;top:3.5%;width:6%;height:6%"></span>
+                <span class="bc-sk bc-sk--strong" style="left:6%;top:20%;width:26%;height:4.5%"></span>
+                <span class="bc-sk" style="left:6%;top:28%;width:50%;height:2.2%"></span>
+                <span class="bc-sk" style="left:6%;top:33%;width:40%;height:2.2%"></span>
+                <span class="bc-sk bc-sk--field" style="left:6%;top:39%;width:34%;height:7%"></span>
+                <span class="bc-sk bc-sk--btn" style="left:6%;top:50%;width:20%;height:7.5%"></span>
+                <span class="bc-sk" style="left:30%;top:52.5%;width:14%;height:2.6%"></span>
+                <span class="bc-sk bc-sk--field" style="left:62%;top:20%;width:32%;height:26%"></span>
+                <span class="bc-console"></span>
+                <span class="bc-sk bc-sk--err" style="left:3%;top:64%;width:58%;height:3.4%"></span>
+                <span class="bc-sk bc-sk--err" style="left:3%;top:70%;width:46%;height:3.4%"></span>
+                <span class="bc-sk bc-sk--warn" style="left:3%;top:76%;width:38%;height:3.4%"></span>
+                <span class="bc-sk bc-sk--dim" style="left:3%;top:82%;width:52%;height:3.4%"></span>
+                <span class="bc-mark" data-n="1" style="--x:25.5%;--y:3%;--w:35%;--h:7%;--i:0"></span>
+                <span class="bc-mark" data-n="2" style="--x:5.5%;--y:38.2%;--w:35%;--h:8.6%;--i:1"></span>
+                <span class="bc-mark" data-n="3" style="--x:5.5%;--y:49.2%;--w:21%;--h:9%;--i:2"></span>
+                <span class="bc-mark" data-n="4" style="--x:29%;--y:51.6%;--w:15%;--h:4%;--i:3"></span>
+                <span class="bc-mark" data-n="5" style="--x:61.5%;--y:19.2%;--w:33%;--h:27.5%;--i:4"></span>
+              </div>
+              <!-- Scene 4 — same page re-marked at a phone viewport -->
+              <div class="bc-scene" data-s="3" style="--s:3">
+                <span class="bc-topbar"></span>
+                <span class="bc-sk bc-sk--round" style="left:4%;top:4%;width:5%;height:5%"></span>
+                <span class="bc-sk bc-sk--field" style="left:30%;top:3.5%;width:26%;height:6%"></span>
+                <span class="bc-sk bc-sk--round" style="left:88%;top:3.5%;width:6%;height:6%"></span>
+                <span class="bc-phone" style="left:36%;top:18%;width:28%;height:76%"></span>
+                <span class="bc-sk bc-sk--round" style="left:45%;top:21%;width:10%;height:1.6%"></span>
+                <span class="bc-sk bc-sk--strong" style="left:39%;top:26%;width:18%;height:3.5%"></span>
+                <span class="bc-sk" style="left:39%;top:31.5%;width:22%;height:2%"></span>
+                <span class="bc-sk bc-sk--field" style="left:39%;top:36%;width:22%;height:6.5%"></span>
+                <span class="bc-sk bc-sk--field" style="left:39%;top:45%;width:22%;height:6.5%"></span>
+                <span class="bc-sk bc-sk--btn" style="left:39%;top:54%;width:22%;height:7%"></span>
+                <span class="bc-sk" style="left:42%;top:64%;width:16%;height:2%"></span>
+                <span class="bc-sk" style="left:39%;top:71%;width:22%;height:2%"></span>
+                <span class="bc-sk" style="left:39%;top:76%;width:18%;height:2%"></span>
+                <span class="bc-sk" style="left:39%;top:84%;width:22%;height:5%"></span>
+                <span class="bc-mark" data-n="1" style="--x:29.5%;--y:3%;--w:27%;--h:7%;--i:0"></span>
+                <span class="bc-mark" data-n="2" style="--x:38.5%;--y:35.2%;--w:23%;--h:8%;--i:1"></span>
+                <span class="bc-mark" data-n="3" style="--x:38.5%;--y:44.2%;--w:23%;--h:8%;--i:2"></span>
+                <span class="bc-mark" data-n="4" style="--x:38.5%;--y:53.2%;--w:23%;--h:8.5%;--i:3"></span>
+                <span class="bc-mark" data-n="5" style="--x:41.5%;--y:63.2%;--w:17%;--h:3.6%;--i:4"></span>
+              </div>
             </div>
           </div>
           <div class="bc-map">
             <div class="bc-map-head"><span>element_map</span><b>5</b></div>
-            <ul class="bc-map-list">
-              <li style="--i:0"><span class="n">1</span><span class="t">input</span><span class="l">Search or jump to&hellip;</span></li>
-              <li style="--i:1"><span class="n">2</span><span class="t">a</span><span class="l">Pull requests</span></li>
-              <li style="--i:2"><span class="n">3</span><span class="t">input</span><span class="l">Email address</span></li>
-              <li style="--i:3"><span class="n">4</span><span class="t">input</span><span class="l">Password</span></li>
-              <li style="--i:4"><span class="n">5</span><span class="t">button</span><span class="l">Sign in</span></li>
-            </ul>
-            <div class="bc-map-call"><span class="arrow">&rsaquo;</span> <span class="fn">click(5)</span><br><span class="ok">&check; clicked "Sign in"</span></div>
+            <div class="bc-map-stack">
+              <div class="bc-mapscene" data-s="0" style="--s:0">
+                <ul class="bc-map-list">
+                  <li style="--i:0"><span class="n">1</span><span class="t">input</span><span class="l">Search or jump to&hellip;</span></li>
+                  <li style="--i:1"><span class="n">2</span><span class="t">a</span><span class="l">Pull requests</span></li>
+                  <li style="--i:2"><span class="n">3</span><span class="t">input</span><span class="l">Email address</span></li>
+                  <li style="--i:3"><span class="n">4</span><span class="t">input</span><span class="l">Password</span></li>
+                  <li style="--i:4"><span class="n">5</span><span class="t">button</span><span class="l">Sign in</span></li>
+                </ul>
+                <div class="bc-map-call"><span class="arrow">&rsaquo;</span> <span class="fn">click(5)</span><br><span class="ok">&check; clicked "Sign in" &rarr; /dashboard</span></div>
+              </div>
+              <div class="bc-mapscene" data-s="1" style="--s:1">
+                <ul class="bc-map-list">
+                  <li style="--i:0"><span class="n">1</span><span class="t">input</span><span class="l">Search products</span></li>
+                  <li style="--i:1"><span class="n">2</span><span class="t">select</span><span class="l">Sort: Featured</span></li>
+                  <li style="--i:2"><span class="n">3</span><span class="t">input</span><span class="l">In stock only</span></li>
+                  <li style="--i:3"><span class="n">4</span><span class="t">a</span><span class="l">Cove LED Desk Lamp</span></li>
+                  <li style="--i:4"><span class="n">5</span><span class="t">button</span><span class="l">Add to cart</span></li>
+                </ul>
+                <div class="bc-map-call"><span class="arrow">&rsaquo;</span> <span class="fn">select_option(2, "Price &uarr;")</span><br><span class="ok">&check; re-sorted &mdash; 48 results</span></div>
+              </div>
+              <div class="bc-mapscene" data-s="2" style="--s:2">
+                <ul class="bc-map-list">
+                  <li style="--i:0"><span class="n">1</span><span class="t">input</span><span class="l">Search orders</span></li>
+                  <li style="--i:1"><span class="n">2</span><span class="t">input</span><span class="l">Promo code</span></li>
+                  <li style="--i:2"><span class="n">3</span><span class="t">button</span><span class="l">Place order</span></li>
+                  <li style="--i:3"><span class="n">4</span><span class="t">a</span><span class="l">Terms of sale</span></li>
+                  <li style="--i:4"><span class="n">5</span><span class="t">a</span><span class="l">Order summary</span></li>
+                </ul>
+                <div class="bc-map-call"><span class="arrow">&rsaquo;</span> <span class="fn">get_page_errors()</span><br><span class="err">&times; TypeError: cart.total is undefined</span></div>
+              </div>
+              <div class="bc-mapscene" data-s="3" style="--s:3">
+                <ul class="bc-map-list">
+                  <li style="--i:0"><span class="n">1</span><span class="t">input</span><span class="l">Search</span></li>
+                  <li style="--i:1"><span class="n">2</span><span class="t">input</span><span class="l">Full name</span></li>
+                  <li style="--i:2"><span class="n">3</span><span class="t">input</span><span class="l">Work email</span></li>
+                  <li style="--i:3"><span class="n">4</span><span class="t">button</span><span class="l">Continue</span></li>
+                  <li style="--i:4"><span class="n">5</span><span class="t">a</span><span class="l">Need help?</span></li>
+                </ul>
+                <div class="bc-map-call"><span class="arrow">&rsaquo;</span> <span class="fn">set_viewport(390, 844)</span><br><span class="ok">&check; re-marked at 390&times;844</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="bc-ticks" aria-hidden="true">
+            <span class="bc-tick" style="--s:0"></span>
+            <span class="bc-tick" style="--s:1"></span>
+            <span class="bc-tick" style="--s:2"></span>
+            <span class="bc-tick" style="--s:3"></span>
           </div>
         </div>
       </div>
