@@ -162,60 +162,7 @@ body,
 }
 
 /* -------------------------------------------------------------------------
-   2a. Announcement bar
-   ------------------------------------------------------------------------- */
-
-.md-banner {
-  background: var(--bc-deep);
-  color: var(--bc-deep-ink);
-  border-bottom: 1px solid var(--bc-deep-line);
-}
-
-.md-banner__inner {
-  margin: 0.45rem auto;
-  font-size: 0.66rem;
-}
-
-.bc-announce {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  font-family: var(--bc-sans);
-}
-
-.bc-announce-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.1rem 0.45rem;
-  border-radius: 999px;
-  background: var(--bc-red);
-  color: #fff;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.bc-announce-text {
-  color: var(--bc-deep-muted);
-}
-
-.bc-announce-link {
-  color: #fff !important;
-  font-weight: 600;
-  text-decoration: none !important;
-  white-space: nowrap;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-}
-
-.bc-announce-link:hover {
-  border-bottom-color: var(--bc-red);
-}
-
-/* -------------------------------------------------------------------------
-   2b. Header + navigation tabs
+   2a. Header + navigation tabs
    ------------------------------------------------------------------------- */
 
 .md-header,
@@ -342,7 +289,7 @@ body,
 }
 
 /* -------------------------------------------------------------------------
-   2c. Sidebars
+   2b. Sidebars
    ------------------------------------------------------------------------- */
 
 .md-nav {
@@ -404,7 +351,7 @@ body,
 }
 
 /* -------------------------------------------------------------------------
-   2d. Typeset — headings, rules, links
+   2c. Typeset — headings, rules, links
    ------------------------------------------------------------------------- */
 
 .md-typeset h1 {
@@ -489,7 +436,7 @@ body,
 }
 
 /* -------------------------------------------------------------------------
-   2e. Code
+   2d. Code
    ------------------------------------------------------------------------- */
 
 .md-typeset code {
@@ -566,7 +513,7 @@ body,
 }
 
 /* -------------------------------------------------------------------------
-   2f. Tables
+   2e. Tables
    ------------------------------------------------------------------------- */
 
 /* Let tables use the full measure instead of shrink-wrapping their content */
@@ -616,7 +563,7 @@ body,
 }
 
 /* -------------------------------------------------------------------------
-   2g. Admonitions
+   2f. Admonitions
    ------------------------------------------------------------------------- */
 
 .md-typeset .admonition,
@@ -687,7 +634,7 @@ body,
 }
 
 /* -------------------------------------------------------------------------
-   2h. Grid cards + buttons
+   2g. Grid cards + buttons
    ------------------------------------------------------------------------- */
 
 /* Slightly narrower minimum so category card sets land three-up */
@@ -754,7 +701,7 @@ body,
 }
 
 /* -------------------------------------------------------------------------
-   2i. Footer
+   2h. Footer
    ------------------------------------------------------------------------- */
 
 .md-footer,
