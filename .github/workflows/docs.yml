@@ -85,27 +85,21 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_API: ${{ github.api_url }}
         run: |
-          # The repository metadata API exposes `has_pages`. actions/configure-pages
-          # fails the workflow with "Not Found" when Pages has not been turned on
-          # in repo settings, so probe first and skip the deploy steps cleanly.
-          response=$(curl -sS -w "\n%{http_code}" \
+          # actions/configure-pages fails the workflow with "Not Found" when Pages
+          # has not been turned on in repo settings. Probe the dedicated /pages
+          # endpoint first (HTTP 200 == configured, 404 == disabled) and skip the
+          # deploy steps cleanly when Pages is not configured.
+          status=$(curl -sS -o /dev/null -w "%{http_code}" \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "${GH_API}/repos/${GH_REPO}")
-          status=$(printf '%s' "${response}" | tail -n1)
-          body=$(printf '%s' "${response}" | sed '$d')
-          if [ "${status}" != "200" ]; then
-            echo "::warning::Could not read repository metadata (HTTP ${status}); skipping Pages deploy."
-            echo "enabled=false" >> "${GITHUB_OUTPUT}"
-            exit 0
-          fi
-          if printf '%s' "${body}" | grep -q '"has_pages":true'; then
+            "${GH_API}/repos/${GH_REPO}/pages")
+          if [ "${status}" = "200" ]; then
             echo "enabled=true" >> "${GITHUB_OUTPUT}"
             echo "GitHub Pages is enabled for ${GH_REPO}; proceeding with deploy."
           else
             echo "enabled=false" >> "${GITHUB_OUTPUT}"
-            echo "::warning::GitHub Pages is not enabled for ${GH_REPO}. Enable it under Settings -> Pages -> Build and deployment: GitHub Actions, then re-run this workflow."
+            echo "::warning::GitHub Pages is not enabled for ${GH_REPO} (HTTP ${status} on /pages). Enable it under Settings -> Pages -> Build and deployment: GitHub Actions, then re-run this workflow."
           fi
 
       - name: Setup Pages
