@@ -136,18 +136,33 @@ async def my_new_tool(element_id: int) -> tuple[str, Image]:
 
 ## Building the docs
 
-The docs site uses **MkDocs Material**. To preview locally:
+The docs site uses **MkDocs Material**, installed via the `docs` extra.
+
+### One-time setup
+
+Make sure your project's virtual environment has MkDocs Material installed:
 
 ```bash
-uv run --with mkdocs-material --with pymdown-extensions mkdocs serve
+uv sync --extra docs
+```
+
+`uv sync` (run as part of normal setup per [CONTRIBUTING.md](https://github.com/adityasasidhar/browsercontrol/blob/main/CONTRIBUTING.md)) already covers this — `--extra docs` is only required if you've previously synced without it.
+
+### Preview locally
+
+```bash
+uv run mkdocs serve
 ```
 
 Then open <http://localhost:8000>.
 
-To build the static site (CI does this):
+!!! warning "Why `uv run`?"
+    Do **not** run a bare `mkdocs serve`. On many systems a stray `/usr/bin/mkdocs` (Python 3.x with no Material theme) takes precedence over the project venv and fails with `cannot find module 'material.extensions.emoji'`. `uv run` always resolves `mkdocs` from `.venv/bin/`.
+
+### Build the static site (CI does this)
 
 ```bash
-uv run --with mkdocs-material --with pymdown-extensions mkdocs build --strict
+uv run mkdocs build --strict
 ```
 
 The output goes to `site/` (gitignored).
