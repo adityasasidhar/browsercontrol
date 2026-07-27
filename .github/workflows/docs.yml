@@ -78,14 +78,52 @@ jobs:
       - name: Build site
         run: .venv/bin/mkdocs build
 
+      - name: Detect whether GitHub Pages is enabled
+        id: pages-status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          GH_API: ${{ github.api_url }}
+        run: |
+          # The repository metadata API exposes `has_pages`. actions/configure-pages
+          # fails the workflow with "Not Found" when Pages has not been turned on
+          # in repo settings, so probe first and skip the deploy steps cleanly.
+          response=$(curl -sS -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${GH_API}/repos/${GH_REPO}")
+          status=$(printf '%s' "${response}" | tail -n1)
+          body=$(printf '%s' "${response}" | sed '$d')
+          if [ "${status}" != "200" ]; then
+            echo "::warning::Could not read repository metadata (HTTP ${status}); skipping Pages deploy."
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          if printf '%s' "${body}" | grep -q '"has_pages":true'; then
+            echo "enabled=true" >> "${GITHUB_OUTPUT}"
+            echo "GitHub Pages is enabled for ${GH_REPO}; proceeding with deploy."
+          else
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+            echo "::warning::GitHub Pages is not enabled for ${GH_REPO}. Enable it under Settings -> Pages -> Build and deployment: GitHub Actions, then re-run this workflow."
+          fi
+
       - name: Setup Pages
+        if: steps.pages-status.outputs.enabled == 'true'
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
+        if: steps.pages-status.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
       - name: Deploy to GitHub Pages
+        if: steps.pages-status.outputs.enabled == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Skip deploy summary
+        if: steps.pages-status.outputs.enabled != 'true'
+        run: |
+          echo "Deploy steps were skipped because GitHub Pages is not configured for this repository."
