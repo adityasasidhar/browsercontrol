@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block announce %}
+  <div class="bc-announce">
+    <span class="bc-announce-tag">New</span>
+    <span class="bc-announce-text">
+      BrowserControl 0.1.4 &mdash; ~30 vision-first MCP tools, 100% local.
+    </span>
+    <a class="bc-announce-link"
+       href="{{ 'getting-started/installation/' | url }}">
+      Install it &rarr;
+    </a>
+  </div>
+{% endblock %}
+
+{% block extrahead %}
+  {% set title = config.site_name %}
+  {% if page and page.title and not page.is_homepage %}
+    {% set title = page.title ~ " &middot; " ~ config.site_name %}
+  {% endif %}
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:description" content="{{ config.site_description }}">
+  <meta property="og:url" content="{{ page.canonical_url if page else config.site_url }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ title }}">
+  <meta name="twitter:description" content="{{ config.site_description }}">
+  <meta name="theme-color" content="#0b0f16">
+{% endblock %}

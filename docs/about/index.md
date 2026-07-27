@@ -4,7 +4,15 @@ BrowserControl is an open-source MCP server that gives AI agents a real browser 
 
 ## Mission
 
-> Make this MCP server great, popular, well-used, and better.
+> Give AI agents a better way to use a browser — one they can actually see,
+> running on your machine, free for anyone to use.
+
+Agents are asked to work on the web every day, and most of the tooling still
+hands them a DOM and hopes for the best. BrowserControl exists to close that
+gap: show the agent the page, let it point at what it wants, and keep the whole
+loop local, private, and free. Every design decision is measured against that —
+does it make an agent more capable in a browser, and does it stay out of the
+user's way?
 
 ## Origin
 

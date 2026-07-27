@@ -3,342 +3,360 @@ hide:
   - navigation
   - toc
 ---
-
-<div class="bc-page" markdown>
-
-<!-- ============================================================
-     HERO
-     ============================================================ -->
-<div class="bc-hero" aria-label="BrowserControl introduction">
-  <div class="bc-hero-copy">
-    <span class="bc-eyebrow">
-      <span class="bc-eyebrow-dot" aria-hidden="true"></span>
-      Vision-first MCP browser automation
-    </span>
-
-    <h1 class="bc-hero-headline">
-      Your agent <span class="bc-mark-red">sees the page.</span><br>
-      Then clicks the number.
-    </h1>
-
-    <p class="bc-hero-lede">
-      BrowserControl is a local MCP server that gives any AI agent a real
-      browser it can <strong>see</strong>, <strong>click</strong>,
-      <strong>type</strong>, and <strong>debug</strong> &mdash; using a
-      vision-first <strong>Set of Marks</strong> overlay. No selectors. No
-      cloud. No API bill.
-    </p>
-
-    <div class="bc-hero-cta">
-      <a href="getting-started/index.md" class="md-button md-button--primary">
-        Get started
-      </a>
-      <a href="https://github.com/adityasasidhar/browsercontrol"
-         class="md-button" rel="noopener">
-        View on GitHub
-      </a>
+<div class="bc-page">
+  <!-- ===================================================================
+       HERO
+       =================================================================== -->
+  <section class="bc-hero">
+    <div class="bc-wrap bc-hero-inner">
+      <div class="bc-hero-copy">
+        <a class="bc-pill" href="concepts/set-of-marks/">
+          <span class="bc-pill-tag">SoM</span>
+          <span>What Set of Marks actually does</span>
+          <span class="bc-pill-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+        <h1 class="bc-h1">Your agent <span class="bc-marked">sees</span> the page.<br>Then clicks the number.</h1>
+        <p class="bc-hero-lede">BrowserControl is a local MCP server that hands any AI agent a real Chromium browser it can <strong>see</strong>, <strong>click</strong>, <strong>type</strong> into, and <strong>debug</strong> — through numbered marks drawn over every interactive element. No selectors. No cloud. No API bill.</p>
+        <div class="bc-cta-row">
+          <a class="bc-btn bc-btn--primary" href="getting-started/">
+            Get started
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>
+          </a>
+          <a class="bc-btn bc-btn--ghost" href="https://github.com/adityasasidhar/browsercontrol" rel="noopener">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+        <div class="bc-hero-cmd"><span class="bc-prompt" aria-hidden="true">$</span><code>pip install browsercontrol</code></div>
+        <ul class="bc-trust">
+          <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 5"/></svg> Runs 100% on your machine</li>
+          <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 5"/></svg> No LLM API key</li>
+          <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 5"/></svg> MIT licensed</li>
+          <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 5"/></svg> Python 3.11+</li>
+        </ul>
+      </div>
+      <!-- The hero visual is real markup, not a screenshot, so it follows
+           the reader's colour scheme and stays crisp at any resolution. -->
+      <div class="bc-hero-visual">
+        <div class="bc-scope">
+          <div class="bc-window">
+            <div class="bc-window-bar">
+              <span class="bc-dot"></span><span class="bc-dot"></span><span class="bc-dot"></span>
+              <span class="bc-window-url">app.example.com/sign-in</span>
+              <span class="bc-window-tag">SoM</span>
+            </div>
+            <div class="bc-viewport" role="img" aria-label="A browser viewport with five interactive elements outlined in red and numbered one through five: the search field, a nav link, the email field, the password field, and the Sign in button.">
+              <span class="bc-topbar"></span>
+              <span class="bc-sk bc-sk--round" style="left:4%;top:4%;width:5%;height:5%"></span>
+              <span class="bc-sk" style="left:12%;top:5.2%;width:7%;height:2.6%"></span>
+              <span class="bc-sk" style="left:21%;top:5.2%;width:6%;height:2.6%"></span>
+              <span class="bc-sk" style="left:29%;top:5.2%;width:8%;height:2.6%"></span>
+              <span class="bc-sk bc-sk--field" style="left:58%;top:3.5%;width:26%;height:6%"></span>
+              <span class="bc-sk bc-sk--round" style="left:88%;top:3.5%;width:6%;height:6%"></span>
+              <span class="bc-panel"></span>
+              <span class="bc-sk bc-sk--strong" style="left:30%;top:30%;width:24%;height:4%"></span>
+              <span class="bc-sk" style="left:30%;top:36.5%;width:40%;height:2.2%"></span>
+              <span class="bc-sk bc-sk--field" style="left:30%;top:43%;width:40%;height:7%"></span>
+              <span class="bc-sk bc-sk--field" style="left:30%;top:53%;width:40%;height:7%"></span>
+              <span class="bc-sk bc-sk--btn" style="left:30%;top:64%;width:40%;height:7.5%"></span>
+              <span class="bc-sk" style="left:36%;top:76.5%;width:28%;height:2.2%"></span>
+              <span class="bc-mark" data-n="1" style="--x:57.5%;--y:3%;--w:27%;--h:7%;--i:0"></span>
+              <span class="bc-mark" data-n="2" style="--x:11%;--y:4.6%;--w:9%;--h:3.8%;--i:1"></span>
+              <span class="bc-mark" data-n="3" style="--x:29%;--y:42.2%;--w:42%;--h:8.6%;--i:2"></span>
+              <span class="bc-mark" data-n="4" style="--x:29%;--y:52.2%;--w:42%;--h:8.6%;--i:3"></span>
+              <span class="bc-mark" data-n="5" style="--x:29%;--y:63.2%;--w:42%;--h:9.1%;--i:4"></span>
+            </div>
+          </div>
+          <div class="bc-map">
+            <div class="bc-map-head"><span>element_map</span><b>5</b></div>
+            <ul class="bc-map-list">
+              <li style="--i:0"><span class="n">1</span><span class="t">input</span><span class="l">Search or jump to&hellip;</span></li>
+              <li style="--i:1"><span class="n">2</span><span class="t">a</span><span class="l">Pull requests</span></li>
+              <li style="--i:2"><span class="n">3</span><span class="t">input</span><span class="l">Email address</span></li>
+              <li style="--i:3"><span class="n">4</span><span class="t">input</span><span class="l">Password</span></li>
+              <li style="--i:4"><span class="n">5</span><span class="t">button</span><span class="l">Sign in</span></li>
+            </ul>
+            <div class="bc-map-call"><span class="arrow">&rsaquo;</span> <span class="fn">click(5)</span><br><span class="ok">&check; clicked "Sign in"</span></div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div class="bc-trust-row" aria-label="Trust signals">
-      <span><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1.5 2.5 4v4c0 3.4 2.4 5.7 5.5 6.5 3.1-.8 5.5-3.1 5.5-6.5V4L8 1.5Z"/></svg> 100% local</span>
-      <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 8.5 7 10.5 11 6.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> MIT licensed</span>
-      <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 6.5 8 8.5 10.5 6.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Python 3.11+</span>
-      <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.5" fill="currentColor"/><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg> MCP-compatible</span>
-    </div>
-  </div>
-
-  <div class="bc-hero-visual">
-    <img src="assets/demo.svg"
-         alt="Annotated screenshot of a browser with five red numbered Set of Marks, beside the textual element map returned to the agent and a click(5) action card showing the successful Sign in click."
-         class="bc-demo">
-  </div>
-</div>
-
-<!-- ============================================================
-     BADGE STRIP — replaces loose shields.io row
-     ============================================================ -->
-<div class="bc-badge-strip" aria-label="Project status">
-  <a class="bc-badge" href="https://pypi.org/project/browsercontrol/" rel="noopener">
-    <span class="bc-badge-dot" aria-hidden="true"></span>
-    PyPI &middot; 0.1.4
-  </a>
-  <a class="bc-badge bc-badge--red" href="https://www.python.org/downloads/" rel="noopener">
-    <span class="bc-badge-dot" aria-hidden="true"></span>
-    Python 3.11+
-  </a>
-  <a class="bc-badge bc-badge--violet" href="https://opensource.org/licenses/MIT" rel="noopener">
-    <span class="bc-badge-dot" aria-hidden="true"></span>
-    MIT License
-  </a>
-  <a class="bc-badge" href="https://modelcontextprotocol.io/" rel="noopener">
-    <span class="bc-badge-dot" aria-hidden="true"></span>
-    MCP Compatible
-  </a>
-  <a class="bc-badge bc-badge--ink" href="https://github.com/adityasasidhar/browsercontrol/actions" rel="noopener">
-    <span class="bc-badge-dot" aria-hidden="true"></span>
-    CI passing
-  </a>
-  <a class="bc-badge" href="https://github.com/adityasasidhar/browsercontrol/stargazers" rel="noopener">
-    <span class="bc-badge-dot" aria-hidden="true"></span>
-    Star on GitHub
-  </a>
-</div>
-
-<!-- ============================================================
-     THREE-STEP SoM EXPLANATION
-     ============================================================ -->
-<div class="bc-section">
-  <span class="bc-section-eyebrow">Set of Marks</span>
-  <h2 class="bc-section-title">See the page. Pick a number. Click.</h2>
-  <p class="bc-section-lede">
-    Every BrowserControl tool that touches the page returns the same shape:
-    an annotated screenshot with numbered red boxes over each interactive
-    element, plus a textual element map. The model picks a number. The click
-    resolves through <code>document.elementFromPoint()</code> so overlays and
-    sticky chrome never get in the way.
-  </p>
-
-  <div class="bc-steps">
-    <div class="bc-step">
-      <span class="bc-step-num">1</span>
-      <h3 class="bc-step-title">See</h3>
-      <p class="bc-step-body">
-        A screenshot is annotated with numbered red boxes over every
-        interactive element &mdash; inputs, links, buttons, even shadow-DOM
-        descendants and same-origin iframes.
-      </p>
-      <span class="bc-step-arrow" aria-hidden="true">&rarr;</span>
-    </div>
-    <div class="bc-step">
-      <span class="bc-step-num">2</span>
-      <h3 class="bc-step-title">Choose</h3>
-      <p class="bc-step-body">
-        A compact textual element map lists each numbered target with its tag
-        and label. The model picks a number &mdash; no selectors, no XPath,
-        no hallucinated <code>div.flex &gt; button:nth-child(3)</code>.
-      </p>
-      <span class="bc-step-arrow" aria-hidden="true">&rarr;</span>
-    </div>
-    <div class="bc-step">
-      <span class="bc-step-num">3</span>
-      <h3 class="bc-step-title">Act</h3>
-      <p class="bc-step-body">
-        The agent calls <code>click(5)</code>. BrowserControl resolves the
-        actual DOM element at the box center and drives Chromium. Cookies,
-        login state, and history all survive restarts.
-      </p>
+  </section>
+  <!-- ===================================================================
+       STAT STRIP
+       =================================================================== -->
+  <div class="bc-stats">
+    <div class="bc-wrap bc-stats-grid">
+      <div class="bc-stat">
+        <span class="bc-stat-num">~30</span>
+        <span class="bc-stat-label">MCP tools, every one returning a fresh annotated screenshot</span>
+      </div>
+      <div class="bc-stat">
+        <span class="bc-stat-num">7</span>
+        <span class="bc-stat-label">Categories: navigation, interaction, tabs, forms, content, devtools, recording</span>
+      </div>
+      <div class="bc-stat">
+        <span class="bc-stat-num"><em>$0</em></span>
+        <span class="bc-stat-label">Marginal cost per 1,000 browser actions</span>
+      </div>
+      <div class="bc-stat">
+        <span class="bc-stat-num">0</span>
+        <span class="bc-stat-label">Bytes of your browsing sent anywhere off-device</span>
+      </div>
     </div>
   </div>
-</div>
-
-<!-- ============================================================
-     PROOF PANEL — annotated screenshot + tool output
-     ============================================================ -->
-<div class="bc-section">
-  <span class="bc-section-eyebrow">Proof</span>
-  <h2 class="bc-section-title">One tool call. One annotated screenshot. One click.</h2>
-  <p class="bc-section-lede">
-    This is the literal shape BrowserControl returns from
-    <code>get_screenshot_with_summary()</code>: the marked-up page and the
-    element map the model reads. A subsequent <code>click(5)</code> lands on
-    the Sign in button.
-  </p>
-
-  <div class="bc-proof">
-    <div class="bc-proof-img">
-      <img src="assets/demo.svg"
-           alt="Annotated browser screenshot with five numbered red marks, beside the element map returned to the agent and a click(5) action card showing a successful Sign in click."
-           loading="lazy">
+  <!-- ===================================================================
+       THE LOOP
+       =================================================================== -->
+  <section class="bc-section bc-section--tint">
+    <div class="bc-wrap">
+      <div class="bc-head">
+        <p class="bc-eyebrow">The loop</p>
+        <h2 class="bc-h2">See the page. Pick a number. Act.</h2>
+        <p class="bc-lede">Every tool that touches the page returns the same two things: an annotated screenshot and a textual element map. The model reads pixels <em>and</em> labels, then names a number. Clicks resolve through <code>document.elementFromPoint()</code>, so sticky headers, overlays, and cookie banners never steal the hit.</p>
+      </div>
+      <div class="bc-steps">
+        <div class="bc-step">
+          <span class="bc-step-n">1</span>
+          <h3>See</h3>
+          <p>A screenshot comes back with numbered red boxes over every interactive element — inputs, links, buttons, open shadow-DOM descendants, and same-origin iframes with their coordinate offsets already applied.</p>
+        </div>
+        <div class="bc-step">
+          <span class="bc-step-n">2</span>
+          <h3>Choose</h3>
+          <p>Alongside it, a compact element map lists each mark with its tag and accessible label. The model picks a number — never a brittle <code>div.flex &gt; button:nth-child(3)</code> it hallucinated from stale HTML.</p>
+        </div>
+        <div class="bc-step">
+          <span class="bc-step-n">3</span>
+          <h3>Act</h3>
+          <p>The agent calls <code>click(5)</code>. BrowserControl resolves the live DOM node under that box, drives Chromium, and re-marks the new page. Cookies and login state survive restarts.</p>
+        </div>
+      </div>
+      <div class="bc-transcript">
+        <div class="bc-transcript-head">
+          <span class="bc-dot"></span><span class="bc-dot"></span><span class="bc-dot"></span>
+          <span class="sp">agent session</span>
+        </div>
+        <pre class="bc-transcript-body"><span class="a">agent</span>  <span class="c">&rsaquo;</span> <span class="f">navigate_to</span>(<span class="s">"https://app.example.com/sign-in"</span>)
+       <span class="c">&lsaquo; screenshot + element_map &mdash; <span class="m">5</span> elements marked</span>
+<span class="a">agent</span>  <span class="c">&rsaquo;</span> <span class="f">type_text</span>(<span class="m">3</span>, <span class="s">"ada@example.com"</span>)
+<span class="a">agent</span>  <span class="c">&rsaquo;</span> <span class="f">type_text</span>(<span class="m">4</span>, <span class="s">"&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"</span>)
+<span class="a">agent</span>  <span class="c">&rsaquo;</span> <span class="f">click</span>(<span class="m">5</span>)
+       <span class="c">&lsaquo; <span class="s">&check;</span> clicked &lt;button&gt; "Sign in" &rarr; /dashboard &mdash; <span class="m">12</span> new elements</span>
+<span class="a">agent</span>  <span class="c">&rsaquo;</span> <span class="f">get_console_logs</span>()
+       <span class="c">&lsaquo; <span class="s">0 errors</span>, 2 warnings</span></pre>
+      </div>
     </div>
-    <div class="bc-proof-copy">
-      <h3>Tool output &mdash; in the model&rsquo;s context</h3>
-      <p>
-        Every <code>get_*</code>, <code>click</code>, <code>type_text</code>,
-        and <code>navigate</code> call returns this shape:
-        an image plus a short element map. The model sees pixels and reads
-        the list.
-      </p>
-      <ul class="bc-proof-legend">
-        <li><span class="bc-proof-num">1</span><span class="bc-proof-type">input</span><span>Search or jump to&hellip;</span></li>
-        <li><span class="bc-proof-num">2</span><span class="bc-proof-type">a</span><span>Pulls</span></li>
-        <li><span class="bc-proof-num">3</span><span class="bc-proof-type">a</span><span>Issues</span></li>
-        <li><span class="bc-proof-num">4</span><span class="bc-proof-type">a</span><span>Codespaces</span></li>
-        <li><span class="bc-proof-num">5</span><span class="bc-proof-type">button</span><span>Sign in</span></li>
-      </ul>
+  </section>
+  <!-- ===================================================================
+       FEATURES
+       =================================================================== -->
+  <section class="bc-section">
+    <div class="bc-wrap">
+      <div class="bc-head">
+        <p class="bc-eyebrow">Why it works</p>
+        <h2 class="bc-h2">Shaped around how agents fail, not how humans test.</h2>
+        <p class="bc-lede">Selector-driven automation assumes you already know the DOM. Agents don&rsquo;t — they guess, and they guess wrong. Every decision below exists to remove one of those guesses.</p>
+      </div>
+      <div class="bc-features">
+        <div class="bc-feature">
+          <span class="bc-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/></svg></span>
+          <h3>Vision-first, selector-free</h3>
+          <p>Numbered red boxes over the live page. The agent names a number. There is no CSS selector to get wrong, no XPath to invent, no class name to hallucinate.</p>
+        </div>
+        <div class="bc-feature bc-feature--violet">
+          <span class="bc-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 16 9 5 9-5"/><path d="m3 12 9 5 9-5"/></svg></span>
+          <h3>Shadow DOM &amp; iframe aware</h3>
+          <p>The element collector descends recursively into open shadow roots and same-origin iframes, compensating coordinate offsets as it goes. Component-framework apps just work.</p>
+        </div>
+        <div class="bc-feature bc-feature--teal">
+          <span class="bc-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.9-6.4"/><path d="M20.5 3.5v5h-5"/></svg></span>
+          <h3>Sessions that actually persist</h3>
+          <p>Chromium runs against a real profile directory via <code>launch_persistent_context</code>. Cookies, localStorage, and login state survive server restarts. Log in once, not once per run.</p>
+        </div>
+        <div class="bc-feature">
+          <span class="bc-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.75" y="4" width="18.5" height="16" rx="2.5"/><path d="m7 9.5 3 2.5-3 2.5"/><path d="M13 15h4"/></svg></span>
+          <h3>DevTools in the same server</h3>
+          <p>Console logs, network requests with timing, uncaught JS errors, performance metrics, computed styles, cookies. Debugging a page needs no second MCP server.</p>
+        </div>
+        <div class="bc-feature bc-feature--violet">
+          <span class="bc-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 4.5 5.6v5.2c0 4.6 3.1 8.1 7.5 9.7 4.4-1.6 7.5-5.1 7.5-9.7V5.6L12 2.5Z"/><path d="m8.8 11.8 2.3 2.3 4.1-4.4"/></svg></span>
+          <h3>Local, private, uncapped</h3>
+          <p>No cloud relay, no telemetry, no vendor rate limit. Screenshots are captured, annotated, and consumed on your machine — including the ones of your logged-in accounts.</p>
+        </div>
+        <div class="bc-feature bc-feature--teal">
+          <span class="bc-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 2 4.5 13.5h6l-1.2 8.5 9.2-12h-6L13.5 2Z"/></svg></span>
+          <h3>Zero marginal cost</h3>
+          <p>Everything runs on hardware you already pay for. A thousand clicks cost exactly the same as one: nothing. No per-action pricing, no surprise invoice.</p>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     CAPABILITY CARDS
-     ============================================================ -->
-<div class="bc-section">
-  <span class="bc-section-eyebrow">Why BrowserControl</span>
-  <h2 class="bc-section-title">Built for the agent loop. Not for humans.</h2>
-  <p class="bc-section-lede">
-    Every detail below exists because AI agents fail differently than
-    humans do. BrowserControl is shaped around their failure modes &mdash;
-    not around a human test runner.
-  </p>
-
-  <div class="bc-cap-grid">
-    <div class="bc-cap">
-      <span class="bc-cap-icon bc-cap-icon--red" aria-hidden="true">#</span>
-      <h3 class="bc-cap-title">Vision-first, selector-free</h3>
-      <p class="bc-cap-body">
-        Numbered red boxes. The agent picks a number. No CSS selectors, no
-        XPath, no hallucinated
-        <code>div.flex-container &gt; button.btn-primary:nth-child(3)</code>.
-      </p>
+  </section>
+  <!-- ===================================================================
+       COMPARISON
+       =================================================================== -->
+  <section class="bc-section bc-section--tint">
+    <div class="bc-wrap">
+      <div class="bc-head">
+        <p class="bc-eyebrow">How it compares</p>
+        <h2 class="bc-h2">Three ways to give an agent a browser.</h2>
+        <p class="bc-lede">Selector-based drivers are precise but blind. Hosted browser agents can see, but they meter every action and route your session through someone else&rsquo;s infrastructure.</p>
+      </div>
+      <div class="bc-compare-scroll">
+        <table class="bc-compare">
+          <thead>
+            <tr>
+              <th scope="col">&nbsp;</th>
+              <th scope="col" class="us">BrowserControl</th>
+              <th scope="col">Selector-driven MCP</th>
+              <th scope="col">Hosted browser agent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">How the agent targets</th>
+              <td class="us">Numbered marks on a screenshot</td>
+              <td>CSS / XPath it has to guess</td>
+              <td>Natural language, resolved remotely</td>
+            </tr>
+            <tr>
+              <th scope="row">Sees the rendered page</th>
+              <td class="us">Yes, on every single call</td>
+              <td>No &mdash; text and DOM only</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <th scope="row">Where it runs</th>
+              <td class="us">Your machine</td>
+              <td>Your machine</td>
+              <td>Vendor cloud</td>
+            </tr>
+            <tr>
+              <th scope="row">Cost per 1,000 actions</th>
+              <td class="us">$0</td>
+              <td>$0</td>
+              <td>Metered per action</td>
+            </tr>
+            <tr>
+              <th scope="row">Logged-in sessions</th>
+              <td class="us">Persistent local profile</td>
+              <td>Usually per-run, ephemeral</td>
+              <td>Credentials leave your machine</td>
+            </tr>
+            <tr>
+              <th scope="row">Console &amp; network access</th>
+              <td class="us">Built in</td>
+              <td>Rarely</td>
+              <td>Rarely exposed</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-
-    <div class="bc-cap">
-      <span class="bc-cap-icon bc-cap-icon--violet" aria-hidden="true">{ }</span>
-      <h3 class="bc-cap-title">Shadow DOM &amp; iframe aware</h3>
-      <p class="bc-cap-body">
-        Recursively descends into open shadow roots and same-origin iframes
-        with coordinate-offset compensation. Modern web apps just work.
-      </p>
+  </section>
+  <!-- ===================================================================
+       QUICKSTART
+       =================================================================== -->
+  <section class="bc-section">
+    <div class="bc-wrap">
+      <div class="bc-head">
+        <p class="bc-eyebrow">Quickstart</p>
+        <h2 class="bc-h2">Installed and wired up in about a minute.</h2>
+        <p class="bc-lede">Chromium installs itself on first run, so there is no system browser binary to manage and nothing to keep in sync.</p>
+      </div>
+      <div class="bc-quick">
+        <div>
+          <ol class="bc-quick-steps">
+            <li>
+              <h3>Install the package</h3>
+              <p>Use whichever package manager you already have.</p>
+              <div class="bc-cmd"><span class="bc-prompt" aria-hidden="true">$</span>pip install browsercontrol</div>
+              <div class="bc-cmd"><span class="bc-prompt" aria-hidden="true">$</span>uv add browsercontrol</div>
+              <div class="bc-cmd"><span class="bc-prompt" aria-hidden="true">$</span>pipx install browsercontrol</div>
+            </li>
+            <li>
+              <h3>Point your client at it</h3>
+              <p>Drop the server block on the right into your MCP client config — Claude Desktop, Claude Code, Cursor, or anything else that speaks MCP.</p>
+            </li>
+            <li>
+              <h3>Ask for something visual</h3>
+              <p>&ldquo;Open my dashboard, screenshot it, and tell me which network requests failed.&rdquo; The first call boots Chromium and marks the page. See the <a href="getting-started/first-session/">first session walkthrough</a>.</p>
+            </li>
+          </ol>
+        </div>
+        <div>
+          <div class="bc-code-card">
+            <div class="bc-code-card-head"><span>claude_desktop_config.json</span><span class="badge">json</span></div>
+            <pre>{
+  <span class="k">"mcpServers"</span><span class="p">:</span> {
+    <span class="k">"browsercontrol"</span><span class="p">:</span> {
+      <span class="k">"command"</span><span class="p">:</span> <span class="v">"browsercontrol"</span>
+    }
+  }
+}</pre>
+          </div>
+          <p class="bc-quick-note">If Chromium ever fails to install itself, run <code>python -m playwright install chromium</code> once. Every configuration option is an environment variable — see <a href="configuration/">Configuration</a>.</p>
+        </div>
+      </div>
     </div>
-
-    <div class="bc-cap">
-      <span class="bc-cap-icon bc-cap-icon--mint" aria-hidden="true">&#8634;</span>
-      <h3 class="bc-cap-title">True persistent sessions</h3>
-      <p class="bc-cap-body">
-        Uses <code>launch_persistent_context</code>. Cookies, localStorage,
-        login state, and history all survive restarts. Log in once.
-      </p>
+  </section>
+  <!-- ===================================================================
+       DOC PATHS
+       =================================================================== -->
+  <section class="bc-section bc-section--tint">
+    <div class="bc-wrap">
+      <div class="bc-head bc-head--center">
+        <p class="bc-eyebrow">Documentation</p>
+        <h2 class="bc-h2">Where to go next.</h2>
+        <p class="bc-lede">Four entry points, depending on what you&rsquo;re trying to do right now.</p>
+      </div>
+      <div class="bc-docs-grid">
+        <a class="bc-doc-card" href="getting-started/">
+          <span class="bc-doc-kicker">Start here</span>
+          <h3>Getting started</h3>
+          <p>Install, connect your client, and run a first session end to end.</p>
+          <span class="bc-doc-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+        <a class="bc-doc-card" href="tools/">
+          <span class="bc-doc-kicker">Reference</span>
+          <h3>Tool reference</h3>
+          <p>All ~30 MCP tools with parameters and return shapes, by category.</p>
+          <span class="bc-doc-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+        <a class="bc-doc-card" href="guides/">
+          <span class="bc-doc-kicker">Recipes</span>
+          <h3>Guides</h3>
+          <p>Research, debugging, form filling, multi-tab work, recorded test runs.</p>
+          <span class="bc-doc-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+        <a class="bc-doc-card" href="concepts/">
+          <span class="bc-doc-kicker">Under the hood</span>
+          <h3>Concepts</h3>
+          <p>How marks are collected, why IDs are ephemeral, and the architecture.</p>
+          <span class="bc-doc-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
     </div>
-
-    <div class="bc-cap">
-      <span class="bc-cap-icon bc-cap-icon--red" aria-hidden="true">&#9881;</span>
-      <h3 class="bc-cap-title">Built-in devtools</h3>
-      <p class="bc-cap-body">
-        Console logs, network requests with timing, JS errors, page
-        performance, element inspection, computed styles. No second tool
-        needed.
-      </p>
+  </section>
+  <!-- ===================================================================
+       CLOSING CTA
+       =================================================================== -->
+  <section class="bc-cta">
+    <div class="bc-wrap bc-cta-inner">
+      <div>
+        <h2>Give your agent a browser that actually sees.</h2>
+        <p>One install, no cloud, no key. The shortest path from &ldquo;ask the model&rdquo; to watching the browser do the thing.</p>
+      </div>
+      <div class="bc-cta-row">
+        <a class="bc-btn bc-btn--primary" href="getting-started/installation/">
+          Install BrowserControl
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>
+        </a>
+        <a class="bc-btn bc-btn--ghost" href="https://github.com/adityasasidhar/browsercontrol" rel="noopener">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          Star on GitHub
+        </a>
+      </div>
     </div>
-
-    <div class="bc-cap">
-      <span class="bc-cap-icon bc-cap-icon--violet" aria-hidden="true">&#9737;</span>
-      <h3 class="bc-cap-title">100% local &amp; private</h3>
-      <p class="bc-cap-body">
-        No LLM API key. No cloud. No telemetry. No usage cap. Your browsing
-        stays on your machine &mdash; including the screenshots.
-      </p>
-    </div>
-
-    <div class="bc-cap">
-      <span class="bc-cap-icon bc-cap-icon--mint" aria-hidden="true">$0</span>
-      <h3 class="bc-cap-title">Zero marginal cost</h3>
-      <p class="bc-cap-body">
-        Runs on your hardware. <strong>$0 per 1,000 actions</strong> &mdash;
-        no API spend, no per-action fees, no surprise invoices at the end of
-        the month.
-      </p>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     INSTALL BLOCK
-     ============================================================ -->
-<div class="bc-section">
-  <span class="bc-section-eyebrow">Install</span>
-  <h2 class="bc-section-title">Up and running in 30 seconds.</h2>
-  <p class="bc-section-lede">
-    Pick your installer. Chromium auto-installs on first run, so there is
-    no system-level browser binary to manage.
-  </p>
-
-<div class="bc-install">
-
-<h3>Install BrowserControl</h3>
-<p>Pick whichever package manager you already have. Chromium auto-installs on first run.</p>
-
-<div class="bc-install-tabs">
-  <div class="bc-install-tab">
-    <span class="bc-install-tab-label">pip</span>
-    <pre class="bc-install-cmd"><code>pip install browsercontrol</code></pre>
-  </div>
-  <div class="bc-install-tab">
-    <span class="bc-install-tab-label">uv</span>
-    <pre class="bc-install-cmd"><code>uv add browsercontrol</code></pre>
-  </div>
-  <div class="bc-install-tab">
-    <span class="bc-install-tab-label">pipx</span>
-    <pre class="bc-install-cmd"><code>pipx install browsercontrol</code></pre>
-  </div>
-</div>
-
-<div class="bc-install-note">
-  If Chromium fails to auto-install for any reason, run it once manually:
-  <code>python -m playwright install chromium</code>. That&rsquo;s it.
-</div>
-
-</div>
-</div>
-
-<!-- ============================================================
-     DOC PATH CARDS
-     ============================================================ -->
-<div class="bc-section">
-  <span class="bc-section-eyebrow">Documentation</span>
-  <h2 class="bc-section-title">Where to next.</h2>
-  <p class="bc-section-lede">
-    Pick the path that matches the moment you're in. Everything is organized
-    so the next click is obvious.
-  </p>
-
-  <div class="bc-doc-grid">
-    <a class="bc-doc" href="getting-started/index.md">
-      <span class="bc-doc-eyebrow">Start here</span>
-      <h3 class="bc-doc-title">Getting started</h3>
-      <p class="bc-doc-body">Install, connect, and run your first session in under five minutes.</p>
-      <span class="bc-doc-arrow">&rarr;</span>
-    </a>
-    <a class="bc-doc" href="tools/index.md">
-      <span class="bc-doc-eyebrow">Reference</span>
-      <h3 class="bc-doc-title">Tool reference</h3>
-      <p class="bc-doc-body">Every MCP tool, every parameter, organized by category.</p>
-      <span class="bc-doc-arrow">&rarr;</span>
-    </a>
-    <a class="bc-doc" href="guides/index.md">
-      <span class="bc-doc-eyebrow">Patterns</span>
-      <h3 class="bc-doc-title">Guides</h3>
-      <p class="bc-doc-body">Real-world recipes: research, debugging, recording, forms, multi-tab.</p>
-      <span class="bc-doc-arrow">&rarr;</span>
-    </a>
-    <a class="bc-doc" href="concepts/index.md">
-      <span class="bc-doc-eyebrow">Under the hood</span>
-      <h3 class="bc-doc-title">Concepts</h3>
-      <p class="bc-doc-body">How Set of Marks works, the action loop, and why it beats selectors.</p>
-      <span class="bc-doc-arrow">&rarr;</span>
-    </a>
-  </div>
-</div>
-
-<!-- ============================================================
-     FINAL CTA BAND
-     ============================================================ -->
-<div class="bc-final" aria-label="Install BrowserControl">
-  <div class="bc-final-copy">
-    <h3>Give your agent a browser that actually sees.</h3>
-    <p>
-      One install. Zero cloud. The shortest path from "ask the model" to
-      "watch the browser do the thing."
-    </p>
-  </div>
-  <div class="bc-final-cta">
-    <a href="getting-started/installation.md" class="md-button md-button--primary">
-      Install BrowserControl
-    </a>
-    <a href="https://github.com/adityasasidhar/browsercontrol"
-       class="md-button" rel="noopener">
-      Star on GitHub
-    </a>
-  </div>
-</div>
-
+  </section>
 </div>

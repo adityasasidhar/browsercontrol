@@ -1,935 +1,2202 @@
 /* =========================================================================
-   BrowserControl docs — design system
-   Palette: paper #FFF9F0 / ink #101820 / SoM red #EF3E3E / mint #8EDCC8 /
-            violet #7A63D2
+   BrowserControl — documentation design system
+   -------------------------------------------------------------------------
+   Built on MkDocs Material. Two layers:
+     1. a global brand layer that restyles every docs page, and
+     2. a landing-page layer (.bc-page) for the marketing surface.
+
+   Brand idea: Set of Marks. Numbered red boxes over a live page. The design
+   language borrows from that — hairline frames, mono element maps, and a
+   single loud red used only where the agent would "mark" something.
+
+   Specificity note: every landing-page rule is prefixed with `.bc-page` so
+   it outranks Material's `.md-typeset <tag>` rules, which would otherwise
+   reset the margins and sizes of the components below.
+   ========================================================================= */
+
+/* =========================================================================
+   1. TOKENS
    ========================================================================= */
 
 :root {
-  --bc-paper:        #FFF9F0;
-  --bc-paper-soft:   #F4EFE3;
-  --bc-paper-line:   #EAE3D2;
-  --bc-ink:          #101820;
-  --bc-ink-soft:     #2A2F38;
-  --bc-muted:        #6B6B6B;
-  --bc-red:          #EF3E3E;
-  --bc-red-soft:     #FFD9D2;
-  --bc-red-tint:     #FFF4F0;
-  --bc-mint:         #8EDCC8;
-  --bc-mint-deep:    #1F3A2E;
-  --bc-violet:       #7A63D2;
-  --bc-violet-soft:  #E8E2FA;
-  --bc-deep:         #101820;
-  --bc-deep-soft:    #1F2A38;
-  --bc-shadow:       0 1px 0 rgba(16, 24, 32, 0.06), 0 6px 18px rgba(16, 24, 32, 0.10);
-  --bc-shadow-soft:  0 1px 0 rgba(16, 24, 32, 0.04), 0 2px 6px rgba(16, 24, 32, 0.06);
-  --bc-radius:       10px;
-  --bc-radius-lg:    18px;
-  --bc-mono:         ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --bc-sans:         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Surfaces — warm paper white, not beige */
+  --bc-bg: #fcfbf9;
+  --bc-bg-alt: #f6f4ef;
+  --bc-surface: #ffffff;
+  --bc-surface-2: #f7f5f1;
+  --bc-surface-3: #eceae3;
+
+  /* Lines */
+  --bc-line: #e6e2d9;
+  --bc-line-2: #d2ccbf;
+
+  /* Ink */
+  --bc-ink: #14181d;
+  --bc-ink-2: #3a424e;
+  --bc-ink-3: #5d6774;
+  --bc-muted: #7c8694;
+
+  /* Accents */
+  --bc-red: #ef3e3e;
+  --bc-red-ink: #c92a2a;
+  --bc-red-soft: #ffe9e5;
+  --bc-red-line: #ffcac3;
+  --bc-violet: #6c4fe0;
+  --bc-violet-soft: #ece7fd;
+  --bc-teal: #0e9f86;
+  --bc-teal-soft: #d9f4ec;
+  --bc-amber: #b45309;
+  --bc-amber-soft: #fdefd6;
+
+  /* Inverted panels */
+  --bc-deep: #0d1117;
+  --bc-deep-line: #262e3b;
+  --bc-deep-ink: #e8edf4;
+  --bc-deep-muted: #97a2b2;
+  --bc-deep-blue: #6ec3f7;
+
+  /* Elevation */
+  --bc-sh-1: 0 1px 2px rgba(20, 24, 29, 0.06);
+  --bc-sh-2: 0 1px 2px rgba(20, 24, 29, 0.05), 0 6px 16px -6px rgba(20, 24, 29, 0.14);
+  --bc-sh-3: 0 2px 4px rgba(20, 24, 29, 0.05), 0 18px 40px -14px rgba(20, 24, 29, 0.22);
+  --bc-glow: 0 0 0 1px rgba(239, 62, 62, 0.16), 0 12px 30px -12px rgba(239, 62, 62, 0.4);
+
+  /* Geometry */
+  --bc-r-sm: 8px;
+  --bc-r: 12px;
+  --bc-r-lg: 18px;
+
+  /* Type */
+  --bc-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --bc-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Motion */
+  --bc-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --bc-fast: 140ms var(--bc-ease);
+
+  /* Rhythm */
+  --bc-gutter: clamp(1.15rem, 4vw, 2.5rem);
+  --bc-band: clamp(3.25rem, 7vw, 5.75rem);
+}
+
+[data-md-color-scheme="slate"] {
+  --bc-bg: #0b0f16;
+  --bc-bg-alt: #0f141d;
+  --bc-surface: #121824;
+  --bc-surface-2: #161e2b;
+  --bc-surface-3: #1e2836;
+
+  --bc-line: #222c3a;
+  --bc-line-2: #33404f;
+
+  --bc-ink: #eaeff6;
+  --bc-ink-2: #c3ccd9;
+  --bc-ink-3: #9aa5b5;
+  --bc-muted: #7d8798;
+
+  --bc-red: #ff5f5f;
+  --bc-red-ink: #ff8078;
+  --bc-red-soft: #35181a;
+  --bc-red-line: #5a2422;
+  --bc-violet: #a78bfa;
+  --bc-violet-soft: #241f3d;
+  --bc-teal: #3ddbb8;
+  --bc-teal-soft: #0f2b28;
+  --bc-amber: #fbbf24;
+  --bc-amber-soft: #2c2211;
+
+  --bc-deep: #070a10;
+  --bc-deep-line: #1e2735;
+  --bc-deep-ink: #e8edf4;
+  --bc-deep-muted: #8b95a6;
+  --bc-deep-blue: #7dd3fc;
+
+  --bc-sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --bc-sh-2: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 20px -8px rgba(0, 0, 0, 0.7);
+  --bc-sh-3: 0 2px 6px rgba(0, 0, 0, 0.45), 0 24px 48px -18px rgba(0, 0, 0, 0.85);
+  --bc-glow: 0 0 0 1px rgba(255, 95, 95, 0.25), 0 14px 36px -14px rgba(255, 95, 95, 0.45);
+}
+
+/* =========================================================================
+   2. MATERIAL BRIDGE — brand tokens drive the stock theme
+   ========================================================================= */
+
+[data-md-color-scheme="default"],
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: var(--bc-bg);
+  --md-default-fg-color: var(--bc-ink);
+  --md-default-fg-color--light: var(--bc-ink-3);
+  --md-default-fg-color--lighter: var(--bc-muted);
+  --md-typeset-color: var(--bc-ink-2);
+  --md-typeset-a-color: var(--bc-red-ink);
+  --md-accent-fg-color: var(--bc-red);
+  --md-code-bg-color: var(--bc-surface-2);
+  --md-code-fg-color: var(--bc-ink);
+  /* The header and tabs strip read as part of the page, not as a black slab.
+     Driving Material's own primary pair is more reliable than overriding
+     `.md-header`, which the `primary: black` palette targets at higher
+     specificity. */
+  --md-primary-fg-color: var(--bc-bg);
+  --md-primary-bg-color: var(--bc-ink);
+  --md-primary-bg-color--light: var(--bc-muted);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+.md-typeset {
+  font-feature-settings: "cv11", "ss01";
+}
+
+.md-typeset {
+  font-size: 0.79rem;
+  line-height: 1.72;
+}
+
+/* A little more room for the wide tool-reference tables */
+.md-grid {
+  max-width: 68rem;
 }
 
 /* -------------------------------------------------------------------------
-   Landing-page layout overrides
-   Material's flex parent collapses `.md-content` to 0 width when both
-   sidebars are hidden, which collapses our landing-page grid. Force full
-   width only when the landing page is detected, so the rest of the docs
-   keep the standard Material layout.
+   2a. Announcement bar
    ------------------------------------------------------------------------- */
-.md-content:has(> .md-content__inner .bc-page) {
+
+.md-banner {
+  background: var(--bc-deep);
+  color: var(--bc-deep-ink);
+  border-bottom: 1px solid var(--bc-deep-line);
+}
+
+.md-banner__inner {
+  margin: 0.45rem auto;
+  font-size: 0.66rem;
+}
+
+.bc-announce {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  font-family: var(--bc-sans);
+}
+
+.bc-announce-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--bc-red);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.bc-announce-text {
+  color: var(--bc-deep-muted);
+}
+
+.bc-announce-link {
+  color: #fff !important;
+  font-weight: 600;
+  text-decoration: none !important;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.bc-announce-link:hover {
+  border-bottom-color: var(--bc-red);
+}
+
+/* -------------------------------------------------------------------------
+   2b. Header + navigation tabs
+   ------------------------------------------------------------------------- */
+
+.md-header,
+[data-md-color-primary="black"] .md-header {
+  background-color: color-mix(in srgb, var(--bc-bg) 86%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  color: var(--bc-ink);
+  box-shadow: none;
+  border-bottom: 1px solid var(--bc-line);
+}
+
+.md-header--shadow {
+  box-shadow: var(--bc-sh-1);
+}
+
+.md-header__title {
+  font-weight: 650;
+  letter-spacing: -0.012em;
+}
+
+.md-header__topic:first-child {
+  font-weight: 650;
+}
+
+.md-header__button.md-logo :is(img, svg) {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.md-search__form {
+  background: var(--bc-surface-2);
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-r-sm);
+  box-shadow: none;
+  transition: border-color var(--bc-fast), background var(--bc-fast);
+}
+
+.md-search__form:hover {
+  background: var(--bc-surface-2);
+  border-color: var(--bc-line-2);
+}
+
+[data-md-toggle="search"]:checked ~ .md-header .md-search__form {
+  border-color: var(--bc-red);
+  background: var(--bc-surface);
+}
+
+.md-search__input {
+  color: var(--bc-ink);
+  font-size: 0.72rem;
+}
+
+.md-search__input::placeholder {
+  color: var(--bc-muted);
+}
+
+.md-search__icon,
+.md-search__options .md-icon {
+  color: var(--bc-muted);
+}
+
+.md-search-result__meta {
+  background: var(--bc-surface-2);
+  color: var(--bc-muted);
+}
+
+.md-search-result__article--document .md-search-result__title {
+  font-weight: 650;
+}
+
+.md-search-result__link:focus,
+.md-search-result__link:hover {
+  background: var(--bc-red-soft);
+}
+
+/* Tabs strip reads as a toolbar rather than a black slab */
+.md-tabs,
+[data-md-color-primary="black"] .md-tabs {
+  background-color: transparent;
+  color: var(--bc-ink-3);
+  border-bottom: 1px solid var(--bc-line);
+  overflow: visible;
+}
+
+.md-tabs__list {
+  gap: 0.15rem;
+}
+
+.md-tabs__item {
+  padding: 0;
+  height: auto;
+}
+
+.md-tabs__link {
+  margin: 0.42rem 0;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--bc-r-sm);
+  font-size: 0.7rem;
+  font-weight: 550;
+  opacity: 1;
+  color: var(--bc-ink-3);
+  transition: background var(--bc-fast), color var(--bc-fast);
+}
+
+.md-tabs__link:hover {
+  color: var(--bc-ink);
+  background: var(--bc-surface-2);
+}
+
+.md-tabs__link--active,
+.md-tabs__item--active .md-tabs__link {
+  color: var(--bc-ink);
+  font-weight: 650;
+  background: var(--bc-surface-2);
+  box-shadow: inset 0 0 0 1px var(--bc-line);
+}
+
+/* -------------------------------------------------------------------------
+   2c. Sidebars
+   ------------------------------------------------------------------------- */
+
+.md-nav {
+  font-size: 0.71rem;
+}
+
+.md-nav__title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bc-muted);
+  padding-bottom: 0.4rem;
+}
+
+.md-sidebar--primary .md-nav__item > .md-nav__link {
+  border-radius: 6px;
+  padding: 0.18rem 0.5rem;
+  margin: 0.06rem 0;
+  color: var(--bc-ink-3);
+  transition: background var(--bc-fast), color var(--bc-fast);
+}
+
+.md-sidebar--primary .md-nav__link:hover {
+  background: var(--bc-surface-2);
+  color: var(--bc-ink);
+}
+
+.md-nav__link--active,
+.md-nav__item .md-nav__link--active {
+  color: var(--bc-ink);
+  font-weight: 650;
+}
+
+.md-sidebar--primary .md-nav__link--active {
+  background: var(--bc-red-soft);
+  box-shadow: inset 2px 0 0 var(--bc-red);
+}
+
+.md-nav--secondary .md-nav__link {
+  color: var(--bc-muted);
+  border-left: 2px solid transparent;
+  padding-left: 0.55rem;
+  transition: color var(--bc-fast), border-color var(--bc-fast);
+}
+
+.md-nav--secondary .md-nav__link:hover {
+  color: var(--bc-ink);
+}
+
+.md-nav--secondary .md-nav__link--active {
+  color: var(--bc-ink);
+  border-left-color: var(--bc-red);
+}
+
+.md-sidebar__scrollwrap::-webkit-scrollbar-thumb {
+  background: var(--bc-line-2);
+  border-radius: 999px;
+}
+
+/* -------------------------------------------------------------------------
+   2d. Typeset — headings, rules, links
+   ------------------------------------------------------------------------- */
+
+.md-typeset h1 {
+  font-family: var(--bc-sans);
+  font-size: 1.72rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  color: var(--bc-ink);
+  margin: 0 0 0.45rem;
+}
+
+.md-typeset h1 + p {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--bc-ink-3);
+}
+
+.md-typeset h2 {
+  font-family: var(--bc-sans);
+  font-size: 1.18rem;
+  font-weight: 680;
+  letter-spacing: -0.022em;
+  color: var(--bc-ink);
+  margin: 2.4rem 0 0.7rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--bc-line);
+}
+
+.md-typeset h3 {
+  font-family: var(--bc-sans);
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.014em;
+  color: var(--bc-ink);
+  margin: 1.7rem 0 0.5rem;
+}
+
+.md-typeset :is(h4, h5, h6) {
+  font-family: var(--bc-sans);
+  font-weight: 650;
+  color: var(--bc-ink);
+  letter-spacing: -0.008em;
+  text-transform: none;
+}
+
+.md-typeset hr {
+  border-bottom: 1px solid var(--bc-line);
+  margin: 2rem 0;
+}
+
+.md-typeset a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color var(--bc-fast);
+}
+
+.md-typeset a:hover {
+  color: var(--bc-red);
+}
+
+.md-typeset strong {
+  color: var(--bc-ink);
+  font-weight: 650;
+}
+
+.md-typeset blockquote {
+  border-left: 2px solid var(--bc-red);
+  color: var(--bc-ink-3);
+  background: var(--bc-surface-2);
+  border-radius: 0 var(--bc-r-sm) var(--bc-r-sm) 0;
+  padding: 0.35rem 0.9rem;
+}
+
+.md-typeset .headerlink {
+  color: var(--bc-line-2);
+  transition: color var(--bc-fast);
+}
+
+.md-typeset :hover > .headerlink {
+  color: var(--bc-red);
+}
+
+/* -------------------------------------------------------------------------
+   2e. Code
+   ------------------------------------------------------------------------- */
+
+.md-typeset code {
+  background: var(--bc-surface-2);
+  border: 1px solid var(--bc-line);
+  border-radius: 5px;
+  padding: 0.08em 0.36em;
+  font-size: 0.82em;
+  color: var(--bc-ink);
+  word-break: normal;
+}
+
+.md-typeset a code {
+  color: inherit;
+  border-color: var(--bc-red-line);
+}
+
+.md-typeset pre > code {
+  border: 0;
+  padding: 0.72rem 0.9rem;
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+.md-typeset .highlight,
+.md-typeset .highlighttable {
+  border-radius: var(--bc-r);
+  border: 1px solid var(--bc-line);
+  overflow: hidden;
+  background: var(--bc-surface-2);
+  box-shadow: var(--bc-sh-1);
+}
+
+.md-typeset .highlight > pre,
+.md-typeset pre {
+  margin: 0;
+}
+
+.md-typeset .highlight + .result {
+  border: 1px solid var(--bc-line);
+  border-top: 0;
+  border-radius: 0 0 var(--bc-r) var(--bc-r);
+}
+
+.md-clipboard {
+  color: var(--bc-muted);
+}
+
+.md-clipboard:hover {
+  color: var(--bc-red);
+}
+
+/* Tabbed content (pymdownx.tabbed) */
+.md-typeset .tabbed-labels {
+  box-shadow: 0 -1px 0 var(--bc-line) inset;
+  gap: 0.1rem;
+}
+
+.md-typeset .tabbed-labels > label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--bc-muted);
+  padding: 0.5rem 0.7rem;
+  transition: color var(--bc-fast);
+}
+
+.md-typeset .tabbed-labels > label:hover {
+  color: var(--bc-ink);
+}
+
+.md-typeset .tabbed-set > input:checked + label {
+  color: var(--bc-ink);
+  border-color: var(--bc-red);
+}
+
+/* -------------------------------------------------------------------------
+   2f. Tables
+   ------------------------------------------------------------------------- */
+
+/* Let tables use the full measure instead of shrink-wrapping their content */
+.md-typeset__table {
+  display: block;
+  width: 100%;
+}
+
+.md-typeset table:not([class]) {
+  display: table;
+  width: 100%;
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-r);
+  box-shadow: none;
+  font-size: 0.71rem;
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--bc-surface-2);
+  color: var(--bc-ink);
+  font-weight: 650;
+  font-size: 0.66rem;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bc-line);
+  padding: 0.6rem 0.8rem;
+  white-space: nowrap;
+}
+
+.md-typeset table:not([class]) td {
+  border-top: 1px solid var(--bc-line);
+  padding: 0.6rem 0.8rem;
+  vertical-align: top;
+}
+
+.md-typeset table:not([class]) tbody tr {
+  transition: background var(--bc-fast);
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background: var(--bc-surface-2);
+}
+
+.md-typeset table:not([class]) td code {
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------
+   2g. Admonitions
+   ------------------------------------------------------------------------- */
+
+.md-typeset .admonition,
+.md-typeset details {
+  border: 1px solid var(--bc-line);
+  border-left: 3px solid var(--bc-line-2);
+  border-radius: var(--bc-r);
+  box-shadow: none;
+  background: var(--bc-surface);
+  font-size: 0.73rem;
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  background: var(--bc-surface-2);
+  font-weight: 650;
+  font-size: 0.73rem;
+  padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+}
+
+.md-typeset .admonition-title::before,
+.md-typeset summary::before {
+  top: 0.55rem;
+  left: 0.7rem;
+}
+
+.md-typeset .admonition > :last-child,
+.md-typeset details > :last-child {
+  margin-bottom: 0.65rem;
+}
+
+/* Material colours each variant with `.admonition.<type>`, so the accent
+   rules below need one more class to win. `:is()` supplies it. */
+.md-typeset :is(.admonition, details):is(.note, .abstract, .summary, .tldr, .info, .todo, .quote, .cite) {
+  border-color: var(--bc-line);
+  border-left-color: var(--bc-violet);
+}
+
+.md-typeset :is(.note, .abstract, .summary, .tldr, .info, .todo, .quote, .cite) > :is(.admonition-title, summary) {
+  background: var(--bc-violet-soft);
+}
+
+.md-typeset :is(.admonition, details):is(.tip, .hint, .important, .success, .check, .done, .example) {
+  border-color: var(--bc-line);
+  border-left-color: var(--bc-teal);
+}
+
+.md-typeset :is(.tip, .hint, .important, .success, .check, .done, .example) > :is(.admonition-title, summary) {
+  background: var(--bc-teal-soft);
+}
+
+.md-typeset :is(.admonition, details):is(.warning, .caution, .attention, .question, .help, .faq) {
+  border-color: var(--bc-line);
+  border-left-color: var(--bc-amber);
+}
+
+.md-typeset :is(.warning, .caution, .attention, .question, .help, .faq) > :is(.admonition-title, summary) {
+  background: var(--bc-amber-soft);
+}
+
+.md-typeset :is(.admonition, details):is(.danger, .error, .failure, .fail, .missing, .bug) {
+  border-color: var(--bc-line);
+  border-left-color: var(--bc-red);
+}
+
+.md-typeset :is(.danger, .error, .failure, .fail, .missing, .bug) > :is(.admonition-title, summary) {
+  background: var(--bc-red-soft);
+}
+
+/* -------------------------------------------------------------------------
+   2h. Grid cards + buttons
+   ------------------------------------------------------------------------- */
+
+/* Slightly narrower minimum so category card sets land three-up */
+.md-typeset .grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr));
+  gap: 0.7rem;
+}
+
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-r);
+  background: var(--bc-surface);
+  box-shadow: none;
+  padding: 0.9rem 1rem;
+  transition: border-color var(--bc-fast), box-shadow var(--bc-fast),
+    transform var(--bc-fast);
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--bc-line-2);
+  box-shadow: var(--bc-sh-2);
+  transform: translateY(-2px);
+}
+
+.md-typeset .grid.cards > ul > li > hr {
+  margin: 0.6rem 0;
+  border-color: var(--bc-line);
+}
+
+.md-typeset .grid.cards .lg.middle {
+  color: var(--bc-red);
+}
+
+.md-typeset .md-button {
+  border-radius: var(--bc-r-sm);
+  border-width: 1px;
+  border-color: var(--bc-line-2);
+  color: var(--bc-ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.42rem 0.9rem;
+  transition: background var(--bc-fast), color var(--bc-fast),
+    border-color var(--bc-fast), transform var(--bc-fast);
+}
+
+.md-typeset .md-button:hover {
+  background: var(--bc-ink);
+  border-color: var(--bc-ink);
+  color: var(--bc-bg);
+  transform: translateY(-1px);
+}
+
+.md-typeset .md-button--primary {
+  background: var(--bc-red);
+  border-color: var(--bc-red);
+  color: #fff;
+}
+
+.md-typeset .md-button--primary:hover {
+  background: var(--bc-ink);
+  border-color: var(--bc-ink);
+  color: var(--bc-bg);
+}
+
+/* -------------------------------------------------------------------------
+   2i. Footer
+   ------------------------------------------------------------------------- */
+
+.md-footer,
+.md-footer-meta {
+  background: var(--bc-deep);
+}
+
+.md-footer-meta {
+  border-top: 1px solid var(--bc-deep-line);
+}
+
+.md-footer__link {
+  border-radius: var(--bc-r);
+  transition: background var(--bc-fast);
+}
+
+.md-footer__link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 1;
+}
+
+.md-footer__title {
+  font-weight: 600;
+}
+
+.md-copyright,
+.md-footer-meta .md-social__link {
+  color: var(--bc-deep-muted);
+}
+
+.md-social__link:hover {
+  color: #fff;
+}
+
+.md-content__button {
+  color: var(--bc-muted);
+}
+
+.md-content__button:hover {
+  color: var(--bc-red);
+}
+
+/* =========================================================================
+   3. LANDING PAGE
+   ========================================================================= */
+
+/* The landing page is full-bleed. Material caps `.md-main__inner` at 61rem
+   and collapses `.md-content` to zero width when both sidebars are hidden,
+   so both need releasing — but only on this page. */
+.md-main__inner:has(.bc-page) {
+  max-width: none;
+  margin: 0;
+}
+
+.md-content:has(.bc-page) {
   width: 100%;
   max-width: 100%;
 }
 
-.md-content:has(> .md-content__inner .bc-page) > .md-content__inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem 1.5rem;
-}
-
-[data-md-color-scheme="slate"] {
-  --bc-paper:        #0F1620;
-  --bc-paper-soft:   #1A2330;
-  --bc-paper-line:   #2A3543;
-  --bc-ink:          #F4EFE3;
-  --bc-ink-soft:     #D4CDB9;
-  --bc-muted:        #98A2B3;
-  --bc-red:          #EF3E3E;
-  --bc-red-soft:     #5A1F1A;
-  --bc-red-tint:     #2A1A1A;
-  --bc-mint:         #8EDCC8;
-  --bc-mint-deep:    #1F3A2E;
-  --bc-violet:       #A692EE;
-  --bc-violet-soft:  #2A2548;
-  --bc-deep:         #050B12;
-  --bc-deep-soft:    #111B2A;
-  --bc-shadow:       0 1px 0 rgba(0, 0, 0, 0.30), 0 8px 24px rgba(0, 0, 0, 0.45);
-  --bc-shadow-soft:  0 1px 0 rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.30);
-}
-
-/* -------------------------------------------------------------------------
-   Base typography overrides for landing-page content.
-   These apply to top-level headings in the bc-page and do not cascade into
-   nested blocks (install, install-note, proof, etc.) which style their own
-   headings explicitly.
-   ------------------------------------------------------------------------- */
-.bc-page > h1,
-.bc-page > h2,
-.bc-page > h3,
-.bc-hero-headline,
-.bc-section-title,
-.bc-cap-title,
-.bc-doc-title,
-.bc-step-title {
-  color: var(--bc-ink);
-  letter-spacing: -0.01em;
-}
-
-.bc-hero-headline,
-.bc-section-title {
-  font-weight: 800;
-}
-
-.bc-page a:not(.md-button):not(.bc-badge):not(.bc-doc):not(.bc-cap) {
-  color: var(--bc-ink);
-  text-decoration: underline;
-  text-decoration-color: var(--bc-red);
-  text-underline-offset: 3px;
-  text-decoration-thickness: 2px;
-}
-
-.bc-page a:not(.md-button):not(.bc-badge):not(.bc-doc):not(.bc-cap):hover {
-  text-decoration-color: var(--bc-violet);
-}
-
-/* -------------------------------------------------------------------------
-   Page frame
-   ------------------------------------------------------------------------- */
-.bc-page {
-  background: var(--bc-paper);
-}
-
-.md-main .md-content .bc-page {
-  background: var(--bc-paper);
-}
-
-.bc-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.7rem;
-  background: var(--bc-deep);
-  color: #FFF9F0;
-  border-radius: 999px;
-  font-family: var(--bc-sans);
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-}
-
-.bc-eyebrow .bc-eyebrow-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--bc-red);
-  border-radius: 999px;
-  display: inline-block;
-}
-
-/* -------------------------------------------------------------------------
-   HERO
-   ------------------------------------------------------------------------- */
-.bc-hero {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: 2.5rem;
-  align-items: center;
-  padding: 2.75rem 0 2.5rem;
-  border-bottom: 1.5px solid var(--bc-ink);
-}
-
-.bc-hero::before {
-  content: "";
-  position: absolute;
-  top: -1.5rem;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: var(--bc-mint);
-  border-radius: 3px;
-}
-
-.bc-hero-headline {
-  margin: 0.85rem 0 0.75rem;
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: clamp(2.1rem, 5.6vw, 3.6rem);
-  line-height: 1.05;
-  color: var(--bc-ink);
-  letter-spacing: -0.02em;
-}
-
-.bc-hero-headline .bc-mark-red {
-  color: var(--bc-red);
-  white-space: nowrap;
-}
-
-.bc-hero-lede {
-  margin: 0 0 1.5rem;
-  font-size: 1.08rem;
-  line-height: 1.55;
-  color: var(--bc-ink-soft);
-  max-width: 36em;
-}
-
-.bc-hero-cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 0 0 1.5rem;
-}
-
-.bc-hero-cta .md-button {
+.md-content:has(.bc-page) > .md-content__inner {
+  max-width: none;
   margin: 0;
-  border-radius: var(--bc-radius);
-  font-weight: 700;
-  border-width: 1.5px;
+  padding: 0;
 }
 
-.bc-hero-cta .md-button--primary {
-  background: var(--bc-red);
-  border-color: var(--bc-red);
-  color: #FFFFFF;
+.md-content:has(.bc-page) > .md-content__inner::before,
+.md-content:has(.bc-page) .md-content__button {
+  display: none;
 }
 
-.bc-hero-cta .md-button--primary:hover {
-  background: var(--bc-ink);
-  border-color: var(--bc-ink);
-  color: var(--bc-paper);
+/* Neutralise Material's typeset defaults inside the landing page. `:where()`
+   keeps this at .md-typeset + .bc-page specificity so the `.bc-page …`
+   component rules below always win. */
+.md-typeset .bc-page
+  :where(h1, h2, h3, h4, p, ul, ol, li, pre, code, table, figure, blockquote) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  list-style: none;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
 }
 
-.bc-hero-cta .md-button:not(.md-button--primary) {
-  background: var(--bc-paper);
-  border-color: var(--bc-ink);
+.bc-page {
+  font-family: var(--bc-sans);
+  color: var(--bc-ink-2);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.bc-page :is(h1, h2, h3, h4) {
+  font-family: var(--bc-sans);
   color: var(--bc-ink);
 }
 
-.bc-hero-cta .md-button:not(.md-button--primary):hover {
-  background: var(--bc-ink);
-  color: var(--bc-paper);
+.bc-page .bc-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--bc-gutter);
 }
 
-.bc-trust-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  font-family: var(--bc-sans);
-  font-size: 0.85rem;
-  color: var(--bc-ink-soft);
+.bc-page .bc-section {
+  padding: var(--bc-band) 0;
+  border-top: 1px solid var(--bc-line);
 }
 
-.bc-trust-row > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.65rem;
-  background: var(--bc-paper-soft);
-  border: 1px solid var(--bc-paper-line);
-  border-radius: 999px;
-}
-
-.bc-trust-row svg {
-  width: 14px;
-  height: 14px;
-  color: var(--bc-mint);
-}
-
-.bc-hero-visual {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bc-hero-visual .bc-demo {
-  width: 100%;
-  height: auto;
-  max-width: 720px;
-  border-radius: var(--bc-radius-lg);
-  box-shadow: var(--bc-shadow);
-  background: var(--bc-paper);
-}
-
-.bc-hero-mascot {
-  position: absolute;
-  bottom: -22px;
-  right: -10px;
-  width: 96px;
-  height: 96px;
-  background: var(--bc-paper);
-  border: 1.5px solid var(--bc-ink);
-  border-radius: 14px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--bc-shadow-soft);
-}
-
-@media screen and (min-width: 60em) {
-  .bc-hero-mascot {
-    display: flex;
-  }
-}
-
-.bc-hero-mascot img {
-  width: 78px;
-  height: 78px;
-}
-
-/* Hero responsive collapse */
-@media screen and (max-width: 60em) {
-  .bc-hero {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
-    padding: 2rem 0 1.5rem;
-  }
-  .bc-hero-mascot {
-    display: none;
-  }
-  .bc-hero-visual {
-    margin-top: 0.5rem;
-  }
-}
-
-@media screen and (max-width: 30em) {
-  .bc-hero-cta .md-button {
-    width: 100%;
-    text-align: center;
-  }
-  .bc-hero-headline {
-    font-size: clamp(1.9rem, 9vw, 2.4rem);
-  }
+.bc-page .bc-section--tint {
+  background: var(--bc-bg-alt);
 }
 
 /* -------------------------------------------------------------------------
-   BADGE STRIP
+   3a. Shared section header
    ------------------------------------------------------------------------- */
-.bc-badge-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 1.25rem 0;
-  border-bottom: 1px solid var(--bc-paper-line);
+
+.bc-page .bc-head {
+  max-width: 44rem;
+  margin: 0 0 clamp(1.75rem, 4vw, 2.75rem);
 }
 
-.bc-badge {
+.bc-page .bc-head--center {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.bc-page .bc-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  font-family: var(--bc-sans);
-  font-size: 0.78rem;
-  font-weight: 600;
-  line-height: 1;
-  border: 1.5px solid var(--bc-ink);
-  color: var(--bc-ink);
-  background: var(--bc-paper);
-  text-decoration: none;
-  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bc-red-ink);
+  margin: 0 0 0.7rem;
 }
 
-.bc-badge:hover {
-  background: var(--bc-ink);
-  color: var(--bc-paper);
+.bc-page .bc-eyebrow::before {
+  content: "";
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--bc-red);
+}
+
+.bc-page .bc-head--center .bc-eyebrow {
+  justify-content: center;
+}
+
+.bc-page .bc-h2 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+  line-height: 1.14;
+  font-weight: 720;
+  letter-spacing: -0.032em;
+  text-wrap: balance;
+}
+
+.bc-page .bc-lede {
+  margin: 0;
+  font-size: clamp(0.85rem, 1.4vw, 0.95rem);
+  line-height: 1.68;
+  color: var(--bc-ink-3);
+}
+
+.bc-page .bc-lede code {
+  font-family: var(--bc-mono);
+  font-size: 0.88em;
+  background: var(--bc-surface-2);
+  border: 1px solid var(--bc-line);
+  border-radius: 4px;
+  padding: 0.05em 0.3em;
+  color: var(--bc-ink);
+}
+
+/* -------------------------------------------------------------------------
+   3b. Hero
+   ------------------------------------------------------------------------- */
+
+.bc-page .bc-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(2.25rem, 5.5vw, 4.5rem) 0 clamp(2.25rem, 5.5vw, 3.75rem);
+  isolation: isolate;
+}
+
+/* Faint measurement grid + red bloom, echoing the SoM overlay */
+.bc-page .bc-hero::before {
+  content: "";
+  position: absolute;
+  inset: -40% -10% auto -10%;
+  height: 160%;
+  z-index: -2;
+  background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--bc-line) 75%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--bc-line) 75%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 68% 52% at 50% 44%,
+    #000 0%,
+    transparent 78%
+  );
+  mask-image: radial-gradient(
+    ellipse 68% 52% at 50% 44%,
+    #000 0%,
+    transparent 78%
+  );
+}
+
+.bc-page .bc-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -20rem;
+  right: -12rem;
+  width: 44rem;
+  height: 44rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--bc-red) 15%, transparent) 0%,
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.bc-page .bc-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr);
+  gap: clamp(2rem, 5vw, 3.25rem);
+  align-items: center;
+}
+
+.bc-page .bc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.26rem 0.7rem 0.26rem 0.35rem;
+  border: 1px solid var(--bc-line);
+  background: var(--bc-surface);
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--bc-ink-2);
+  text-decoration: none !important;
+  box-shadow: var(--bc-sh-1);
+  transition: border-color var(--bc-fast), transform var(--bc-fast);
+}
+
+.bc-page .bc-pill:hover {
+  border-color: var(--bc-line-2);
   transform: translateY(-1px);
 }
 
-.bc-badge .bc-badge-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--bc-mint);
-  flex-shrink: 0;
-}
-
-.bc-badge--red .bc-badge-dot     { background: var(--bc-red); }
-.bc-badge--violet .bc-badge-dot  { background: var(--bc-violet); }
-.bc-badge--ink .bc-badge-dot     { background: var(--bc-ink); }
-
-/* -------------------------------------------------------------------------
-   SECTION HEADINGS
-   ------------------------------------------------------------------------- */
-.bc-section {
-  padding: 3rem 0 0.5rem;
-}
-
-.bc-section + .bc-section {
-  border-top: 1px solid var(--bc-paper-line);
-}
-
-.bc-section-eyebrow {
-  display: inline-block;
-  font-family: var(--bc-sans);
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--bc-red);
-  margin: 0 0 0.6rem;
-}
-
-.bc-section-title {
-  margin: 0 0 0.75rem;
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: clamp(1.6rem, 3.4vw, 2.25rem);
-  line-height: 1.15;
-  color: var(--bc-ink);
-  letter-spacing: -0.01em;
-}
-
-.bc-section-lede {
-  margin: 0 0 1.75rem;
-  max-width: 56ch;
-  font-size: 1.02rem;
-  color: var(--bc-ink-soft);
-  line-height: 1.55;
-}
-
-/* -------------------------------------------------------------------------
-   THREE-STEP SoM EXPLANATION
-   ------------------------------------------------------------------------- */
-.bc-steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0 0.5rem;
-}
-
-.bc-step {
-  position: relative;
-  background: var(--bc-paper);
-  border: 1.5px solid var(--bc-ink);
-  border-radius: var(--bc-radius-lg);
-  padding: 1.25rem 1.25rem 1.1rem;
-}
-
-.bc-step-num {
+.bc-page .bc-pill-tag {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
+  padding: 0.1rem 0.42rem;
   border-radius: 999px;
   background: var(--bc-red);
-  color: #FFFFFF;
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: 0.95rem;
-  margin-bottom: 0.75rem;
-}
-
-.bc-step-title {
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: 1.1rem;
-  margin: 0 0 0.4rem;
-  color: var(--bc-ink);
-}
-
-.bc-step-body {
-  margin: 0;
-  color: var(--bc-ink-soft);
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.bc-step-arrow {
-  position: absolute;
-  top: 50%;
-  right: -14px;
-  transform: translateY(-50%);
-  z-index: 1;
-  width: 28px;
-  height: 28px;
-  background: var(--bc-paper);
-  border: 1.5px solid var(--bc-ink);
-  border-radius: 999px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  color: var(--bc-ink);
-  font-weight: 800;
-}
-
-.bc-step:last-child .bc-step-arrow {
-  display: none;
-}
-
-@media screen and (min-width: 60em) {
-  .bc-step:not(:last-child) .bc-step-arrow {
-    display: flex;
-  }
-}
-
-@media screen and (max-width: 50em) {
-  .bc-steps {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .bc-step-arrow {
-    display: none !important;
-  }
-}
-
-/* -------------------------------------------------------------------------
-   PROOF PANEL — full-width annotated screenshot
-   ------------------------------------------------------------------------- */
-.bc-proof {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: 1.75rem;
-  align-items: center;
-  margin: 1.5rem 0 0;
-  padding: 1.75rem;
-  background: var(--bc-paper-soft);
-  border: 1.5px solid var(--bc-ink);
-  border-radius: var(--bc-radius-lg);
-}
-
-.bc-proof-copy h3 {
-  margin: 0 0 0.6rem;
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: clamp(1.25rem, 2.4vw, 1.65rem);
-  color: var(--bc-ink);
-}
-
-.bc-proof-copy p {
-  margin: 0 0 1rem;
-  color: var(--bc-ink-soft);
-  line-height: 1.55;
-}
-
-.bc-proof-legend {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.bc-proof-legend li {
-  display: grid;
-  grid-template-columns: 28px 64px 1fr;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0;
-  border-bottom: 1px dashed var(--bc-paper-line);
-  font-family: var(--bc-mono);
-  font-size: 0.85rem;
-  color: var(--bc-ink);
-}
-
-.bc-proof-legend li:last-child {
-  border-bottom: 0;
-}
-
-.bc-proof-legend .bc-proof-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  background: var(--bc-red);
-  color: #FFFFFF;
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: 0.78rem;
-}
-
-.bc-proof-legend .bc-proof-type {
-  color: var(--bc-violet);
-  font-weight: 700;
-}
-
-.bc-proof-img img,
-.bc-proof-img svg {
-  width: 100%;
-  height: auto;
-  border-radius: var(--bc-radius);
-  border: 1.5px solid var(--bc-ink);
-  background: var(--bc-paper);
-  box-shadow: var(--bc-shadow);
-  display: block;
-}
-
-@media screen and (max-width: 60em) {
-  .bc-proof {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.25rem;
-    padding: 1.25rem;
-  }
-}
-
-/* -------------------------------------------------------------------------
-   CAPABILITY CARDS
-   ------------------------------------------------------------------------- */
-.bc-cap-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0 0;
-}
-
-@media screen and (max-width: 60em) {
-  .bc-cap-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media screen and (max-width: 36em) {
-  .bc-cap-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.bc-cap {
-  position: relative;
-  background: var(--bc-paper);
-  border: 1.5px solid var(--bc-ink);
-  border-radius: var(--bc-radius-lg);
-  padding: 1.25rem 1.25rem 1.1rem;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-
-.bc-cap:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--bc-shadow);
-}
-
-.bc-cap-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.7rem;
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: 1.05rem;
-}
-
-.bc-cap-icon--red    { background: var(--bc-red-soft);  color: var(--bc-red); }
-.bc-cap-icon--mint   { background: var(--bc-mint-deep); color: var(--bc-mint); }
-.bc-cap-icon--violet { background: var(--bc-violet-soft); color: var(--bc-violet); }
-
-.bc-cap-title {
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: 1.05rem;
-  margin: 0 0 0.4rem;
-  color: var(--bc-ink);
-}
-
-.bc-cap-body {
-  margin: 0;
-  color: var(--bc-ink-soft);
-  font-size: 0.94rem;
-  line-height: 1.5;
-}
-
-/* -------------------------------------------------------------------------
-   INSTALL BLOCK
-   ------------------------------------------------------------------------- */
-.bc-install {
-  margin: 1.5rem 0 0;
-  padding: 1.5rem;
-  background: var(--bc-deep);
-  color: #FFF9F0;
-  border-radius: var(--bc-radius-lg);
-  border: 1.5px solid var(--bc-deep);
-  box-shadow: var(--bc-shadow);
-}
-
-.bc-install h3 {
-  margin: 0 0 0.5rem;
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: 1.25rem;
-  color: #FFF9F0;
-}
-
-.bc-install > p {
-  margin: 0 0 1.1rem;
-  color: #FFF9F0;
-  opacity: 0.85;
-  font-size: 0.95rem;
-}
-
-.bc-install-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.6rem;
-  margin: 0 0 0.4rem;
-}
-
-@media screen and (max-width: 50em) {
-  .bc-install-tabs {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.bc-install-tab {
-  background: var(--bc-deep-soft);
-  border: 1px solid #2F3741;
-  border-radius: 10px;
-  padding: 0.7rem 0.85rem 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.bc-install-tab-label {
-  font-family: var(--bc-mono);
-  font-size: 0.7rem;
+  color: #fff;
+  font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8EDCC8;
 }
 
-.bc-install-cmd {
-  margin: 0;
-  padding: 0;
-  font-family: var(--bc-mono);
-  font-size: 0.88rem;
-  line-height: 1.4;
-  color: #FFF9F0;
-  background: transparent;
-  white-space: nowrap;
-  overflow-x: auto;
+.bc-page .bc-pill-arrow {
+  color: var(--bc-muted);
+  font-weight: 700;
 }
 
-.bc-install-cmd .md-code__nav,
-.bc-install-cmd .md-code__button {
-  display: none !important;
+.bc-page .bc-h1 {
+  margin: 1.05rem 0 0.9rem;
+  font-size: clamp(2rem, 4.3vw, 2.8rem);
+  line-height: 1.04;
+  font-weight: 760;
+  letter-spacing: -0.042em;
+  text-wrap: balance;
 }
 
-.bc-install-cmd code {
-  background: transparent;
-  color: inherit;
-  padding: 0;
-  font-size: inherit;
-  font-family: inherit;
-}
-
-.bc-install-note {
-  margin: 0.85rem 0 0;
-  padding: 0.65rem 0.9rem;
-  background: #1F3A2E;
-  color: var(--bc-mint);
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-.bc-install-note code {
-  background: rgba(255, 255, 255, 0.08);
-  color: #FFF9F0;
-  padding: 0.05rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.85em;
-}
-
-/* -------------------------------------------------------------------------
-   DOC PATH CARDS
-   ------------------------------------------------------------------------- */
-.bc-doc-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0 0;
-}
-
-@media screen and (max-width: 70em) {
-  .bc-doc-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media screen and (max-width: 36em) {
-  .bc-doc-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.bc-doc {
-  display: block;
-  padding: 1.1rem 1.1rem 1rem;
-  background: var(--bc-paper);
-  border: 1.5px solid var(--bc-ink);
-  border-radius: var(--bc-radius-lg);
-  text-decoration: none;
-  color: var(--bc-ink);
-  transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
-}
-
-.bc-doc:hover {
-  background: var(--bc-ink);
-  color: var(--bc-paper);
-  transform: translateY(-2px);
-}
-
-.bc-doc:hover .bc-doc-arrow {
-  color: var(--bc-paper);
-}
-
-.bc-doc-eyebrow {
+/* The word the agent would "mark" */
+.bc-page .bc-h1 .bc-marked {
+  position: relative;
   display: inline-block;
-  font-family: var(--bc-sans);
-  font-weight: 700;
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--bc-red);
-  margin-bottom: 0.4rem;
+  padding: 0 0.06em;
 }
 
-.bc-doc:hover .bc-doc-eyebrow {
-  color: var(--bc-mint);
+.bc-page .bc-h1 .bc-marked::before {
+  content: "";
+  position: absolute;
+  inset: -0.08em -0.02em -0.06em;
+  border: 2px solid var(--bc-red);
+  border-radius: 5px;
+  opacity: 0.55;
 }
 
-.bc-doc-title {
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: 1.05rem;
-  margin: 0 0 0.3rem;
-}
-
-.bc-doc-body {
-  font-size: 0.88rem;
-  color: var(--bc-ink-soft);
-  line-height: 1.45;
-  margin: 0 0 0.6rem;
-}
-
-.bc-doc:hover .bc-doc-body {
-  color: var(--bc-paper);
-  opacity: 0.85;
-}
-
-.bc-doc-arrow {
-  font-family: var(--bc-mono);
-  color: var(--bc-red);
-  font-weight: 700;
-}
-
-/* -------------------------------------------------------------------------
-   FINAL CTA BAND
-   ------------------------------------------------------------------------- */
-.bc-final {
-  margin-top: 3rem;
-  padding: 2.25rem 1.75rem;
-  background: var(--bc-deep);
-  color: #FFF9F0;
-  border-radius: var(--bc-radius-lg);
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 1.5rem;
+.bc-page .bc-h1 .bc-marked::after {
+  content: "1";
+  position: absolute;
+  top: -0.66em;
+  left: -0.18em;
+  display: flex;
   align-items: center;
-  border: 1.5px solid var(--bc-deep);
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  font-size: 0.3em;
+  font-weight: 700;
+  font-family: var(--bc-mono);
+  color: #fff;
+  background: var(--bc-red);
+  border-radius: 4px;
 }
 
-.bc-final h3 {
-  margin: 0 0 0.5rem;
-  font-family: var(--bc-sans);
-  font-weight: 800;
-  font-size: clamp(1.4rem, 2.8vw, 1.9rem);
-  color: #FFF9F0;
+.bc-page .bc-hero-lede {
+  margin: 0 0 1.4rem;
+  max-width: 32rem;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  line-height: 1.62;
+  color: var(--bc-ink-3);
 }
 
-.bc-final p {
-  margin: 0;
-  color: #FFF9F0;
-  opacity: 0.85;
-  line-height: 1.5;
+.bc-page .bc-hero-lede strong {
+  color: var(--bc-ink);
+  font-weight: 620;
 }
 
-.bc-final-cta {
+.bc-page .bc-cta-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  justify-content: flex-end;
+  gap: 0.55rem;
+  margin: 0 0 1.25rem;
 }
 
-.bc-final-cta .md-button {
-  margin: 0;
-  border-radius: var(--bc-radius);
-  font-weight: 700;
-  border-width: 1.5px;
+.bc-page .bc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--bc-r-sm);
+  border: 1px solid transparent;
+  font-size: 0.79rem;
+  font-weight: 620;
+  line-height: 1.2;
+  text-decoration: none !important;
+  transition: background var(--bc-fast), color var(--bc-fast),
+    border-color var(--bc-fast), transform var(--bc-fast),
+    box-shadow var(--bc-fast);
 }
 
-.bc-final-cta .md-button--primary {
+.bc-page .bc-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.bc-page .bc-btn--primary {
   background: var(--bc-red);
   border-color: var(--bc-red);
-  color: #FFFFFF;
+  color: #fff !important;
+  box-shadow: 0 6px 18px -8px rgba(239, 62, 62, 0.7);
 }
 
-.bc-final-cta .md-button--primary:hover {
-  background: #FFF9F0;
-  border-color: #FFF9F0;
-  color: var(--bc-deep);
+.bc-page .bc-btn--primary:hover {
+  background: var(--bc-ink);
+  border-color: var(--bc-ink);
+  color: var(--bc-bg) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--bc-sh-2);
 }
 
-.bc-final-cta .md-button:not(.md-button--primary) {
-  background: var(--bc-deep);
-  border-color: #FFF9F0;
-  color: #FFF9F0;
+.bc-page .bc-btn--ghost {
+  background: var(--bc-surface);
+  border-color: var(--bc-line-2);
+  color: var(--bc-ink) !important;
 }
 
-.bc-final-cta .md-button:not(.md-button--primary):hover {
-  background: #FFF9F0;
-  color: var(--bc-deep);
+.bc-page .bc-btn--ghost:hover {
+  border-color: var(--bc-ink);
+  transform: translateY(-1px);
+  box-shadow: var(--bc-sh-2);
 }
 
-@media screen and (max-width: 60em) {
-  .bc-final {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 1.75rem 1.25rem;
-  }
-  .bc-final-cta {
-    justify-content: flex-start;
-  }
+/* One-liner install */
+.bc-page .bc-hero-cmd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px dashed var(--bc-line-2);
+  border-radius: var(--bc-r-sm);
+  background: var(--bc-surface-2);
+  font-family: var(--bc-mono);
+  font-size: 0.73rem;
+  color: var(--bc-ink);
 }
 
-@media screen and (max-width: 30em) {
-  .bc-final-cta .md-button {
-    width: 100%;
-    text-align: center;
-  }
+.bc-page .bc-prompt {
+  color: var(--bc-red);
+  font-weight: 700;
+  user-select: none;
+}
+
+.bc-page .bc-hero-cmd code {
+  font-family: var(--bc-mono);
+  font-size: 1em;
+  color: inherit;
+}
+
+.bc-page .bc-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  margin: 1.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--bc-muted);
+}
+
+.bc-page .bc-trust li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.bc-page .bc-trust svg {
+  width: 13px;
+  height: 13px;
+  color: var(--bc-teal);
+  flex-shrink: 0;
 }
 
 /* -------------------------------------------------------------------------
-   Reduced motion
+   3c. The Set-of-Marks "scope" — hero visual, built in HTML so it follows
+        the active colour scheme instead of shipping a baked screenshot.
    ------------------------------------------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  .bc-cap,
-  .bc-doc,
-  .bc-badge {
-    transition: none;
+
+.bc-page .bc-scope {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.bc-page .bc-window {
+  border: 1px solid var(--bc-line-2);
+  border-radius: var(--bc-r-lg);
+  background: var(--bc-surface);
+  box-shadow: var(--bc-sh-3);
+  overflow: hidden;
+}
+
+.bc-page .bc-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.6rem;
+  background: var(--bc-surface-2);
+  border-bottom: 1px solid var(--bc-line);
+}
+
+.bc-page .bc-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--bc-line-2);
+  flex-shrink: 0;
+}
+
+.bc-page .bc-dot:first-child {
+  background: var(--bc-red);
+}
+
+.bc-page .bc-window-url {
+  flex: 1;
+  margin-left: 0.25rem;
+  padding: 0.14rem 0.5rem;
+  border-radius: 999px;
+  background: var(--bc-bg);
+  border: 1px solid var(--bc-line);
+  font-family: var(--bc-mono);
+  font-size: 0.58rem;
+  color: var(--bc-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bc-page .bc-window-tag {
+  padding: 0.1rem 0.38rem;
+  border-radius: 4px;
+  background: var(--bc-red);
+  color: #fff;
+  font-family: var(--bc-mono);
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* Stylised page under the marks. Everything is positioned in percent inside
+   a fixed-ratio box so the marks stay registered at any width. */
+.bc-page .bc-viewport {
+  position: relative;
+  aspect-ratio: 8 / 5;
+  background: var(--bc-bg);
+}
+
+.bc-page .bc-viewport > * {
+  position: absolute;
+}
+
+.bc-page .bc-sk {
+  background: var(--bc-surface-3);
+  border-radius: 3px;
+}
+
+.bc-page .bc-sk--round {
+  border-radius: 999px;
+}
+
+.bc-page .bc-sk--field {
+  background: var(--bc-surface);
+  border: 1px solid var(--bc-line);
+  border-radius: 5px;
+}
+
+.bc-page .bc-sk--btn {
+  background: var(--bc-ink);
+  border-radius: 5px;
+}
+
+.bc-page .bc-sk--strong {
+  background: var(--bc-line-2);
+}
+
+.bc-page .bc-topbar {
+  inset: 0 0 auto 0;
+  height: 13%;
+  background: var(--bc-surface);
+  border-bottom: 1px solid var(--bc-line);
+}
+
+.bc-page .bc-panel {
+  left: 24%;
+  top: 24%;
+  width: 52%;
+  height: 62%;
+  background: var(--bc-surface);
+  border: 1px solid var(--bc-line);
+  border-radius: 10px;
+  box-shadow: var(--bc-sh-1);
+}
+
+.bc-page .bc-mark {
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  border: 2px solid var(--bc-red);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bc-red) 7%, transparent);
+  animation: bc-mark-in 420ms var(--bc-ease) both;
+  animation-delay: calc(var(--i) * 110ms + 200ms);
+}
+
+.bc-page .bc-mark::before {
+  content: attr(data-n);
+  position: absolute;
+  top: -9px;
+  left: -3px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  background: var(--bc-red);
+  color: #fff;
+  font-family: var(--bc-mono);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@keyframes bc-mark-in {
+  from {
+    opacity: 0;
+    transform: scale(1.15);
   }
-  .bc-cap:hover,
-  .bc-doc:hover,
-  .bc-badge:hover {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Element map beside the window */
+.bc-page .bc-map {
+  border: 1px solid var(--bc-line-2);
+  border-radius: var(--bc-r-lg);
+  background: var(--bc-deep);
+  color: var(--bc-deep-ink);
+  box-shadow: var(--bc-sh-3);
+  overflow: hidden;
+  font-family: var(--bc-mono);
+  font-size: 0.62rem;
+}
+
+.bc-page .bc-map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid var(--bc-deep-line);
+  color: var(--bc-deep-muted);
+  font-size: 0.58rem;
+  letter-spacing: 0.02em;
+}
+
+.bc-page .bc-map-head b {
+  color: var(--bc-deep-ink);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.bc-page .bc-map-list {
+  margin: 0;
+  padding: 0.35rem 0;
+}
+
+.bc-page .bc-map-list li {
+  display: grid;
+  grid-template-columns: 1rem 4rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.18rem 0.6rem;
+  animation: bc-row-in 320ms var(--bc-ease) both;
+  animation-delay: calc(var(--i) * 110ms + 260ms);
+}
+
+.bc-page .bc-map-list .n {
+  color: var(--bc-red);
+  font-weight: 700;
+}
+
+.bc-page .bc-map-list .t {
+  color: var(--bc-violet);
+}
+
+.bc-page .bc-map-list .l {
+  color: var(--bc-deep-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes bc-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
     transform: none;
   }
 }
 
+.bc-page .bc-map-call {
+  border-top: 1px solid var(--bc-deep-line);
+  padding: 0.5rem 0.6rem;
+  background: rgba(255, 255, 255, 0.02);
+  line-height: 1.8;
+}
+
+.bc-page .bc-map-call .arrow {
+  color: var(--bc-deep-muted);
+}
+
+.bc-page .bc-map-call .fn {
+  color: var(--bc-deep-ink);
+  font-weight: 600;
+}
+
+.bc-page .bc-map-call .ok {
+  color: var(--bc-teal);
+}
+
 /* -------------------------------------------------------------------------
-   Skip-link and accessibility helpers
+   3d. Stat strip
    ------------------------------------------------------------------------- */
-.bc-visually-hidden {
+
+/* Full-bleed band, but the cells line up with the wrap above it */
+.bc-page .bc-stats {
+  border-top: 1px solid var(--bc-line);
+  border-bottom: 1px solid var(--bc-line);
+  background: var(--bc-surface);
+}
+
+.bc-page .bc-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.bc-page .bc-stat {
+  padding: 1.2rem 1.35rem;
+  border-left: 1px solid var(--bc-line);
+}
+
+.bc-page .bc-stat:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.bc-page .bc-stat:last-child {
+  padding-right: 0;
+}
+
+.bc-page .bc-stat-num {
+  display: block;
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  font-weight: 720;
+  letter-spacing: -0.03em;
+  color: var(--bc-ink);
+  line-height: 1.1;
+}
+
+.bc-page .bc-stat-num em {
+  font-style: normal;
+  color: var(--bc-red);
+}
+
+.bc-page .bc-stat-label {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--bc-muted);
+  line-height: 1.45;
+}
+
+/* -------------------------------------------------------------------------
+   3e. The loop — three steps + transcript
+   ------------------------------------------------------------------------- */
+
+.bc-page .bc-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.bc-page .bc-step {
+  position: relative;
+  padding: 1.15rem 1.15rem 1.25rem;
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-r);
+  background: var(--bc-surface);
+  transition: border-color var(--bc-fast), box-shadow var(--bc-fast),
+    transform var(--bc-fast);
+}
+
+.bc-page .bc-step:hover {
+  border-color: var(--bc-line-2);
+  box-shadow: var(--bc-sh-2);
+  transform: translateY(-2px);
+}
+
+.bc-page .bc-step-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--bc-red);
+  color: #fff;
+  font-family: var(--bc-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
+}
+
+.bc-page .bc-step h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.94rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.bc-page .bc-step p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--bc-ink-3);
+}
+
+.bc-page .bc-step code,
+.bc-page .bc-feature code {
+  font-family: var(--bc-mono);
+  font-size: 0.9em;
+  background: var(--bc-surface-2);
+  border: 1px solid var(--bc-line);
+  border-radius: 4px;
+  padding: 0.04em 0.3em;
+  color: var(--bc-ink);
+  word-break: break-word;
+}
+
+/* Connector between steps */
+.bc-page .bc-step::after {
+  content: "";
+  position: absolute;
+  top: 2.05rem;
+  right: -0.55rem;
+  width: 0.5rem;
+  height: 1px;
+  background: var(--bc-line-2);
+}
+
+.bc-page .bc-step:last-child::after {
+  display: none;
+}
+
+.bc-page .bc-transcript {
+  margin-top: 1.25rem;
+  border: 1px solid var(--bc-deep-line);
+  border-radius: var(--bc-r-lg);
+  background: var(--bc-deep);
+  box-shadow: var(--bc-sh-3);
+  overflow: hidden;
+}
+
+.bc-page .bc-transcript-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-bottom: 1px solid var(--bc-deep-line);
+  font-family: var(--bc-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bc-deep-muted);
+}
+
+.bc-page .bc-transcript-head .bc-dot {
+  background: #39434f;
+}
+
+.bc-page .bc-transcript-head .bc-dot:first-child {
+  background: var(--bc-red);
+}
+
+.bc-page .bc-transcript-head .sp {
+  margin-left: 0.3rem;
+}
+
+.bc-page .bc-transcript-body {
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
+  overflow-x: auto;
+  font-family: var(--bc-mono);
+  font-size: 0.69rem;
+  line-height: 1.85;
+  color: var(--bc-deep-ink);
+  white-space: pre;
+}
+
+.bc-page .bc-transcript-body .c {
+  color: var(--bc-deep-muted);
+}
+
+.bc-page .bc-transcript-body .a {
+  color: var(--bc-violet);
+  font-weight: 600;
+}
+
+.bc-page .bc-transcript-body .f {
+  color: var(--bc-deep-blue);
+}
+
+.bc-page .bc-transcript-body .s {
+  color: var(--bc-teal);
+}
+
+.bc-page .bc-transcript-body .m {
+  color: var(--bc-red);
+  font-weight: 600;
+}
+
+/* -------------------------------------------------------------------------
+   3f. Feature grid
+   ------------------------------------------------------------------------- */
+
+.bc-page .bc-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--bc-line);
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-r-lg);
+  overflow: hidden;
+}
+
+.bc-page .bc-feature {
+  position: relative;
+  padding: 1.45rem 1.35rem 1.55rem;
+  background: var(--bc-surface);
+  transition: background var(--bc-fast);
+}
+
+.bc-page .bc-feature:hover {
+  background: var(--bc-surface-2);
+}
+
+.bc-page .bc-feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.8rem;
+  border-radius: 9px;
+  background: var(--bc-red-soft);
+  color: var(--bc-red-ink);
+  border: 1px solid var(--bc-red-line);
+}
+
+.bc-page .bc-feature-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.bc-page .bc-feature--violet .bc-feature-icon {
+  background: var(--bc-violet-soft);
+  color: var(--bc-violet);
+  border-color: color-mix(in srgb, var(--bc-violet) 32%, transparent);
+}
+
+.bc-page .bc-feature--teal .bc-feature-icon {
+  background: var(--bc-teal-soft);
+  color: var(--bc-teal);
+  border-color: color-mix(in srgb, var(--bc-teal) 32%, transparent);
+}
+
+.bc-page .bc-feature h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.bc-page .bc-feature p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.62;
+  color: var(--bc-ink-3);
+}
+
+/* -------------------------------------------------------------------------
+   3g. Comparison table
+   ------------------------------------------------------------------------- */
+
+.bc-page .bc-compare-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-r-lg);
+  background: var(--bc-surface);
+}
+
+.bc-page .bc-compare {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+
+.bc-page .bc-compare :is(th, td) {
+  padding: 0.68rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--bc-line);
+  vertical-align: top;
+}
+
+.bc-page .bc-compare thead th {
+  background: var(--bc-surface-2);
+  font-size: 0.67rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: var(--bc-muted);
+  white-space: nowrap;
+}
+
+.bc-page .bc-compare thead th.us {
+  color: var(--bc-ink);
+  background: var(--bc-red-soft);
+}
+
+.bc-page .bc-compare tbody th {
+  font-weight: 550;
+  color: var(--bc-ink-2);
+  white-space: nowrap;
+}
+
+.bc-page .bc-compare td.us {
+  background: color-mix(in srgb, var(--bc-red-soft) 50%, transparent);
+  color: var(--bc-ink);
+  font-weight: 550;
+}
+
+.bc-page .bc-compare tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+/* -------------------------------------------------------------------------
+   3h. Quickstart — install steps + MCP config
+   ------------------------------------------------------------------------- */
+
+.bc-page .bc-quick {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.bc-page .bc-quick-steps {
+  margin: 0 0 0 0.75rem;
+  padding: 0;
+  counter-reset: bc-q;
+}
+
+.bc-page .bc-quick-steps > li {
+  position: relative;
+  counter-increment: bc-q;
+  margin: 0;
+  padding: 0 0 1.35rem 2.1rem;
+  border-left: 1px dashed var(--bc-line-2);
+}
+
+.bc-page .bc-quick-steps > li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.bc-page .bc-quick-steps > li::before {
+  content: counter(bc-q);
+  position: absolute;
+  left: -0.78rem;
+  top: -0.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  background: var(--bc-surface);
+  border: 1px solid var(--bc-line-2);
+  color: var(--bc-ink);
+  font-family: var(--bc-mono);
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+.bc-page .bc-quick-steps h3 {
+  margin: 0.1rem 0 0.25rem;
+  font-size: 0.89rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+}
+
+.bc-page .bc-quick-steps p {
+  margin: 0 0 0.5rem;
+  font-size: 0.77rem;
+  line-height: 1.6;
+  color: var(--bc-ink-3);
+}
+
+.bc-page .bc-quick-steps p:last-child {
+  margin-bottom: 0;
+}
+
+.bc-page .bc-quick-steps a {
+  color: var(--bc-red-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bc-page .bc-cmd {
+  display: block;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--bc-r-sm);
+  border: 1px solid var(--bc-line);
+  background: var(--bc-surface-2);
+  font-family: var(--bc-mono);
+  font-size: 0.72rem;
+  color: var(--bc-ink);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.bc-page .bc-cmd .bc-prompt {
+  margin-right: 0.45rem;
+}
+
+.bc-page .bc-cmd + .bc-cmd {
+  margin-top: 0.3rem;
+}
+
+.bc-page .bc-code-card {
+  border: 1px solid var(--bc-deep-line);
+  border-radius: var(--bc-r-lg);
+  background: var(--bc-deep);
+  box-shadow: var(--bc-sh-3);
+  overflow: hidden;
+}
+
+.bc-page .bc-code-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  border-bottom: 1px solid var(--bc-deep-line);
+  font-family: var(--bc-mono);
+  font-size: 0.6rem;
+  color: var(--bc-deep-muted);
+}
+
+.bc-page .bc-code-card-head .badge {
+  padding: 0.08rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bc-page .bc-code-card pre {
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
+  overflow-x: auto;
+  font-family: var(--bc-mono);
+  font-size: 0.7rem;
+  line-height: 1.75;
+  color: var(--bc-deep-ink);
+  white-space: pre;
+}
+
+.bc-page .bc-code-card .k {
+  color: var(--bc-deep-blue);
+}
+
+.bc-page .bc-code-card .v {
+  color: var(--bc-teal);
+}
+
+.bc-page .bc-code-card .p {
+  color: var(--bc-deep-muted);
+}
+
+.bc-page .bc-quick-note {
+  margin-top: 0.7rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--bc-r-sm);
+  border: 1px solid var(--bc-line);
+  background: var(--bc-surface-2);
+  font-size: 0.73rem;
+  line-height: 1.55;
+  color: var(--bc-ink-3);
+}
+
+.bc-page .bc-quick-note code {
+  font-family: var(--bc-mono);
+  font-size: 0.9em;
+  color: var(--bc-ink);
+}
+
+/* -------------------------------------------------------------------------
+   3i. Doc path cards
+   ------------------------------------------------------------------------- */
+
+.bc-page .bc-docs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.bc-page .bc-doc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1.05rem 1.05rem 1.15rem;
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-r);
+  background: var(--bc-surface);
+  text-decoration: none !important;
+  color: var(--bc-ink-3);
+  transition: border-color var(--bc-fast), box-shadow var(--bc-fast),
+    transform var(--bc-fast);
+}
+
+.bc-page .bc-doc-card:hover {
+  border-color: var(--bc-red);
+  box-shadow: var(--bc-glow);
+  transform: translateY(-2px);
+}
+
+.bc-page .bc-doc-kicker {
+  font-size: 0.61rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bc-red-ink);
+}
+
+.bc-page .bc-doc-card h3 {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--bc-ink);
+}
+
+.bc-page .bc-doc-card p {
+  margin: 0.1rem 0 0.7rem;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.bc-page .bc-doc-arrow {
+  margin-top: auto;
+  font-family: var(--bc-mono);
+  font-size: 0.73rem;
+  color: var(--bc-red);
+  transition: transform var(--bc-fast);
+}
+
+.bc-page .bc-doc-card:hover .bc-doc-arrow {
+  transform: translateX(3px);
+}
+
+/* -------------------------------------------------------------------------
+   3j. Closing CTA
+   ------------------------------------------------------------------------- */
+
+.bc-page .bc-cta {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(2.5rem, 6vw, 4rem) 0;
+  background: var(--bc-deep);
+  color: var(--bc-deep-ink);
+  border-top: 1px solid var(--bc-deep-line);
+}
+
+.bc-page .bc-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 60% 100% at 50% 0%,
+    #000,
+    transparent 75%
+  );
+  mask-image: radial-gradient(ellipse 60% 100% at 50% 0%, #000, transparent 75%);
+  pointer-events: none;
+}
+
+.bc-page .bc-cta-inner {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.bc-page .bc-cta h2 {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+  font-weight: 720;
+  letter-spacing: -0.032em;
+  color: #fff;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.bc-page .bc-cta p {
+  margin: 0;
+  max-width: 32rem;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--bc-deep-muted);
+}
+
+.bc-page .bc-cta .bc-cta-row {
+  margin: 0;
+}
+
+.bc-page .bc-cta .bc-btn--ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff !important;
+}
+
+.bc-page .bc-cta .bc-btn--ghost:hover,
+.bc-page .bc-cta .bc-btn--primary:hover {
+  background: #fff;
+  border-color: #fff;
+  color: var(--bc-deep) !important;
+}
+
+/* =========================================================================
+   4. RESPONSIVE
+   ========================================================================= */
+
+@media screen and (max-width: 76.25em) {
+  .bc-page .bc-docs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 66em) {
+  .bc-page .bc-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.25rem;
+  }
+
+  .bc-page .bc-hero-lede,
+  .bc-page .bc-head {
+    max-width: none;
+  }
+
+  .bc-page .bc-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bc-page .bc-quick {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bc-page .bc-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bc-page .bc-stat:nth-child(3) {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .bc-page .bc-stat:nth-child(2) {
+    padding-right: 0;
+  }
+
+  .bc-page .bc-stat:nth-child(n + 3) {
+    border-top: 1px solid var(--bc-line);
+  }
+}
+
+@media screen and (max-width: 56em) {
+  .bc-page .bc-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bc-page .bc-step::after {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 44em) {
+  .bc-page .bc-features,
+  .bc-page .bc-docs-grid,
+  .bc-page .bc-stats-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bc-page .bc-stat {
+    padding-left: 0;
+    padding-right: 0;
+    border-left: 0;
+    border-top: 1px solid var(--bc-line);
+  }
+
+  .bc-page .bc-stat:first-child {
+    border-top: 0;
+  }
+
+  .bc-page .bc-cta-row .bc-btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .bc-page .bc-h1 .bc-marked::after {
+    display: none;
+  }
+
+  .md-typeset h1 {
+    font-size: 1.55rem;
+  }
+}
+
+/* =========================================================================
+   5. MOTION + ACCESSIBILITY
+   ========================================================================= */
+
+:where(a, button, .bc-btn, .bc-doc-card, .bc-pill):focus-visible {
+  outline: 2px solid var(--bc-red);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .bc-page .bc-step:hover,
+  .bc-page .bc-doc-card:hover,
+  .bc-page .bc-btn:hover,
+  .bc-page .bc-pill:hover {
+    transform: none;
+  }
+}
+
+.bc-sr {
   position: absolute;
   width: 1px;
   height: 1px;
