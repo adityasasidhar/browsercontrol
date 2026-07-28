@@ -21,10 +21,10 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif" alt="A real BrowserControl session: a documentation page is marked with 20 numbered red boxes, the agent calls click(14), and the page it lands on is marked again from scratch with 37 differently numbered elements." width="900">
+  <img src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif" alt="A real BrowserControl session: a documentation page is marked with 20 numbered red boxes, the agent types into the search field by number, the results open and everything is renumbered, then it clicks a result and the next page is marked from scratch again." width="900">
 </p>
 
-<p align="center"><sub>A real session — BrowserControl driving its own documentation. Note the second page: the numbers are rebuilt from scratch, which is why the agent re-reads them after every action.</sub></p>
+<p align="center"><sub>A real session — BrowserControl driving its own documentation. Navigate, type, click; and after every one of them the page is re-marked and the numbers change. That's why the agent re-reads them each time.</sub></p>
 
 ## The idea
 
