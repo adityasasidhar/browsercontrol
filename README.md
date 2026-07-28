@@ -21,10 +21,10 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif" alt="A real BrowserControl session: a web form is marked with 17 numbered red boxes, then the agent calls type_text, select_option, check_checkbox and click by number, and the form submits." width="860">
+  <img src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif" alt="A real BrowserControl session: a documentation page is marked with 20 numbered red boxes, the agent calls click(14), and the page it lands on is marked again from scratch with 37 differently numbered elements." width="900">
 </p>
 
-<p align="center"><sub>An actual session. Every frame is what the agent receives — screenshot plus element map, recorded by BrowserControl itself.</sub></p>
+<p align="center"><sub>A real session — BrowserControl driving its own documentation. Note the second page: the numbers are rebuilt from scratch, which is why the agent re-reads them after every action.</sub></p>
 
 ## The idea
 
