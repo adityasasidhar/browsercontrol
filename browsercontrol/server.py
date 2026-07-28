@@ -53,12 +53,37 @@ Features:
 - Smart Navigation: Auto-handles localhost/127.0.0.1 and bypasses proxies.
 - Multi-Tab Support: Create, switch, and close multiple browser tabs.
 
-Core Actions:
+Element IDs come from the most recent annotated screenshot and are
+invalidated by any navigation, click, scroll, or new screenshot. Always act on
+the numbers in the latest image.
+
+Navigation:
 - navigate_to(url)
-- click(element_id)
-- type_text(element_id, text)
+- go_back()
+- go_forward()
+- refresh_page()
 - scroll(direction, amount)
+
+Interaction:
+- click(element_id)
+- click_at(x, y)
+- type_text(element_id, text)
+- press_key(key)
+- hover(element_id)
+- scroll_to_element(element_id)
+- wait(seconds)
+
+Forms:
+- select_option(element_id, option)
+- check_checkbox(element_id, check)
 - upload_file(element_id, file_path)
+
+Page Content:
+- get_page_content()
+- get_text(element_id)
+- get_page_info()
+- run_javascript(script)
+- screenshot(annotate, full_page)
 
 Tab Management:
 - create_tab(url)
@@ -67,20 +92,22 @@ Tab Management:
 - list_tabs()
 
 Developer Tools:
-- get_console_logs()
-- get_network_requests()
+- get_console_logs(clear)
+- get_network_requests(num_requests, clear)
 - get_page_errors()
-- inspect_element(id)
+- run_in_console(code)
+- inspect_element(element_id)
+- get_page_performance()
 - get_cookies()
-- set_cookie(name, value)
+- set_cookie(name, value, domain, path)
 - delete_cookie(name)
 - clear_cookies()
 - set_viewport(width, height)
 
 Session Recording:
-- start_recording()
+- start_recording(name)
 - stop_recording()
-- take_snapshot()
+- take_snapshot(name)
 - list_recordings()""",
     lifespan=lifespan,
 )

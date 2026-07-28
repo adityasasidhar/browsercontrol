@@ -110,5 +110,6 @@ handling, following the existing per-module test files.
 - Python 3.11+. Type hints are required and checked by mypy in **strict** mode
   (`disallow_untyped_defs`, etc.) — annotate fully.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`).
-- Pre-commit hooks (ruff, prettier for md/yaml/json, bandit) run on commit;
+- Pre-commit hooks (ruff lint + format, bandit, and the standard
+  whitespace/YAML/TOML/JSON file checks) run on commit;
   `git commit --no-verify` bypasses them but CI will still enforce them.
