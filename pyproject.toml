@@ -24,7 +24,7 @@ dependencies = [
     "fastmcp>=2.14.2",
     "playwright>=1.49.0",
     "markdownify>=0.14.1",
-    "pillow>=11.0.0",
+    "pillow>=12.3.0",
 ]
 
 [project.urls]
