@@ -225,7 +225,7 @@ hide:
   <div class="bc-stats">
     <div class="bc-wrap bc-stats-grid">
       <div class="bc-stat">
-        <span class="bc-stat-num">~30</span>
+        <span class="bc-stat-num">39</span>
         <span class="bc-stat-label">MCP tools, every one returning a fresh annotated screenshot</span>
       </div>
       <div class="bc-stat">
@@ -457,7 +457,7 @@ hide:
         <a class="bc-doc-card" href="tools/">
           <span class="bc-doc-kicker">Reference</span>
           <h3>Tool reference</h3>
-          <p>All ~30 MCP tools with parameters and return shapes, by category.</p>
+          <p>All 39 MCP tools with parameters and return shapes, by category.</p>
           <span class="bc-doc-arrow" aria-hidden="true">&rarr;</span>
         </a>
         <a class="bc-doc-card" href="guides/">

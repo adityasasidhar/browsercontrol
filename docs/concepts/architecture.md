@@ -30,7 +30,7 @@ The agent never sees a raw DOM tree. It sees a screenshot and a list of numbered
 ### MCP server (`browsercontrol.server`)
 
 - Built on [FastMCP](https://github.com/jlowin/fastmcp).
-- Registers ~30 tools organized into seven categories.
+- Registers 39 tools organized into seven categories.
 - Manages browser lifecycle via the `lifespan` async context manager.
 - Reads config from environment variables.
 

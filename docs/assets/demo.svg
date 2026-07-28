@@ -94,18 +94,20 @@
   </g>
 
   <!-- Search bar [1] -->
-  <rect class="bc-search-bg" x="170" y="78" width="180" height="28" rx="6"/>
+  <rect class="bc-search-bg" x="170" y="78" width="130" height="28" rx="6"/>
   <!-- Search icon (simple magnifier) -->
   <g transform="translate(184,92)">
     <circle class="bc-search-icon" cx="0" cy="0" r="5" fill="none" stroke="#6B6B6B" stroke-width="1.5"/>
     <line class="bc-search-icon" x1="3.5" y1="3.5" x2="7" y2="7" stroke="#6B6B6B" stroke-width="1.5" stroke-linecap="round"/>
   </g>
-  <text class="bc-muted" x="200" y="96" font-size="12">Search or jump to…</text>
+  <text class="bc-muted" x="200" y="96" font-size="12" textLength="92" lengthAdjust="spacingAndGlyphs">Search or jump to…</text>
 
-  <!-- Nav links [2] Pulls, [3] Issues, [4] Codespaces -->
-  <text class="bc-link" x="370" y="97" font-size="13" font-weight="600">Pulls</text>
-  <text class="bc-link" x="412" y="97" font-size="13" font-weight="600">Issues</text>
-  <text class="bc-link" x="460" y="97" font-size="13" font-weight="600">Codespaces</text>
+  <!-- Nav links [2] Pulls, [3] Issues, [4] Codespaces.
+       textLength pins each label to its designed width, so the marks still
+       line up when the site webfont is unavailable (README, social previews). -->
+  <text class="bc-link" x="330" y="97" font-size="13" font-weight="600" textLength="28" lengthAdjust="spacingAndGlyphs">Pulls</text>
+  <text class="bc-link" x="370" y="97" font-size="13" font-weight="600" textLength="32" lengthAdjust="spacingAndGlyphs">Issues</text>
+  <text class="bc-link" x="414" y="97" font-size="13" font-weight="600" textLength="52" lengthAdjust="spacingAndGlyphs">Codespaces</text>
 
   <!-- Sign in CTA [5] -->
   <rect class="bc-cta" x="412" y="135" width="50" height="24" rx="6"/>
@@ -121,13 +123,13 @@
 
   <!-- ============ SoM ANNOTATIONS ============ -->
   <!-- [1] Search input -->
-  <rect class="bc-mark-box" x="166" y="74" width="188" height="36" rx="8"/>
+  <rect class="bc-mark-box" x="166" y="74" width="138" height="36" rx="8"/>
   <!-- [2] Pulls -->
-  <rect class="bc-mark-box" x="354" y="83" width="38" height="22" rx="4"/>
+  <rect class="bc-mark-box" x="326" y="83" width="36" height="22" rx="4"/>
   <!-- [3] Issues -->
-  <rect class="bc-mark-box" x="400" y="83" width="42" height="22" rx="4"/>
+  <rect class="bc-mark-box" x="366" y="83" width="40" height="22" rx="4"/>
   <!-- [4] Codespaces -->
-  <rect class="bc-mark-box" x="448" y="83" width="74" height="22" rx="4"/>
+  <rect class="bc-mark-box" x="410" y="83" width="60" height="22" rx="4"/>
   <!-- [5] Sign in -->
   <rect class="bc-mark-box" x="408" y="131" width="58" height="32" rx="8"/>
 
@@ -136,14 +138,14 @@
     <circle class="bc-mark-chip" cx="166" cy="74" r="11"/>
     <text class="bc-mark-num" x="166" y="79" text-anchor="middle">1</text>
 
-    <circle class="bc-mark-chip" cx="354" cy="83" r="11"/>
-    <text class="bc-mark-num" x="354" y="88" text-anchor="middle">2</text>
+    <circle class="bc-mark-chip" cx="326" cy="83" r="11"/>
+    <text class="bc-mark-num" x="326" y="88" text-anchor="middle">2</text>
 
-    <circle class="bc-mark-chip" cx="400" cy="83" r="11"/>
-    <text class="bc-mark-num" x="400" y="88" text-anchor="middle">3</text>
+    <circle class="bc-mark-chip" cx="366" cy="83" r="11"/>
+    <text class="bc-mark-num" x="366" y="88" text-anchor="middle">3</text>
 
-    <circle class="bc-mark-chip" cx="448" cy="83" r="11"/>
-    <text class="bc-mark-num" x="448" y="88" text-anchor="middle">4</text>
+    <circle class="bc-mark-chip" cx="410" cy="83" r="11"/>
+    <text class="bc-mark-num" x="410" y="88" text-anchor="middle">4</text>
 
     <circle class="bc-mark-chip" cx="408" cy="131" r="11"/>
     <text class="bc-mark-num" x="408" y="136" text-anchor="middle">5</text>

@@ -1,6 +1,6 @@
 # Tools reference
 
-BrowserControl exposes **~30 MCP tools** organized into seven categories. Every tool that touches the page returns an **annotated screenshot** plus a textual element map, so the model always has the latest visual context.
+BrowserControl exposes **39 MCP tools** organized into seven categories. Every tool that touches the page returns an **annotated screenshot** plus a textual element map, so the model always has the latest visual context.
 
 !!! info "Element IDs are fresh on every response"
     The `[1]`, `[2]`, … numbers you see in a tool's response are only valid until the next screenshot. After any navigation, click, or state change, **read the new IDs from the latest screenshot/map**. The tools re-screenshot automatically — your agent just needs to look at the response.

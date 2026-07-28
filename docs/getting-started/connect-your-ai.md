@@ -151,7 +151,7 @@ Once you've added the config and restarted your client:
 
 1. Look for a tools / MCP indicator in your client's UI.
 2. Ask your agent: _"List the browser tools you have available."_
-3. You should see ~30 tools organized into **Navigation**, **Interaction**, **Tabs**, **Forms**, **Content**, **DevTools**, and **Recording**.
+3. You should see 39 tools organized into **Navigation**, **Interaction**, **Tabs**, **Forms**, **Content**, **DevTools**, and **Recording**.
 
 If tools are missing, see the [Troubleshooting guide](../troubleshooting.md).
 

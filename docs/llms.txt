@@ -2,7 +2,7 @@
 
 > An MCP server that gives AI agents a real browser they can see. Every action returns an annotated screenshot in which each interactive element is overlaid with a numbered red box (the Set of Marks pattern), so the agent acts by referring to a number — `click(7)` — instead of a CSS selector or XPath. Runs locally on the user's machine via Playwright: no cloud API, no per-action cost, no data leaving the host.
 
-Written in Python 3.11+ on FastMCP + Playwright + Pillow. MIT licensed. Around 30 tools across seven categories: navigation, interaction, forms, content, tabs, devtools, and recording.
+Written in Python 3.11+ on FastMCP + Playwright + Pillow. MIT licensed. 39 tools across seven categories: navigation, interaction, forms, content, tabs, devtools, and recording.
 
 Two facts govern correct use and are worth reading before anything else:
 
