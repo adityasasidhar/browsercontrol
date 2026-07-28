@@ -17,6 +17,9 @@ dist/
 # MkDocs build output
 /site/
 
+# Locally captured screenshots (not referenced by the docs site)
+/assets/live/
+
 # OS
 .DS_Store
 Thumbs.db
