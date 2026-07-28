@@ -97,8 +97,8 @@ Tests **do not launch a real browser** — everything is mocked. The pattern:
   `patch("browsercontrol.tools.navigation.browser", mock_browser_manager)`) —
   because each tool module does `from browsercontrol.browser import browser`, it
   holds its own reference that must be patched independently.
-- The tool callable is reached through FastMCP internals:
-  `mcp_server._tool_manager._tools["navigate_to"].fn(...)`.
+- The tool callable is reached by name and then called directly:
+  `tool = await mcp_server.get_tool("navigate_to")` then `await tool.fn(...)`.
 - `asyncio_mode = "auto"` is set, so `async def test_*` runs without an explicit
   marker (though existing tests also add `@pytest.mark.asyncio`).
 
