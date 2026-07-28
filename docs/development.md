@@ -167,6 +167,49 @@ uv run mkdocs build --strict
 
 The output goes to `site/` (gitignored).
 
+## Releasing
+
+Releases are automated by `.github/workflows/release.yml`, which runs when a
+`v*` tag is pushed. It verifies, builds, publishes to PyPI, and opens a GitHub
+Release with generated notes.
+
+### One-time setup
+
+PyPI authentication uses **Trusted Publishing** (OIDC), so no API token is
+stored in the repository. Configure it once at
+[pypi.org](https://pypi.org/manage/project/browsercontrol/settings/publishing/)
+→ *Add a new publisher*:
+
+| Field | Value |
+| --- | --- |
+| Owner | `adityasasidhar` |
+| Repository | `browsercontrol` |
+| Workflow name | `release.yml` |
+| Environment | `pypi` |
+
+The `pypi` environment must also exist under *Settings → Environments* in the
+GitHub repo. Add required reviewers there if you want a manual approval gate
+before anything is published.
+
+### Cutting a release
+
+```bash
+# 1. Bump the version in pyproject.toml, then commit it
+uv version --bump patch      # or: minor / major
+git commit -am "chore: release v0.2.0"
+
+# 2. Tag and push — this triggers the workflow
+git tag v0.2.0
+git push origin main --tags
+```
+
+The tag must match `project.version` in `pyproject.toml`; the workflow fails
+fast if it doesn't, and also refuses to run when that version already exists on
+PyPI (PyPI never allows overwriting a release).
+
+Before publishing, the workflow re-runs lint, `mypy`, `bandit`, and the full
+test suite, so a release cannot ship code that CI would have rejected.
+
 ## Good first contributions
 
 Looking for something to work on? Start with one of these:
