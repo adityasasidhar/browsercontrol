@@ -17,8 +17,15 @@ async def _get_screenshot_with_summary() -> tuple[Image, str]:
 
     summary_lines = [f"Found {len(elem_map)} interactive elements:"]
     for eid, elem in list(elem_map.items())[:30]:
-        desc = elem["text"][:40] if elem["text"] else elem["tag"]
-        summary_lines.append(f"  [{eid}] {elem['tag']} - {desc}")
+        tag = elem.get("tag", "unknown")
+        elem_type = elem.get("type", "")
+        # Show the input type so checkboxes, radios and file inputs are
+        # distinguishable instead of all rendering as a bare "input".
+        label = f"{tag}[{elem_type}]" if elem_type and elem_type != tag else tag
+        # Collapse whitespace so multi-line text (e.g. a <select>'s options)
+        # cannot break the one-line-per-element format.
+        text = " ".join((elem.get("text") or "").split())[:40]
+        summary_lines.append(f"  [{eid}] {label} - {text}" if text else f"  [{eid}] {label}")
 
     if len(elem_map) > 30:
         summary_lines.append(f"  ... and {len(elem_map) - 30} more")

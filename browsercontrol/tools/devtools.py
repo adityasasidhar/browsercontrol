@@ -15,8 +15,15 @@ async def _get_screenshot_with_summary() -> tuple[Image, str]:
 
     summary_lines = [f"Found {len(elem_map)} interactive elements:"]
     for eid, elem in list(elem_map.items())[:30]:
-        desc = elem.get("text", "")[:40] if elem.get("text") else elem.get("tag", "unknown")
-        summary_lines.append(f"  [{eid}] {elem.get('tag', 'unknown')} - {desc}")
+        tag = elem.get("tag", "unknown")
+        elem_type = elem.get("type", "")
+        # Show the input type so checkboxes, radios and file inputs are
+        # distinguishable instead of all rendering as a bare "input".
+        label = f"{tag}[{elem_type}]" if elem_type and elem_type != tag else tag
+        # Collapse whitespace so multi-line text (e.g. a <select>'s options)
+        # cannot break the one-line-per-element format.
+        text = " ".join((elem.get("text") or "").split())[:40]
+        summary_lines.append(f"  [{eid}] {label} - {text}" if text else f"  [{eid}] {label}")
 
     if len(elem_map) > 30:
         summary_lines.append(f"  ... and {len(elem_map) - 30} more")
@@ -439,6 +446,13 @@ def register_devtools(mcp: FastMCP) -> None:
             height: Height in pixels
         """
         try:
+            # Validate before applying: a zero/negative viewport makes every
+            # subsequent screenshot fail, which would break every other tool.
+            if width < 1 or height < 1:
+                raise ValueError(
+                    f"Invalid viewport {width}x{height}: width and height must be at least 1."
+                )
+
             await browser.ensure_started()
             await browser.page.set_viewport_size({"width": width, "height": height})
 

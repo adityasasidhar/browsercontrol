@@ -156,6 +156,30 @@ class TestViewport:
             # set_viewport returns tuple[str, Image] — visual tool
             assert "1920x1080" in result[0]
 
+    @pytest.mark.parametrize(
+        ("width", "height"),
+        [(0, 600), (800, 0), (0, 0), (-1, 600), (800, -1)],
+    )
+    @pytest.mark.asyncio
+    async def test_degenerate_viewport_rejected(
+        self, mcp_server, mock_browser_manager, mock_page, width, height
+    ):
+        """A zero/negative viewport must be rejected before it is applied.
+
+        Applying it would make every later screenshot fail, breaking every
+        other tool in the server until the viewport is manually restored.
+        """
+        register_devtools(mcp_server)
+
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            mock_browser_manager.page = mock_page
+
+            tool = await mcp_server.get_tool("set_viewport")
+            with pytest.raises(RuntimeError, match="must be at least 1"):
+                await tool.fn(width=width, height=height)
+
+            mock_page.set_viewport_size.assert_not_called()
+
 
 class TestPageErrors:
     """Test page error capture."""
