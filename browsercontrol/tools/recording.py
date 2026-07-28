@@ -37,7 +37,7 @@ def register_recording_tools(mcp: FastMCP) -> None:
             return "Recording already in progress. Call stop_recording() first."
 
         # Create recordings directory
-        recordings_dir = config.user_data_dir.parent / "recordings"
+        recordings_dir = config.recordings_dir
         recordings_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate filename
@@ -94,7 +94,7 @@ def register_recording_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
 
             # Create snapshots directory
-            snapshots_dir = config.user_data_dir.parent / "snapshots"
+            snapshots_dir = config.snapshots_dir
             snapshots_dir.mkdir(parents=True, exist_ok=True)
 
             # Generate filename
@@ -135,9 +135,8 @@ def register_recording_tools(mcp: FastMCP) -> None:
         Returns:
             List of recordings
         """
-        base_dir = config.user_data_dir.parent
-        recordings_dir = base_dir / "recordings"
-        snapshots_dir = base_dir / "snapshots"
+        recordings_dir = config.recordings_dir
+        snapshots_dir = config.snapshots_dir
 
         lines = ["Saved Sessions:\n"]
 

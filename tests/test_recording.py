@@ -31,7 +31,8 @@ class TestRecording:
 
         with patch("browsercontrol.tools.recording.browser", mock_browser_manager):
             with patch("browsercontrol.tools.recording.config") as mock_config:
-                mock_config.user_data_dir = temp_recordings_dir
+                mock_config.recordings_dir = temp_recordings_dir / "recordings"
+                mock_config.snapshots_dir = temp_recordings_dir / "snapshots"
                 with patch.object(recording_module, "_recording_active", False):
                     tool = await mcp_server.get_tool("start_recording")
                     result = await tool.fn()
@@ -114,7 +115,8 @@ class TestSnapshot:
 
         with patch("browsercontrol.tools.recording.browser", mock_browser_manager):
             with patch("browsercontrol.tools.recording.config") as mock_config:
-                mock_config.user_data_dir = temp_recordings_dir
+                mock_config.recordings_dir = temp_recordings_dir / "recordings"
+                mock_config.snapshots_dir = temp_recordings_dir / "snapshots"
                 mock_browser_manager.page = mock_page  # type: ignore[attr-defined]
 
                 tool = await mcp_server.get_tool("take_snapshot")
@@ -132,16 +134,14 @@ class TestListRecordings:
         """Test listing all saved recordings."""
         register_recording_tools(mcp_server)
 
-        # user_data_dir.parent == tmp_path, so recordings land inside tmp_path
-        user_data_dir = tmp_path / "profile"
-        user_data_dir.mkdir()
         recordings_dir = tmp_path / "recordings"
         recordings_dir.mkdir()
         (recordings_dir / "session_20260101.zip").write_bytes(b"fake_recording")
         (recordings_dir / "session_20260102.zip").write_bytes(b"fake_recording")
 
         with patch("browsercontrol.tools.recording.config") as mock_config:
-            mock_config.user_data_dir = user_data_dir
+            mock_config.recordings_dir = recordings_dir
+            mock_config.snapshots_dir = tmp_path / "snapshots"
 
             tool = await mcp_server.get_tool("list_recordings")
             result = await tool.fn()
@@ -155,11 +155,9 @@ class TestListRecordings:
         """Test listing recordings when directory is empty."""
         register_recording_tools(mcp_server)
 
-        user_data_dir = tmp_path / "profile"
-        user_data_dir.mkdir()
-
         with patch("browsercontrol.tools.recording.config") as mock_config:
-            mock_config.user_data_dir = user_data_dir
+            mock_config.recordings_dir = tmp_path / "recordings"
+            mock_config.snapshots_dir = tmp_path / "snapshots"
 
             tool = await mcp_server.get_tool("list_recordings")
             result = await tool.fn()

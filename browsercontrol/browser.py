@@ -218,28 +218,32 @@ class BrowserManager:
         # Substrings that indicate the Chromium executable is missing
         missing_hints = ("executable doesn't exist", "playwright install", "looks like playwright")
 
+        launch_kwargs: dict[str, Any] = {
+            "user_data_dir": str(config.user_data_dir),
+            "headless": config.headless,
+            "args": args,
+            "viewport": {"width": config.viewport_width, "height": config.viewport_height},
+        }
+        if config.executable_path:
+            launch_kwargs["executable_path"] = str(config.executable_path)
+            logger.info(f"Using Chromium executable: {config.executable_path}")
+
         try:
             try:
                 self._context = await self._playwright.chromium.launch_persistent_context(
-                    user_data_dir=str(config.user_data_dir),
-                    headless=config.headless,
-                    args=args,
-                    viewport={"width": config.viewport_width, "height": config.viewport_height},
+                    **launch_kwargs
                 )
             except Exception as launch_exc:
-                # Only retry after installing if the error is a missing-executable error
-                if any(hint in str(launch_exc).lower() for hint in missing_hints):
+                # Only retry after installing if the error is a missing-executable error.
+                # A caller-supplied executable is theirs to fix, so don't install over it.
+                if config.executable_path is None and any(
+                    hint in str(launch_exc).lower() for hint in missing_hints
+                ):
                     logger.info("Chromium executable not found, installing automatically...")
                     await self._install_chromium()
                     # Retry the launch exactly once after install
                     self._context = await self._playwright.chromium.launch_persistent_context(
-                        user_data_dir=str(config.user_data_dir),
-                        headless=config.headless,
-                        args=args,
-                        viewport={
-                            "width": config.viewport_width,
-                            "height": config.viewport_height,
-                        },
+                        **launch_kwargs
                     )
                 else:
                     raise

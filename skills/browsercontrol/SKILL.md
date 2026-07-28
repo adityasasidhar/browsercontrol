@@ -197,6 +197,7 @@ change needs a server restart.
 | `BROWSER_VIEWPORT_HEIGHT` | `720` |
 | `BROWSER_TIMEOUT` | `30000` (ms) |
 | `BROWSER_USER_DATA_DIR` | `~/.browsercontrol/user_data` |
+| `BROWSER_EXECUTABLE_PATH` | unset (Playwright's own Chromium) |
 | `LOG_LEVEL` | `INFO` |
 
 Full docs: <https://adityasasidhar.github.io/browsercontrol/>

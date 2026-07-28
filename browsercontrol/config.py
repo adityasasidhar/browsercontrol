@@ -16,6 +16,12 @@ class Config:
     # Paths
     user_data_dir: Path = Path.home() / ".browsercontrol" / "user_data"
     extension_path: Path | None = None
+    recordings_dir: Path = Path.home() / ".browsercontrol" / "recordings"
+    snapshots_dir: Path = Path.home() / ".browsercontrol" / "snapshots"
+
+    # Chromium binary to drive. Left unset, Playwright uses its own bundled
+    # build; set it when Playwright ships no build for the host platform.
+    executable_path: Path | None = None
 
     # Logging
     log_level: str = "INFO"
@@ -46,6 +52,22 @@ class Config:
         extension_path = os.getenv("BROWSER_EXTENSION_PATH")
         if extension_path:
             config.extension_path = Path(extension_path)
+
+        executable_path = os.getenv("BROWSER_EXECUTABLE_PATH")
+        if executable_path:
+            config.executable_path = Path(executable_path)
+
+        # Recordings and snapshots sit beside the profile unless overridden, so
+        # pointing BROWSER_USER_DATA_DIR elsewhere keeps them together.
+        recordings_dir = os.getenv("BROWSER_RECORDINGS_DIR")
+        config.recordings_dir = (
+            Path(recordings_dir) if recordings_dir else config.user_data_dir.parent / "recordings"
+        )
+
+        snapshots_dir = os.getenv("BROWSER_SNAPSHOTS_DIR")
+        config.snapshots_dir = (
+            Path(snapshots_dir) if snapshots_dir else config.user_data_dir.parent / "snapshots"
+        )
 
         # Logging
         config.log_level = os.getenv("LOG_LEVEL", "INFO")

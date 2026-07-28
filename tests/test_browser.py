@@ -123,6 +123,59 @@ class TestBrowserLifecycle:
             # _install_chromium must NOT have been called for a non-missing error
             browser_mgr._install_chromium.assert_not_called()
 
+    @pytest.mark.asyncio
+    async def test_configured_executable_is_passed_to_launch(
+        self, mock_playwright, mock_context, mock_page
+    ):
+        """A configured Chromium binary reaches Playwright's launch call."""
+        mock_playwright.chromium.launch_persistent_context.return_value = mock_context
+        mock_context.pages = [mock_page]
+
+        with patch("browsercontrol.browser.async_playwright") as pw_patch:
+            mock_playwright_instance = AsyncMock()
+            mock_playwright_instance.start = AsyncMock(return_value=mock_playwright)
+            pw_patch.return_value = mock_playwright_instance
+
+            with patch("browsercontrol.browser.config") as mock_config:
+                mock_config.executable_path = "/usr/bin/google-chrome"
+                mock_config.extension_path = None
+                mock_config.headless = True
+                mock_config.viewport_width = 1280
+                mock_config.viewport_height = 720
+
+                await BrowserManager().start()
+
+        kwargs = mock_playwright.chromium.launch_persistent_context.call_args.kwargs
+        assert kwargs["executable_path"] == "/usr/bin/google-chrome"
+
+    @pytest.mark.asyncio
+    async def test_configured_executable_suppresses_auto_install(
+        self, mock_playwright, mock_context, mock_page
+    ):
+        """A caller-supplied binary is theirs to fix — don't install Chromium over it."""
+        mock_playwright.chromium.launch_persistent_context.side_effect = Exception(
+            "Executable doesn't exist at /usr/bin/google-chrome"
+        )
+
+        with patch("browsercontrol.browser.async_playwright") as pw_patch:
+            mock_playwright_instance = AsyncMock()
+            mock_playwright_instance.start = AsyncMock(return_value=mock_playwright)
+            pw_patch.return_value = mock_playwright_instance
+
+            with patch("browsercontrol.browser.config") as mock_config:
+                mock_config.executable_path = "/usr/bin/google-chrome"
+                mock_config.extension_path = None
+                mock_config.headless = True
+                mock_config.viewport_width = 1280
+                mock_config.viewport_height = 720
+
+                browser_mgr = BrowserManager()
+                browser_mgr._install_chromium = AsyncMock()
+                with pytest.raises(Exception, match="Executable doesn't exist"):
+                    await browser_mgr.start()
+
+                browser_mgr._install_chromium.assert_not_called()
+
 
 class TestTabManagement:
     """Test tab creation, switching, and closing."""

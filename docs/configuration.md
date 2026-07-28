@@ -12,6 +12,7 @@ All BrowserControl settings are environment variables. Sensible defaults out of 
 | [`BROWSER_TIMEOUT`](#browser_timeout) | `30000` | Navigation timeout (ms). |
 | [`BROWSER_USER_DATA_DIR`](#browser_user_data_dir) | `~/.browsercontrol/user_data` | Browser profile dir (cookies, history, extensions persist here). |
 | [`BROWSER_EXTENSION_PATH`](#browser_extension_path) | — | Path to a `.crx`/unpacked extension to load at startup. |
+| [`BROWSER_EXECUTABLE_PATH`](#browser_executable_path) | — | Chromium binary to drive, for platforms Playwright ships no build for. |
 | [`BROWSER_RECORDINGS_DIR`](#browser_recordings_dir) | `~/.browsercontrol/recordings` | Where to save Playwright traces. |
 | [`BROWSER_SNAPSHOTS_DIR`](#browser_snapshots_dir) | `~/.browsercontrol/snapshots` | Where to save PNG + HTML snapshots. |
 | [`LOG_LEVEL`](#log_level) | `INFO` | `DEBUG` / `INFO` / `WARNING` / `ERROR`. |
@@ -137,13 +138,33 @@ BROWSER_EXTENSION_PATH=/path/to/extension.crx browsercontrol
 BROWSER_EXTENSION_PATH=/path/to/unpacked/extension browsercontrol
 ```
 
+### `BROWSER_EXECUTABLE_PATH`
+
+Which Chromium binary to drive. Left unset, Playwright uses the build it manages
+itself — which is what you want almost always.
+
+Set it when `playwright install chromium` has no build for your platform and
+refuses to install (newer Linux releases hit this), pointing it at a Chrome or
+Chromium you already have:
+
+```bash
+BROWSER_EXECUTABLE_PATH=/usr/bin/google-chrome browsercontrol
+```
+
+When this is set, BrowserControl will **not** try to auto-install Chromium if the
+launch fails — a binary you named is yours to fix, and installing over it would
+hide the real error.
+
 ### `BROWSER_RECORDINGS_DIR`
 
-Where to save Playwright traces. Default `~/.browsercontrol/recordings`.
+Where to save Playwright traces. Defaults to a `recordings` directory beside
+`BROWSER_USER_DATA_DIR` — so `~/.browsercontrol/recordings` unless you moved the
+profile, in which case they follow it.
 
 ### `BROWSER_SNAPSHOTS_DIR`
 
-Where to save PNG + HTML + URL snapshots. Default `~/.browsercontrol/snapshots`.
+Where to save PNG + HTML + URL snapshots. Defaults to a `snapshots` directory
+beside `BROWSER_USER_DATA_DIR`, following the profile the same way.
 
 ### `LOG_LEVEL`
 
