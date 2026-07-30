@@ -5,14 +5,14 @@ Welcome to **BrowserControl** — the vision-first browser automation MCP server
 ## What you'll do
 
 1. **[Install BrowserControl](installation.md)** — pip / uv / pipx in one command.
-2. **[Connect it to your AI](connect-your-ai.md)** — Claude Desktop, Cursor, Cline, Continue, Zed, or programmatic Python.
+2. **[Connect it to your AI](connect-your-ai.md)** — Claude Desktop, Cursor, Cline, Continue, OpenCode, Zed, or programmatic Python.
 3. **[Run your first session](first-session.md)** — navigate, click, type, and screenshot.
 4. **[Add the agent skill](agent-skill.md)** _(optional)_ — a playbook that teaches your agent to drive the browser well.
 
 ## What you'll need
 
 - **Python 3.11 or newer** on Linux, macOS, or Windows.
-- **An MCP-compatible AI client** — Claude Desktop, Cursor, Cline, Continue, Gemini CLI, or any client that speaks MCP stdio.
+- **An MCP-compatible AI client** — Claude Desktop, Cursor, Cline, Continue, OpenCode, Gemini CLI, or any client that speaks MCP stdio.
 - **No API key, no cloud account, no telemetry.** BrowserControl runs 100% on your machine.
 
 !!! tip "Already have a Python project?"

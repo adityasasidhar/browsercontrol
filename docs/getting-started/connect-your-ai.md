@@ -65,6 +65,43 @@ Cursor Settings → **Features** → **Model Context Protocol** → Add:
 { "browsercontrol": { "command": "browsercontrol" } }
 ```
 
+## OpenCode
+
+Add to `opencode.json` — project-local, or global at `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "browsercontrol": {
+      "type": "local",
+      "command": ["browsercontrol"],
+      "enabled": true
+    }
+  }
+}
+```
+
+Or let the CLI write it for you:
+
+```bash
+opencode mcp add
+```
+
+Run `opencode mcp list` to confirm BrowserControl is connected. To pass environment variables, use the `environment` key rather than `env`:
+
+```json
+{
+  "mcp": {
+    "browsercontrol": {
+      "type": "local",
+      "command": ["browsercontrol"],
+      "environment": { "BROWSER_HEADLESS": "false" }
+    }
+  }
+}
+```
+
 ## Zed Editor
 
 Add to `~/.config/zed/settings.json`:
