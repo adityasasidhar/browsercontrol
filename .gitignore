@@ -20,6 +20,10 @@ dist/
 # Locally captured screenshots (not referenced by the docs site)
 /assets/live/
 
+# Local scratch directories (not committed)
+.claude/
+.test-tmp/
+
 # OS
 .DS_Store
 Thumbs.db
