@@ -6,31 +6,9 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.config import config
+from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
-
-
-async def _get_screenshot_with_summary() -> tuple[Image, str]:
-    """Helper to get annotated screenshot with element summary."""
-    screenshot_bytes, elem_map = await browser.screenshot_with_som()
-    image = Image(data=screenshot_bytes, format="png")
-
-    summary_lines = [f"Found {len(elem_map)} interactive elements:"]
-    for eid, elem in list(elem_map.items())[:30]:
-        tag = elem.get("tag", "unknown")
-        elem_type = elem.get("type", "")
-        # Show the input type so checkboxes, radios and file inputs are
-        # distinguishable instead of all rendering as a bare "input".
-        label = f"{tag}[{elem_type}]" if elem_type and elem_type != tag else tag
-        # Collapse whitespace so multi-line text (e.g. a <select>'s options)
-        # cannot break the one-line-per-element format.
-        text = " ".join((elem.get("text") or "").split())[:40]
-        summary_lines.append(f"  [{eid}] {label} - {text}" if text else f"  [{eid}] {label}")
-
-    if len(elem_map) > 30:
-        summary_lines.append(f"  ... and {len(elem_map) - 30} more")
-
-    return image, "\n".join(summary_lines)
 
 
 def register_navigation_tools(mcp: FastMCP) -> None:
@@ -69,12 +47,12 @@ def register_navigation_tools(mcp: FastMCP) -> None:
 
             with contextlib.suppress(Exception):
                 await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Navigated to {url}\n\n{summary}", image
         except Exception as e:
             logger.error(f"Navigation failed: {e}")
             try:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error navigating to {url}: {e}\n\n{summary}", image
             except Exception:
                 raise RuntimeError(f"Navigation failed: {e}")
@@ -87,11 +65,11 @@ def register_navigation_tools(mcp: FastMCP) -> None:
             await browser.page.go_back(timeout=config.timeout_ms)
             with contextlib.suppress(Exception):
                 await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Navigated back\n\n{summary}", image
         except Exception as e:
             logger.error(f"Go back failed: {e}")
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Error going back: {e}\n\n{summary}", image
 
     @mcp.tool()
@@ -102,11 +80,11 @@ def register_navigation_tools(mcp: FastMCP) -> None:
             await browser.page.go_forward(timeout=config.timeout_ms)
             with contextlib.suppress(Exception):
                 await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Navigated forward\n\n{summary}", image
         except Exception as e:
             logger.error(f"Go forward failed: {e}")
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Error going forward: {e}\n\n{summary}", image
 
     @mcp.tool()
@@ -117,11 +95,11 @@ def register_navigation_tools(mcp: FastMCP) -> None:
             await browser.page.reload(timeout=config.timeout_ms)
             with contextlib.suppress(Exception):
                 await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Page refreshed\n\n{summary}", image
         except Exception as e:
             logger.error(f"Refresh failed: {e}")
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Error refreshing: {e}\n\n{summary}", image
 
     @mcp.tool()
@@ -141,12 +119,12 @@ def register_navigation_tools(mcp: FastMCP) -> None:
 
             if amount == "top":
                 await browser.page.evaluate("window.scrollTo(0, 0)")
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Scrolled to top\n\n{summary}", image
 
             if amount == "bottom":
                 await browser.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Scrolled to bottom\n\n{summary}", image
 
             pixels = amount_map.get(amount)
@@ -165,7 +143,7 @@ def register_navigation_tools(mcp: FastMCP) -> None:
             elif direction == "right":
                 await browser.page.evaluate(f"window.scrollBy({pixels}, 0)")
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Scrolled {direction} by {pixels}px\n\n{summary}", image
 
         except Exception as e:

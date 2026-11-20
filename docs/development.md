@@ -117,18 +117,18 @@ async def my_new_tool(element_id: int) -> tuple[str, Image]:
         elem_map = get_element_map()
 
         if element_id not in elem_map:
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Error: Element {element_id} not found.\n\n{summary}", image
 
         # ... your logic ...
 
-        image, summary = await _get_screenshot_with_summary()
+        image, summary = await get_screenshot_with_summary(browser)
         return f"Did the thing to element {element_id}\n\n{summary}", image
 
     except Exception as e:
         logger.error(f"my_new_tool failed: {e}")
         try:
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Error: {e}\n\n{summary}", image
         except Exception:
             raise RuntimeError(f"my_new_tool failed: {e}")

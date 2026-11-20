@@ -4,7 +4,7 @@ from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
-from browsercontrol.tools.content import _get_screenshot_with_summary
+from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ def register_tab_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             await browser.create_tab(url)
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             msg = "Created new tab" + (f" and navigated to {url}" if url else "")
             return f"{msg}\n\n{summary}", image
 
@@ -44,7 +44,7 @@ def register_tab_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             await browser.switch_to_tab(index)
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Switched to tab {index}\n\n{summary}", image
 
         except Exception as e:
@@ -63,7 +63,7 @@ def register_tab_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             await browser.close_tab(index)
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Closed tab {index}\n\n{summary}", image
 
         except Exception as e:

@@ -5,31 +5,9 @@ from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser, get_element_map
+from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
-
-
-async def _get_screenshot_with_summary() -> tuple[Image, str]:
-    """Helper to get annotated screenshot with element summary."""
-    screenshot_bytes, elem_map = await browser.screenshot_with_som()
-    image = Image(data=screenshot_bytes, format="png")
-
-    summary_lines = [f"Found {len(elem_map)} interactive elements:"]
-    for eid, elem in list(elem_map.items())[:30]:
-        tag = elem.get("tag", "unknown")
-        elem_type = elem.get("type", "")
-        # Show the input type so checkboxes, radios and file inputs are
-        # distinguishable instead of all rendering as a bare "input".
-        label = f"{tag}[{elem_type}]" if elem_type and elem_type != tag else tag
-        # Collapse whitespace so multi-line text (e.g. a <select>'s options)
-        # cannot break the one-line-per-element format.
-        text = " ".join((elem.get("text") or "").split())[:40]
-        summary_lines.append(f"  [{eid}] {label} - {text}" if text else f"  [{eid}] {label}")
-
-    if len(elem_map) > 30:
-        summary_lines.append(f"  ... and {len(elem_map) - 30} more")
-
-    return image, "\n".join(summary_lines)
 
 
 def register_interaction_tools(mcp: FastMCP) -> None:
@@ -48,7 +26,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             elem_map = get_element_map()
 
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return (
                     f"Error: Element {element_id} not found. Valid IDs: {list(elem_map.keys())[:20]}\n\n{summary}",
                     image,
@@ -70,7 +48,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             with contextlib.suppress(Exception):
                 await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return (
                 f"Clicked element {element_id} ({elem['tag']}: {elem['text'][:30] if elem['text'] else 'no text'})\n\n{summary}",
                 image,
@@ -79,7 +57,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         except Exception as e:
             logger.error(f"Click failed: {e}")
             try:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error clicking element {element_id}: {e}\n\n{summary}", image
             except Exception:
                 raise RuntimeError(f"Click failed: {e}")
@@ -99,7 +77,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             await browser.page.mouse.click(x, y)
             with contextlib.suppress(Exception):
                 await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Clicked at ({x}, {y})\n\n{summary}", image
         except Exception as e:
             logger.error(f"Click at coordinates failed: {e}")
@@ -119,7 +97,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             elem_map = get_element_map()
 
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error: Element {element_id} not found.\n\n{summary}", image
 
             elem = elem_map[element_id]
@@ -136,7 +114,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
                 await browser.page.mouse.click(elem["centerX"], elem["centerY"])
                 await browser.page.keyboard.type(text)
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Typed '{text}' into element {element_id}\n\n{summary}", image
 
         except Exception as e:
@@ -157,7 +135,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             await browser.page.keyboard.press(key)
             with contextlib.suppress(Exception):
                 await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Pressed key '{key}'\n\n{summary}", image
         except Exception as e:
             logger.error(f"Press key failed: {e}")
@@ -176,7 +154,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             elem_map = get_element_map()
 
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error: Element {element_id} not found.\n\n{summary}", image
 
             elem = elem_map[element_id]
@@ -184,7 +162,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             await browser.page.mouse.move(elem["centerX"], elem["centerY"])
             await browser.page.wait_for_timeout(300)
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Hovering over element {element_id}\n\n{summary}", image
 
         except Exception as e:
@@ -204,7 +182,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             elem_map = get_element_map()
 
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error: Element {element_id} not found.\n\n{summary}", image
 
             elem = elem_map[element_id]
@@ -212,7 +190,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             await browser.page.evaluate(f"window.scrollBy(0, {elem['y']} - 100)")
             await browser.page.wait_for_timeout(300)
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Scrolled to element {element_id}\n\n{summary}", image
 
         except Exception as e:
@@ -230,7 +208,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             await browser.page.wait_for_timeout(int(seconds * 1000))
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Waited {seconds}s\n\n{summary}", image
         except Exception as e:
             logger.error(f"Wait failed: {e}")
