@@ -51,10 +51,19 @@ We use [uv](https://github.com/astral-sh/uv) for dependency management and packa
    - `feat: add new scrolling tool`
    - `fix: handle localhost connection refused`
    - `docs: update troubleshooting guide`
+5. Sign off every commit with `git commit -s`. This certifies the
+   [Developer Certificate of Origin](https://developercertificate.org/). CI rejects commits
+   without a `Signed-off-by` line. To fix existing commits:
+   `git rebase --signoff origin/main && git push --force-with-lease`.
+6. Your PR title must also follow Conventional Commits (`type(scope)!: description`, where type is
+   one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
+   `revert`). CI checks it.
 
 ## 🧪 Testing
 
 We use `pytest` for testing and `ruff` for code quality. Please ensure all checks pass before submitting a PR.
+
+`make help` lists shortcuts for everything below; `make check` runs lint, type-check and tests.
 
 ```bash
 # Run all tests

@@ -12,7 +12,8 @@ an element's number (`click(7)`) instead of CSS selectors or XPath.
 
 ## Commands
 
-This project uses `uv` for all dependency and task management.
+This project uses `uv` for all dependency and task management. `make help` lists shortcuts
+(`make check` = lint + mypy + pytest).
 
 ```bash
 uv sync                                    # Install runtime + dev deps (add `--extra docs` for mkdocs)
@@ -113,7 +114,8 @@ handling, following the existing per-module test files.
 
 - Python 3.11+. Type hints are required and checked by mypy in **strict** mode
   (`disallow_untyped_defs`, etc.) — annotate fully.
-- Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`). PRs explain the
+- Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`) and are signed off
+  (`git commit -s`, DCO enforced in CI; PR titles are checked too). PRs explain the
   user-visible change, link related issues, include tests and docs when interfaces change, and
   attach screenshots for visual or docs-site changes.
 - Do not commit credentials; use the documented `BROWSER_*` environment variables for local
