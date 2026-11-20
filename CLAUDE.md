@@ -113,7 +113,10 @@ handling, following the existing per-module test files.
 
 - Python 3.11+. Type hints are required and checked by mypy in **strict** mode
   (`disallow_untyped_defs`, etc.) — annotate fully.
-- Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`).
+- Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`). PRs explain the
+  user-visible change, link related issues, include tests and docs when interfaces change, and
+  attach screenshots for visual or docs-site changes.
+- Keep tool docstrings actionable: FastMCP exposes them to clients.
 - Pre-commit hooks (ruff lint + format, bandit, and the standard
   whitespace/YAML/TOML/JSON file checks) run on commit;
   `git commit --no-verify` bypasses them but CI will still enforce them.

@@ -226,4 +226,3 @@ Looking for something to work on? Start with one of these:
 - **[Architecture](concepts/architecture.md)** — how the components fit together
 - **[Set of Marks](concepts/set-of-marks.md)** — the technique this is built on
 - **[CONTRIBUTING.md](https://github.com/adityasasidhar/browsercontrol/blob/main/CONTRIBUTING.md)** — contribution workflow
-- **[CODE_QUALITY.md](https://github.com/adityasasidhar/browsercontrol/blob/main/CODE_QUALITY.md)** — toolchain conventions
