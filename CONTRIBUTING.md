@@ -71,8 +71,6 @@ uv run ruff format .
 uv run pre-commit run --all-files
 ```
 
-See [CODE_QUALITY.md](CODE_QUALITY.md) for more details on code formatting and quality tools.
-
 # Run specific test file
 
 uv run pytest tests/test_navigation.py
