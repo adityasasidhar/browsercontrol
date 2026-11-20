@@ -119,6 +119,33 @@ scroll(direction: str = "down", amount: str = "medium") -> tuple[str, Image]
 
 ---
 
+## `find`
+
+Search the whole page, including content scrolled out of view, and scroll to a match.
+
+```python
+find(query: str, role: str | None = None, nth: int = 1) -> tuple[str, Image]
+```
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `query` | `str` | | Case-insensitive text to look for. Matches visible text and `aria-label`, `placeholder`, `title`, `alt`, and field values. |
+| `role` | `str \| None` | `None` | Only elements with this ARIA role (`button`, `link`, `textbox`, `heading`, …). `query` then filters by name and may be empty. |
+| `nth` | `int` | `1` | Which match to scroll to. |
+
+Searches every frame and open shadow root. The response lists every match with
+the element ID it maps to in the new screenshot (a match inside a button maps to
+the button), or tells you which `nth` scrolls to an off-screen one.
+
+```text
+→ find("Delete account")
+Found 2 match(es) for 'Delete account'; scrolled to match 1.
+  1. button 'Delete account' -> element [14]  <- scrolled here
+  2. h2 'Delete account' -> off-screen; find('Delete account', nth=2) scrolls to it
+```
+
+---
+
 ## See also
 
 - **[Interaction tools](interaction.md)** — click, type, hover

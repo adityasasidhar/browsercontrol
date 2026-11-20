@@ -1,4 +1,3 @@
-import contextlib
 import json
 import logging
 
@@ -82,9 +81,10 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             elem = browser.get_element_map()[element_id]
             text = (elem.get("text") or "no text")[:30]
             logger.info(f"Clicking element {element_id}: {elem['tag']} - {text}")
+            target = await browser.codegen_target(locator)
             await locator.click(timeout=ACTION_TIMEOUT_MS)
-            with contextlib.suppress(Exception):
-                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
+            browser.log_action("click", target)
+            await browser.settle()
 
             image, summary = await get_screenshot_with_summary(browser)
             return (
@@ -113,8 +113,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             logger.info(f"Clicking at ({x}, {y})")
             await browser.page.mouse.click(x, y)
-            with contextlib.suppress(Exception):
-                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await browser.settle()
             image, summary = await get_screenshot_with_summary(browser)
             return f"Clicked at ({x}, {y})\n\n{summary}", image
         except Exception as e:
@@ -145,6 +144,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
                 return await disabled_result(browser, element_id, "typed into")
 
             logger.info(f"Typing into element {element_id}")
+            target = await browser.codegen_target(locator)
             kind = await locator.evaluate(EDIT_KIND_JS)
             if kind == "fill":
                 await locator.fill(text, timeout=ACTION_TIMEOUT_MS)
@@ -167,6 +167,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
                     "check_checkbox, select_option, or upload_file for it instead."
                 )
 
+            browser.log_action("fill", target, text=text)
             image, summary = await get_screenshot_with_summary(browser)
             return f"Typed '{text}' into element {element_id}\n\n{summary}", image
 
@@ -177,17 +178,19 @@ def register_interaction_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     async def press_key(key: str) -> tuple[str, Image]:
         """
-        Press a keyboard key.
+        Press a keyboard key or key combination on the focused element.
 
         Args:
-            key: Key to press (e.g., "Enter", "Tab", "Escape", "ArrowDown", "Backspace")
+            key: Key to press (e.g., "Enter", "Tab", "Escape", "ArrowDown", "Backspace"),
+                 or a combination joined with "+" (e.g., "Control+A", "Shift+Tab",
+                 "ControlOrMeta+C" for copy on any OS, "Control+Shift+T")
         """
         try:
             await browser.ensure_started()
             logger.info(f"Pressing key: {key}")
             await browser.page.keyboard.press(key)
-            with contextlib.suppress(Exception):
-                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await browser.settle()
+            browser.log_action("press", key=key)
             image, summary = await get_screenshot_with_summary(browser)
             return f"Pressed key '{key}'\n\n{summary}", image
         except Exception as e:
@@ -210,7 +213,9 @@ def register_interaction_tools(mcp: FastMCP) -> None:
                 return await element_error_result(browser, e)
 
             logger.info(f"Hovering over element {element_id}")
+            target = await browser.codegen_target(locator)
             await locator.hover(timeout=ACTION_TIMEOUT_MS)
+            browser.log_action("hover", target)
             await browser.page.wait_for_timeout(300)
 
             image, summary = await get_screenshot_with_summary(browser)
@@ -219,6 +224,89 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         except Exception as e:
             logger.error(f"Hover failed: {e}")
             raise RuntimeError(f"Hover failed: {e}")
+
+    async def _click_variant(
+        element_id: int, verb: str, button: str, click_count: int
+    ) -> tuple[str, Image]:
+        await browser.ensure_started()
+        try:
+            locator = await browser.resolve_element(element_id)
+        except ElementError as e:
+            return await element_error_result(browser, e)
+        if await locator.is_disabled():
+            return await disabled_result(browser, element_id, verb)
+
+        logger.info(f"{verb.capitalize()} element {element_id}")
+        target = await browser.codegen_target(locator)
+        await locator.click(
+            button=button,  # type: ignore[arg-type]
+            click_count=click_count,
+            timeout=ACTION_TIMEOUT_MS,
+        )
+        browser.log_action("click", target, button=button, click_count=click_count)
+        await browser.settle()
+        image, summary = await get_screenshot_with_summary(browser)
+        return f"{verb.capitalize()} element {element_id}\n\n{summary}", image
+
+    @mcp.tool()
+    async def double_click(element_id: int) -> tuple[str, Image]:
+        """
+        Double-click an element by its ID number (e.g. to open an item or select a word).
+
+        Args:
+            element_id: The number label shown on the element in the screenshot
+        """
+        try:
+            return await _click_variant(element_id, "double-clicked", "left", 2)
+        except Exception as e:
+            logger.error(f"Double click failed: {e}")
+            raise RuntimeError(f"Double click failed: {e}")
+
+    @mcp.tool()
+    async def right_click(element_id: int) -> tuple[str, Image]:
+        """
+        Right-click an element by its ID number to open its context menu.
+
+        Args:
+            element_id: The number label shown on the element in the screenshot
+        """
+        try:
+            return await _click_variant(element_id, "right-clicked", "right", 1)
+        except Exception as e:
+            logger.error(f"Right click failed: {e}")
+            raise RuntimeError(f"Right click failed: {e}")
+
+    @mcp.tool()
+    async def drag(source_id: int, target_id: int) -> tuple[str, Image]:
+        """
+        Drag one element and drop it onto another (sortable lists, kanban cards, sliders).
+
+        Both IDs come from the same, latest screenshot.
+
+        Args:
+            source_id: The number label of the element to drag
+            target_id: The number label of the element to drop onto
+        """
+        try:
+            await browser.ensure_started()
+            try:
+                source = await browser.resolve_element(source_id)
+                dest = await browser.resolve_element(target_id)
+            except ElementError as e:
+                return await element_error_result(browser, e)
+
+            logger.info(f"Dragging element {source_id} onto element {target_id}")
+            source_desc = await browser.codegen_target(source)
+            dest_desc = await browser.codegen_target(dest)
+            await source.drag_to(dest, timeout=ACTION_TIMEOUT_MS)
+            browser.log_action("drag", source_desc, dest=dest_desc)
+            await browser.settle()
+
+            image, summary = await get_screenshot_with_summary(browser)
+            return f"Dragged element {source_id} onto element {target_id}\n\n{summary}", image
+        except Exception as e:
+            logger.error(f"Drag failed: {e}")
+            raise RuntimeError(f"Drag failed: {e}")
 
     @mcp.tool()
     async def scroll_to_element(element_id: int) -> tuple[str, Image]:
@@ -256,6 +344,7 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             await browser.page.wait_for_timeout(int(seconds * 1000))
+            browser.log_action("wait", ms=int(seconds * 1000))
             image, summary = await get_screenshot_with_summary(browser)
             return f"Waited {seconds}s\n\n{summary}", image
         except Exception as e:

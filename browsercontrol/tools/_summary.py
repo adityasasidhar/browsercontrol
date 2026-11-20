@@ -40,7 +40,13 @@ async def get_screenshot_with_summary(manager: BrowserManager) -> tuple[Image, s
     """
     screenshot_bytes, elem_map = await manager.screenshot_with_som()
     image = Image(data=screenshot_bytes, format="png")
-    return image, format_element_summary(elem_map)
+    summary = format_element_summary(elem_map)
+    # Dialogs and downloads happen outside any tool's view; report them here so
+    # the agent learns about them with its next screenshot.
+    notices = manager.drain_notices()
+    if isinstance(notices, list) and notices:
+        summary = "\n".join(f"Notice: {n}" for n in notices) + "\n\n" + summary
+    return image, summary
 
 
 async def element_error_result(manager: BrowserManager, error: ElementError) -> tuple[str, Image]:

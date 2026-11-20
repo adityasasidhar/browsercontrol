@@ -5,6 +5,7 @@ from pathlib import Path
 from fastmcp import FastMCP
 
 from browsercontrol.browser import browser
+from browsercontrol.codegen import render_test
 from browsercontrol.config import config
 from browsercontrol.elements import strip_marks
 
@@ -22,7 +23,8 @@ def register_recording_tools(mcp: FastMCP) -> None:
     async def start_recording(name: str = "") -> str:
         """
         Start recording the browser session as a Playwright trace.
-        The trace will be saved when stop_recording is called.
+        The trace will be saved when stop_recording is called. Also restarts the
+        action log, so export_test() afterwards covers exactly this recording.
 
         Args:
             name: Optional name for the recording (default: timestamp)
@@ -51,6 +53,7 @@ def register_recording_tools(mcp: FastMCP) -> None:
         await browser.page.context.tracing.start(screenshots=True, snapshots=True, sources=True)
 
         _recording_active = True
+        browser.clear_action_log()
         logger.info(f"Started recording: {_recording_path}")
 
         return f"Recording started: {_recording_path.name}\nCall stop_recording() when done."
@@ -162,5 +165,41 @@ def register_recording_tools(mcp: FastMCP) -> None:
             lines.append("No recordings or snapshots found.")
 
         return "\n".join(lines)
+
+    @mcp.tool()
+    async def export_test(name: str = "", language: str = "python", clear: bool = False) -> str:
+        """
+        Turn the actions taken so far into a replayable Playwright test file.
+
+        Covers navigation, clicks, typing, keys, selects, checkboxes, uploads, drags,
+        scrolls, waits for text, dialog answers, and request mocks, since the
+        session started or since start_recording(). Elements are located by test
+        id, role and name, label, placeholder, text, or CSS, never by SoM IDs.
+        Typed passwords become environment variables. Review before committing.
+
+        Args:
+            name: Test name and file name (default: timestamp)
+            language: "python" (pytest-playwright) or "typescript" (@playwright/test)
+            clear: Empty the action log afterwards, to start the next test fresh
+        """
+        try:
+            await browser.ensure_started()
+            actions = browser.get_action_log()
+            stem = Path(name).name or datetime.now().strftime("session_%Y%m%d_%H%M%S")
+            code = render_test(actions, stem, language)
+
+            out_dir = config.generated_tests_dir
+            out_dir.mkdir(parents=True, exist_ok=True)
+            slug = "".join(c if c.isalnum() else "_" for c in stem.lower()).strip("_")
+            filename = f"test_{slug}.py" if language == "python" else f"{slug}.spec.ts"
+            path = out_dir / filename
+            path.write_text(code, encoding="utf-8")
+            if clear:
+                browser.clear_action_log()
+            run = f"pytest {path}" if language == "python" else f"npx playwright test {path}"
+            return f"Wrote {len(actions)} action(s) to {path}\nRun with: {run}\n\n{code}"
+        except Exception as e:
+            logger.error(f"Export test failed: {e}")
+            raise RuntimeError(f"Export test failed: {e}")
 
     logger.debug("Registered recording tools")

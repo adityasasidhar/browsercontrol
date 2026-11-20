@@ -65,6 +65,22 @@ Requests are paired by request identity, not URL string. You won't see "phantom 
 
 ---
 
+Each line starts with a `#id`. Pass it to
+[`get_request_details`](#get_request_details) for headers and bodies.
+
+---
+
+## `get_request_details`
+
+```python
+get_request_details(request_id: int, include_body: bool = True) -> str
+```
+
+Full request and response headers, POST data, and the response body. See
+**[Network control](network.md)** for mocking, waiting, and HAR export.
+
+---
+
 ## `get_page_errors`
 
 Get uncaught JavaScript errors with stack traces.

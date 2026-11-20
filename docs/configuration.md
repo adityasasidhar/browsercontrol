@@ -15,6 +15,13 @@ Set environment variables in your MCP client or shell. Restart the server after 
 | [`BROWSER_EXECUTABLE_PATH`](#browser_executable_path) | — | Chromium binary to drive, for platforms Playwright ships no build for. |
 | [`BROWSER_RECORDINGS_DIR`](#browser_recordings_dir) | `~/.browsercontrol/recordings` | Where to save Playwright traces. |
 | [`BROWSER_SNAPSHOTS_DIR`](#browser_snapshots_dir) | `~/.browsercontrol/snapshots` | Where to save PNG + HTML snapshots. |
+| [`BROWSER_DOWNLOADS_DIR`](#browser_downloads_dir) | `~/.browsercontrol/downloads` | Where downloads are saved. |
+| [`BROWSER_GENERATED_TESTS_DIR`](#browser_generated_tests_dir) | `~/.browsercontrol/generated_tests` | Where `export_test` writes tests. |
+| [`BROWSER_CDP_URL`](#browser_cdp_url) | — | Attach to a running Chrome instead of launching one. |
+| [`BROWSER_SETTLE_TIMEOUT`](#browser_settle_timeout) | `3000` | Max wait (ms) after each action for the page to settle. |
+| [`BROWSER_TRANSPORT`](#browser_transport) | `stdio` | `stdio`, `http`, or `sse`. |
+| [`BROWSER_HOST`](#browser_transport) / [`BROWSER_PORT`](#browser_transport) | `127.0.0.1` / `8000` | HTTP bind address. |
+| [`BROWSER_ISOLATE_CLIENTS`](#browser_isolate_clients) | `false` | One isolated session per MCP client. |
 | [`LOG_LEVEL`](#log_level) | `INFO` | `DEBUG` / `INFO` / `WARNING` / `ERROR`. |
 
 ## Setting environment variables
@@ -172,6 +179,51 @@ profile, in which case they follow it.
 
 Where to save PNG + HTML + URL snapshots. Defaults to a `snapshots` directory
 beside `BROWSER_USER_DATA_DIR`, following the profile the same way.
+
+### `BROWSER_DOWNLOADS_DIR`
+
+Where downloaded files are saved. Defaults to a `downloads` directory beside
+`BROWSER_USER_DATA_DIR`. Existing files are never overwritten.
+
+### `BROWSER_GENERATED_TESTS_DIR`
+
+Where [`export_test`](tools/recording.md#export_test) writes Playwright tests.
+Defaults to a `generated_tests` directory beside `BROWSER_USER_DATA_DIR`.
+
+### `BROWSER_CDP_URL`
+
+Attach to an already running Chrome over the DevTools Protocol at startup, so the
+agent uses that browser's logged-in sessions. The profile, extension, and
+executable settings are ignored in this mode. See
+[Sessions](tools/sessions.md#connect_to_chrome) for how to start Chrome.
+
+```bash
+BROWSER_CDP_URL=http://localhost:9222 browsercontrol
+```
+
+### `BROWSER_SETTLE_TIMEOUT`
+
+After every action BrowserControl waits for DOMContentLoaded, in-flight
+requests, and DOM mutations to stop, up to this many milliseconds. Lower it for
+speed on static sites; raise it for slow single-page apps.
+
+### `BROWSER_TRANSPORT`
+
+`stdio` (default) for clients that launch the server themselves; `http` serves
+Streamable HTTP at `http://BROWSER_HOST:BROWSER_PORT/mcp` so several clients
+can share one browser; `sse` is the legacy HTTP transport. The same settings are
+available as `--transport`, `--host`, and `--port` flags.
+
+!!! warning "No authentication"
+    Anyone who can reach the port controls the browser and its logged-in
+    sessions. The default host is `127.0.0.1`; the server logs a warning if you
+    bind anywhere else.
+
+### `BROWSER_ISOLATE_CLIENTS`
+
+With `true` (or `--isolate-clients`), every MCP client that connects gets its
+own isolated browser session on its first tool call, so agents sharing an HTTP
+server never see each other's cookies, tabs, or captured traffic.
 
 ### `LOG_LEVEL`
 

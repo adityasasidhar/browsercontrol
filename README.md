@@ -55,6 +55,11 @@ Reload your client and try asking, “Open Hacker News with BrowserControl and
 tell me the top story.” On first launch, BrowserControl reuses a compatible
 local browser or downloads Chromium.
 
+To share one browser between several clients, serve it over Streamable HTTP
+instead: `uvx browsercontrol --transport http` listens on
+`http://127.0.0.1:8000/mcp`, and `--isolate-clients` gives each client its own
+browser session.
+
 [Client setup for Cursor, VS Code, and more](https://adityasasidhar.github.io/browsercontrol/getting-started/connect-your-ai/) ·
 [Install with pip or from source](https://adityasasidhar.github.io/browsercontrol/getting-started/installation/)
 
@@ -66,7 +71,8 @@ calls `click(5)`.
 
 **Read the newest element map before each action that uses an ID.** Every
 annotated screenshot generates a fresh map. If a control is off-screen, scroll
-to it and read the returned map.
+to it, or let `find("its text")` search the whole page and scroll there, then
+read the returned map.
 
 ![Recorded BrowserControl session showing numbered elements as the agent navigates, searches, and fills a form](https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif)
 
@@ -74,11 +80,14 @@ to it and read the returned map.
 
 | Task | Tools |
 | --- | --- |
-| [Navigate and interact](https://adityasasidhar.github.io/browsercontrol/tools/interaction/) | Open pages, scroll, click, type, and press keys. |
+| [Navigate and interact](https://adityasasidhar.github.io/browsercontrol/tools/interaction/) | Open pages, find content anywhere on the page, click, double-click, drag, type, and run several steps in one call. |
+| [Use your own browser](https://adityasasidhar.github.io/browsercontrol/tools/sessions/) | Attach to your running Chrome and its signed-in sites, or open isolated sessions for a second user. |
 | [Fill forms](https://adityasasidhar.github.io/browsercontrol/tools/forms/) | Select options, check boxes, and upload local files. |
 | [Read pages](https://adityasasidhar.github.io/browsercontrol/tools/content/) | Extract Markdown or text and take screenshots. |
-| [Debug a web app](https://adityasasidhar.github.io/browsercontrol/guides/debug-web-app/) | Inspect console logs, failed requests, and page errors. |
-| [Record a session](https://adityasasidhar.github.io/browsercontrol/guides/record-tests/) | Save Playwright traces and page snapshots. |
+| [Extract data](https://adityasasidhar.github.io/browsercontrol/tools/extraction/) | Get tables, links, or fields you describe as JSON. |
+| [Test real conditions](https://adityasasidhar.github.io/browsercontrol/tools/network/) | Mock or block requests, throttle the network, and emulate devices, locations, timezones, and dark mode. |
+| [Debug a web app](https://adityasasidhar.github.io/browsercontrol/guides/debug-web-app/) | Inspect console logs, request headers and bodies, and page errors, and export HAR files. |
+| [Record a session](https://adityasasidhar.github.io/browsercontrol/tools/recording/) | Save Playwright traces and snapshots, and export the session as a Playwright test. |
 
 [Full tool reference](https://adityasasidhar.github.io/browsercontrol/tools/) ·
 [Configuration](https://adityasasidhar.github.io/browsercontrol/configuration/) ·

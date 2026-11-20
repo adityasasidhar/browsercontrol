@@ -213,7 +213,10 @@ FRAME_HIT_JS = """
 """
 
 # Matches the tag attribute as page.content() serializes it.
-_ATTR_RE = re.compile(r"\s" + ATTR + r'="[^"]*"')
+# find() tags its matches with this attribute; strip it alongside the SoM tags.
+FIND_ATTR = "data-bc-find"
+
+_ATTR_RE = re.compile(r"\s(?:" + ATTR + "|" + FIND_ATTR + r')="[^"]*"')
 
 
 def strip_marks(html: str) -> str:

@@ -134,6 +134,11 @@ nav:
       - Content: tools/content.md
       - DevTools: tools/devtools.md
       - Recording: tools/recording.md
+      - Waiting & dialogs: tools/waiting.md
+      - Extraction: tools/extraction.md
+      - Network control: tools/network.md
+      - Emulation: tools/emulation.md
+      - Sessions: tools/sessions.md
   - Guides:
       - guides/index.md
       - Web research: guides/web-research.md

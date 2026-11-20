@@ -1,5 +1,8 @@
+import asyncio
+import contextlib
 import logging
 import time
+from contextvars import ContextVar
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -13,12 +16,12 @@ from playwright.async_api import (
     Locator,
     Page,
     Playwright,
-    Request,
     async_playwright,
 )
 
 from browsercontrol.config import config
 from browsercontrol.elements import ElementMap, collect_elements, locate
+from browsercontrol.session import Session, attach_page_listeners, network_quiet
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +55,30 @@ def _get_label_font() -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return _cached_font
 
 
+DEFAULT_SESSION = "default"
+
+# Which MCP client the current tool call belongs to. Set per call by the server
+# middleware; each client is bound to one session (the default one unless it
+# created or switched to another).
+current_client: ContextVar[str] = ContextVar("browsercontrol_client", default="")
+
+# Resolves after the DOM has had no mutations for `quiet` ms, or after `max` ms.
+DOM_QUIET_JS = """
+({quiet, max}) => new Promise(resolve => {
+    let timer;
+    const done = () => { observer.disconnect(); resolve(true); };
+    const observer = new MutationObserver(() => {
+        clearTimeout(timer);
+        timer = setTimeout(done, quiet);
+    });
+    observer.observe(document, {subtree: true, childList: true, attributes: true,
+                                characterData: true});
+    timer = setTimeout(done, quiet);
+    setTimeout(done, max);
+})
+"""
+
+
 def chrome_profile_dir() -> Path:
     """Profile directory used when falling back to the installed Google Chrome."""
     base = config.user_data_dir
@@ -59,31 +86,196 @@ def chrome_profile_dir() -> Path:
 
 
 class BrowserManager:
-    """Manages the browser lifecycle and provides access to pages."""
+    """Manages the browser lifecycle, its sessions, and access to pages."""
 
     def __init__(self) -> None:
         self._playwright: Playwright | None = None
+        # Set when attached to a running Chrome over CDP; that browser is the
+        # user's, so stopping only disconnects from it.
         self._browser: Browser | None = None
-        self._context: BrowserContext | None = None
-        self._page: Page | None = None
+        self._cdp_url: str | None = config.cdp_url
         self._started = False
 
-        # Developer tools storage
-        self._console_logs: list[dict[str, Any]] = []
-        self._network_requests: list[dict[str, Any]] = []
-        self._page_errors: list[dict[str, Any]] = []
-        # Keyed by Request object identity to avoid URL-collision mis-pairings
-        self._request_map: dict[Any, dict[str, Any]] = {}
+        self._sessions: dict[str, Session] = {DEFAULT_SESSION: Session(DEFAULT_SESSION)}
+        # MCP client key -> session name. Unbound clients use the default session.
+        self._bindings: dict[str, str] = {}
+        self._tasks: set[asyncio.Task[Any]] = set()
 
         # Set of Marks state: one element map per tab, and a counter that makes
         # each screenshot's data-bc-id values unique.
         self._element_maps: dict[Page, ElementMap] = {}
         self._som_generation = 0
 
+    # ----- sessions -------------------------------------------------------
+
+    @property
+    def session(self) -> Session:
+        """The session the current MCP client is bound to."""
+        name = self._bindings.get(current_client.get(), DEFAULT_SESSION)
+        return self._sessions.get(name) or self._sessions[DEFAULT_SESSION]
+
+    @property
+    def _context(self) -> BrowserContext | None:
+        return self.session.context
+
+    @_context.setter
+    def _context(self, value: BrowserContext | None) -> None:
+        self.session.context = value
+
+    @property
+    def _page(self) -> Page | None:
+        return self.session.page
+
+    @_page.setter
+    def _page(self, value: Page | None) -> None:
+        self.session.page = value
+
+    @property
+    def _console_logs(self) -> list[dict[str, Any]]:
+        return self.session.console_logs
+
+    @_console_logs.setter
+    def _console_logs(self, value: list[dict[str, Any]]) -> None:
+        self.session.console_logs = value
+
+    @property
+    def _network_requests(self) -> list[dict[str, Any]]:
+        return self.session.network_requests
+
+    @_network_requests.setter
+    def _network_requests(self, value: list[dict[str, Any]]) -> None:
+        self.session.network_requests = value
+
+    @property
+    def _page_errors(self) -> list[dict[str, Any]]:
+        return self.session.page_errors
+
+    @_page_errors.setter
+    def _page_errors(self, value: list[dict[str, Any]]) -> None:
+        self.session.page_errors = value
+
+    @property
+    def _request_map(self) -> dict[Any, dict[str, Any]]:
+        return self.session.request_map
+
+    @property
+    def cdp_url(self) -> str | None:
+        """The CDP endpoint of the attached Chrome, or None when the browser is launched here."""
+        return self._cdp_url if self._browser is not None else None
+
+    def _on_new_page(self, session: Session, page: Page) -> None:
+        attach_page_listeners(session, page, config.downloads_dir)
+        if session.emulation:
+            from browsercontrol.emulation import apply_emulation
+
+            task = asyncio.ensure_future(apply_emulation(page, session.emulation))
+            self._tasks.add(task)
+            task.add_done_callback(self._tasks.discard)
+
+    def _setup_page_listeners(self, page: Page) -> None:
+        """Attach capture listeners to a page of the session that owns it."""
+        owner = next(
+            (
+                s
+                for s in self._sessions.values()
+                if s.context is not None and s.context is page.context
+            ),
+            self.session,
+        )
+        self._on_new_page(owner, page)
+
+    def _wire_context(self, session: Session, context: BrowserContext) -> None:
+        session.context = context
+        context.on("page", lambda page: self._on_new_page(session, page))
+
+    async def create_session(self, name: str, device: str | None = None) -> Session:
+        """Open an isolated context (no cookies or storage shared) and bind the caller to it."""
+        if not name or name in self._sessions:
+            raise ValueError(f"Session name {name!r} is empty or already in use")
+        await self.ensure_started()
+        base = self._sessions[DEFAULT_SESSION].context
+        owner = self._browser or (base.browser if base is not None else None)
+        if owner is None:
+            raise RuntimeError("This browser cannot open isolated contexts")
+
+        kwargs: dict[str, Any] = {"accept_downloads": True}
+        if device:
+            kwargs.update(self.device_descriptor(device))
+        else:
+            kwargs["viewport"] = {"width": config.viewport_width, "height": config.viewport_height}
+        context = await owner.new_context(**kwargs)
+        session = Session(name, isolated=True)
+        self._wire_context(session, context)
+        session.page = await context.new_page()
+        self._sessions[name] = session
+        self.bind(name)
+        return session
+
+    def bind(self, name: str) -> None:
+        """Bind the calling MCP client to a session."""
+        if name not in self._sessions:
+            raise ValueError(f"No session named {name!r}. Sessions: {', '.join(self._sessions)}")
+        self._bindings[current_client.get()] = name
+
+    async def close_session(self, name: str) -> None:
+        """Close an isolated session; clients bound to it fall back to the default session."""
+        if name == DEFAULT_SESSION:
+            raise ValueError("The default session cannot be closed")
+        session = self._sessions.pop(name, None)
+        if session is None:
+            raise ValueError(f"No session named {name!r}")
+        self._bindings = {k: v for k, v in self._bindings.items() if v != name}
+        if session.context is not None:
+            for page in session.context.pages:
+                self._element_maps.pop(page, None)
+            with contextlib.suppress(Exception):
+                await session.context.close()
+
+    def list_sessions(self) -> list[dict[str, Any]]:
+        current = self.session.name
+        return [
+            {
+                "name": s.name,
+                "isolated": s.isolated,
+                "tabs": len(s.context.pages) if s.context is not None else 0,
+                "url": s.page.url if s.page is not None and not s.page.is_closed() else "",
+                "current": s.name == current,
+            }
+            for s in self._sessions.values()
+        ]
+
+    async def ensure_client_session(self, client: str) -> None:
+        """With BROWSER_ISOLATE_CLIENTS, give each new MCP client its own isolated session."""
+        if not config.isolate_clients or not client or client in self._bindings:
+            return
+        token = current_client.set(client)
+        try:
+            name = f"client-{len(self._sessions)}"
+            while name in self._sessions:
+                name += "_"
+            await self.create_session(name)
+        finally:
+            current_client.reset(token)
+
+    def devices(self) -> dict[str, Any]:
+        """Playwright's device descriptors, by name."""
+        return dict(self._playwright.devices) if self._playwright is not None else {}
+
+    def device_descriptor(self, name: str) -> dict[str, Any]:
+        devices = self.devices()
+        match = next((k for k in devices if k.lower() == name.lower()), None)
+        if match is None:
+            raise ValueError(f"Unknown device {name!r}. Try list_devices().")
+        descriptor = dict(devices[match])
+        descriptor.pop("default_browser_type", None)
+        return descriptor
+
+    # ----- lifecycle ------------------------------------------------------
+
     @property
     def is_started(self) -> bool:
         """Check if browser is started."""
-        return self._started and self._context is not None
+        return self._started and self._sessions[DEFAULT_SESSION].context is not None
 
     async def _install_chromium(self) -> None:
         """Install Chromium browser using Playwright."""
@@ -120,85 +312,6 @@ class BrowserManager:
             logger.error(f"Failed to install Chromium: {e}")
             logger.info("Please run manually: playwright install chromium")
 
-    def _setup_page_listeners(self, page: Page) -> None:
-        """Set up event listeners for console, network, and errors."""
-
-        # Console messages
-        def on_console(msg: Any) -> None:
-            self._console_logs.append(
-                {
-                    "level": msg.type,
-                    "text": msg.text,
-                    "location": f"{msg.location.get('url', '')}:{msg.location.get('lineNumber', '')}"
-                    if msg.location
-                    else "",
-                    "timestamp": time.time(),
-                }
-            )
-            # Keep only last 200 logs
-            if len(self._console_logs) > 200:
-                self._console_logs = self._console_logs[-200:]
-
-        # Page errors (uncaught exceptions)
-        def on_page_error(error: Any) -> None:
-            self._page_errors.append(
-                {
-                    "message": str(error),
-                    "stack": getattr(error, "stack", ""),
-                    "timestamp": time.time(),
-                }
-            )
-            if len(self._page_errors) > 100:
-                self._page_errors = self._page_errors[-100:]
-
-        # Network request started — keyed by Request object to avoid URL collisions
-        def on_request(request: Request) -> None:
-            self._request_map[request] = {
-                "method": request.method,
-                "url": request.url,
-                "start_time": time.time(),
-                "status": "pending",
-                "resource_type": request.resource_type,
-            }
-
-        # Network request completed
-        def on_response(response: Any) -> None:
-            req_obj = response.request
-            if req_obj in self._request_map:
-                req = self._request_map[req_obj]
-                req["status"] = response.status
-                req["duration"] = int((time.time() - req["start_time"]) * 1000)
-                self._network_requests.append(req)
-                del self._request_map[req_obj]
-            else:
-                self._network_requests.append(
-                    {
-                        "method": response.request.method,
-                        "url": response.url,
-                        "status": response.status,
-                        "resource_type": response.request.resource_type,
-                    }
-                )
-
-            # Keep only last 100 requests
-            if len(self._network_requests) > 100:
-                self._network_requests = self._network_requests[-100:]
-
-        # Network request failed
-        def on_request_failed(request: Request) -> None:
-            if request in self._request_map:
-                req = self._request_map[request]
-                req["status"] = "failed"
-                req["duration"] = int((time.time() - req["start_time"]) * 1000)
-                self._network_requests.append(req)
-                del self._request_map[request]
-
-        page.on("console", on_console)
-        page.on("pageerror", on_page_error)
-        page.on("request", on_request)
-        page.on("response", on_response)
-        page.on("requestfailed", on_request_failed)
-
     async def _launch_context(
         self, chromium: BrowserType, launch_kwargs: dict[str, Any]
     ) -> BrowserContext:
@@ -234,17 +347,59 @@ class BrowserManager:
         return await chromium.launch_persistent_context(**launch_kwargs)
 
     async def start(self) -> None:
-        """Start the browser with persistent context."""
+        """Start the browser: attach over CDP when configured, else launch the profile."""
         if self._started:
             logger.warning("Browser already started")
             return
 
+        self._playwright = await async_playwright().start()
+        try:
+            if self._cdp_url:
+                context = await self._attach_over_cdp(self._cdp_url)
+            else:
+                context = await self._launch_profile()
+
+            default = self._sessions[DEFAULT_SESSION]
+            self._wire_context(default, context)
+
+            # Set up event listeners for the existing page(s)
+            for page in context.pages:
+                self._on_new_page(default, page)
+
+            # Attached to someone's Chrome: work in a tab of our own rather than
+            # taking over whichever tab they had in front.
+            if context.pages and not self._cdp_url:
+                default.page = context.pages[0]
+            else:
+                default.page = await context.new_page()
+
+            self._started = True
+            logger.info("Browser started successfully")
+
+        except Exception as e:
+            logger.error(f"Failed to start browser: {e}")
+            await self.stop()
+            raise
+
+    async def _attach_over_cdp(self, cdp_url: str) -> BrowserContext:
+        """Connect to a running Chrome and use its default (logged-in) context."""
+        if self._playwright is None:
+            raise RuntimeError("Playwright is not running")
+        logger.info(f"Attaching to Chrome over CDP at {cdp_url}")
+        self._browser = await self._playwright.chromium.connect_over_cdp(
+            cdp_url, timeout=config.timeout_ms
+        )
+        if self._browser.contexts:
+            return self._browser.contexts[0]
+        return await self._browser.new_context()
+
+    async def _launch_profile(self) -> BrowserContext:
+        """Launch Chromium against the persistent profile directory."""
+        if self._playwright is None:
+            raise RuntimeError("Playwright is not running")
         config.user_data_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Starting browser with user data dir: {config.user_data_dir}")
 
-        self._playwright = await async_playwright().start()
-
-        # Build launch args
         # Add proxy bypass for localhost to fix connection refused errors
         args = [
             "--no-first-run",
@@ -266,46 +421,36 @@ class BrowserManager:
             "headless": config.headless,
             "args": args,
             "viewport": {"width": config.viewport_width, "height": config.viewport_height},
+            "accept_downloads": True,
         }
         if config.executable_path:
             launch_kwargs["executable_path"] = str(config.executable_path)
             logger.info(f"Using Chromium executable: {config.executable_path}")
 
-        try:
-            self._context = await self._launch_context(self._playwright.chromium, launch_kwargs)
-
-            # Auto-attach listeners to new pages (including popups)
-            self._context.on("page", self._setup_page_listeners)
-
-            # Get or create initial page
-            if self._context.pages:
-                self._page = self._context.pages[0]
-            else:
-                self._page = await self._context.new_page()
-
-            # Set up event listeners for the initial page(s)
-            for page in self._context.pages:
-                self._setup_page_listeners(page)
-
-            self._started = True
-            logger.info("Browser started successfully")
-
-        except Exception as e:
-            logger.error(f"Failed to start browser: {e}")
-            await self.stop()
-            raise
+        return await self._launch_context(self._playwright.chromium, launch_kwargs)
 
     async def stop(self) -> None:
-        """Stop the browser."""
+        """Stop the browser. An attached Chrome is only disconnected from, never closed."""
         logger.info("Stopping browser")
         self._started = False
 
-        if self._context:
+        for session in self._sessions.values():
+            if session.context is None:
+                continue
+            # The default context of an attached Chrome is the user's own browser.
+            if self._browser is not None and not session.isolated:
+                continue
             try:
-                await self._context.close()
+                await session.context.close()
             except Exception as e:
                 logger.warning(f"Error closing context: {e}")
-            self._context = None
+
+        if self._browser is not None:
+            try:
+                await self._browser.close()
+            except Exception as e:
+                logger.warning(f"Error disconnecting from Chrome: {e}")
+            self._browser = None
 
         if self._playwright:
             try:
@@ -314,20 +459,21 @@ class BrowserManager:
                 logger.warning(f"Error stopping playwright: {e}")
             self._playwright = None
 
-        self._page = None
+        self._sessions = {DEFAULT_SESSION: Session(DEFAULT_SESSION)}
+        self._bindings.clear()
         self._element_maps.clear()
-
-        # Clear dev tools data
-        self._console_logs.clear()
-        self._network_requests.clear()
-        self._page_errors.clear()
-        self._request_map.clear()
 
     async def ensure_started(self) -> None:
         """Ensure browser is started, restart if needed."""
         if not self.is_started:
             logger.info("Browser not started, starting now")
             await self.start()
+
+    async def connect_over_cdp(self, cdp_url: str | None) -> None:
+        """Restart attached to the Chrome at ``cdp_url``, or launch our own when None."""
+        await self.stop()
+        self._cdp_url = cdp_url
+        await self.start()
 
     @property
     def page(self) -> Page:
@@ -397,7 +543,8 @@ class BrowserManager:
             tabs.append({"index": i, "title": title, "url": url, "active": is_active})
         return tabs
 
-    # Developer tools methods
+    # ----- captured data --------------------------------------------------
+
     def get_console_logs(self) -> list[dict[str, Any]]:
         """Get captured console logs."""
         return self._console_logs.copy()
@@ -422,6 +569,73 @@ class BrowserManager:
     def clear_page_errors(self) -> None:
         """Clear captured page errors."""
         self._page_errors.clear()
+
+    def drain_notices(self) -> list[str]:
+        """Dialog and download messages not yet shown to the agent."""
+        return self.session.drain_notices()
+
+    def mark_call_started(self) -> None:
+        """Record the start of a tool call, so waits can see responses from the previous one."""
+        session = self.session
+        session.previous_call_started = session.call_started
+        session.call_started = time.time()
+
+    # ----- action log (for test generation) ------------------------------
+
+    async def codegen_target(self, locator: Locator) -> dict[str, Any] | None:
+        """Describe an element by stable locators for generated tests; None if that fails."""
+        from browsercontrol.codegen import describe_target
+
+        try:
+            return await describe_target(locator)
+        except Exception as e:
+            logger.debug(f"Could not describe element for codegen: {e}")
+            return None
+
+    def log_action(self, kind: str, target: dict[str, Any] | None = None, **data: Any) -> None:
+        """Append a successful action to the session's action log."""
+        if target is not None and target.get("password"):
+            # Never keep a typed password; the generated test reads it from the environment.
+            data.pop("text", None)
+        actions = self.session.actions
+        actions.append({"action": kind, "target": target, **data})
+        del actions[:-500]
+
+    def get_action_log(self) -> list[dict[str, Any]]:
+        return list(self.session.actions)
+
+    def clear_action_log(self) -> None:
+        self.session.actions.clear()
+
+    # ----- waiting --------------------------------------------------------
+
+    async def settle(self, timeout_ms: int | None = None) -> None:
+        """Wait for the page to settle after an action, bounded by the settle timeout.
+
+        Waits for DOMContentLoaded, then for in-flight requests to finish, then
+        for the DOM to stop changing, so single-page apps that render after
+        their data arrives are captured complete instead of half drawn.
+        """
+        budget_ms = timeout_ms if timeout_ms is not None else config.settle_timeout_ms
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + budget_ms / 1000
+        page = self.page
+        with contextlib.suppress(Exception):
+            await page.wait_for_load_state("domcontentloaded", timeout=budget_ms)
+        await network_quiet(self.session, deadline)
+        remaining = int((deadline - loop.time()) * 1000)
+        if remaining > 50:
+            with contextlib.suppress(Exception):
+                await page.evaluate(DOM_QUIET_JS, {"quiet": 200, "max": min(remaining, 1000)})
+
+    async def wait_for_network_idle(self, timeout_ms: int, quiet_ms: int = 500) -> bool:
+        """Wait until no request has been in flight for ``quiet_ms``. False on timeout."""
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + timeout_ms / 1000
+        await network_quiet(self.session, deadline, quiet_s=quiet_ms / 1000)
+        return loop.time() < deadline
+
+    # ----- Set of Marks ---------------------------------------------------
 
     def get_element_map(self) -> ElementMap:
         """Return the element map from the active tab's most recent screenshot."""
