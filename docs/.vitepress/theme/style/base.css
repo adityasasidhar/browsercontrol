@@ -1,0 +1,133 @@
+/* ---------- Global polish ---------- */
+html {
+  scroll-padding-top: calc(var(--vp-nav-height) + 24px);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--bc-mark) 28%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--bc-mark);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+body {
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+/* ---------- Reveal on scroll (v-reveal) ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  filter: blur(4px);
+  transition:
+    opacity 0.7s var(--bc-ease) var(--reveal-delay, 0ms),
+    transform 0.7s var(--bc-ease) var(--reveal-delay, 0ms),
+    filter 0.7s var(--bc-ease) var(--reveal-delay, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* ---------- Navbar ---------- */
+.VPNavBar,
+.VPNavBar.has-sidebar .content-body,
+.VPNavBar:not(.home.top) .content-body {
+  background: color-mix(in srgb, var(--vp-c-bg) 78%, transparent) !important;
+  backdrop-filter: saturate(1.4) blur(12px);
+}
+.VPNavBar.home.top .content-body {
+  background: transparent !important;
+  backdrop-filter: none;
+}
+.VPNavBar .divider-line {
+  background: var(--bc-line) !important;
+}
+.VPNavBarTitle .title {
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  gap: 2px;
+}
+.VPNavBarTitle .logo {
+  height: 28px;
+  border-radius: 6px;
+}
+.VPNavBarMenuLink {
+  font-weight: 500;
+}
+.VPNavBarSearch .DocSearch-Button {
+  border: 1px solid var(--bc-line);
+  border-radius: 10px;
+  background: var(--bc-surface);
+  transition: border-color 0.2s;
+}
+.VPNavBarSearch .DocSearch-Button:hover {
+  border-color: var(--bc-mark);
+}
+
+/* Theme switch: the circular reveal handles the transition */
+.VPSwitchAppearance {
+  width: 22px !important;
+}
+.VPSwitchAppearance .check {
+  transform: none !important;
+}
+
+/* ---------- Buttons ---------- */
+.VPButton {
+  border-radius: 10px !important;
+  font-weight: 550 !important;
+  transition:
+    transform 0.2s var(--bc-ease),
+    background-color 0.2s,
+    border-color 0.2s !important;
+}
+.VPButton:active {
+  transform: scale(0.98);
+}
+
+/* ---------- Footer ---------- */
+.VPFooter {
+  border-top: 1px solid var(--bc-line) !important;
+}
+.VPFooter a {
+  color: var(--vp-c-text-2);
+  text-decoration: underline;
+  text-decoration-color: var(--bc-line-strong);
+  text-underline-offset: 3px;
+}
+.VPFooter a:hover {
+  color: var(--bc-mark);
+}
+
+/* ---------- Shared keyframes ---------- */
+@keyframes bc-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes bc-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--bc-green) 50%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

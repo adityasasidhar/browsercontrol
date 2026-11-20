@@ -16,7 +16,7 @@ This project uses `uv` for all dependency and task management. `make help` lists
 (`make check` = lint + mypy + pytest).
 
 ```bash
-uv sync                                    # Install runtime + dev deps (add `--extra docs` for mkdocs)
+uv sync                                    # Install runtime + dev deps
 uv run playwright install chromium         # One-time: install the browser engine
 
 uv run pytest                              # Run all tests
@@ -30,7 +30,8 @@ uv run ruff format .                       # Format (line length 100, double quo
 uv run mypy browsercontrol/                # Type-check (strict mode)
 uv run bandit -c pyproject.toml -r . --exclude ./tests,./.venv   # Security scan
 uv run pre-commit run --all-files          # Run every hook (mirrors the CI lint job)
-uv run --extra docs mkdocs build --strict  # Build the docs site in docs/ (gated in docs.yml)
+uv run python scripts/gen_tools_json.py    # Regenerate docs/public/tools.json after changing a tool
+(cd docs && npm ci && npm run build)       # Build the VitePress docs site (gated in docs.yml)
 
 uv run fastmcp dev browsercontrol/server.py   # Run the server in dev mode with inspector
 browsercontrol                                # Run the installed server (also: python -m browsercontrol)
@@ -194,6 +195,9 @@ handling, following the existing per-module test files.
   attach screenshots for visual or docs-site changes.
 - Do not commit credentials; use the documented `BROWSER_*` environment variables for local
   configuration.
+- The docs site is VitePress (`docs/`, theme in `docs/.vitepress/`). Adding or changing a
+  tool means updating `docs/reference/<category>.md` (heading `` ## `name` {#name} `` plus every
+  parameter) and running `scripts/gen_tools_json.py`; `tests/test_docs.py` fails otherwise.
 - Tools must build results via the shared `get_screenshot_with_summary` helper;
   `tests/test_element_summary.py` fails if a tool module defines its own copy.
 - Keep tool docstrings actionable: FastMCP exposes them to clients.

@@ -1,0 +1,20 @@
+{
+  "name": "browsercontrol-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview",
+    "check:links": "node scripts/check-links.mjs"
+  },
+  "devDependencies": {
+    "@catppuccin/vitepress": "^0.1.4",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "medium-zoom": "^1.1.2",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-group-icons": "^1.8.2",
+    "vitepress-plugin-llms": "^1.15.0"
+  }
+}

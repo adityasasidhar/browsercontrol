@@ -1,0 +1,359 @@
+/* ---------- Page entrance ---------- */
+@keyframes bc-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.vp-doc > div {
+  animation: bc-page-in 0.45s var(--bc-ease);
+}
+
+/* ---------- Typography ---------- */
+.vp-doc {
+  font-size: 16px;
+  line-height: 1.75;
+}
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3 {
+  color: var(--bc-ink);
+}
+.vp-doc h1 {
+  font-size: clamp(2rem, 1.4rem + 2vw, 2.6rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  font-weight: 650;
+  margin-bottom: 0.4em;
+}
+.vp-doc h2 {
+  font-size: 1.5rem;
+  letter-spacing: -0.025em;
+  font-weight: 620;
+  border-top: 1px solid var(--bc-line);
+  margin-top: 56px;
+  padding-top: 32px;
+}
+.vp-doc h3 {
+  font-size: 1.15rem;
+  letter-spacing: -0.015em;
+  font-weight: 620;
+  margin-top: 36px;
+}
+.vp-doc h1 + p,
+.vp-doc .lead {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  color: var(--vp-c-text-2);
+}
+.vp-doc p,
+.vp-doc li {
+  color: color-mix(in srgb, var(--vp-c-text-1) 92%, var(--vp-c-bg));
+}
+.vp-doc strong {
+  font-weight: 620;
+  color: var(--vp-c-text-1);
+}
+
+/* Links */
+.vp-doc a {
+  font-weight: 500;
+  color: var(--vp-c-brand-1);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--vp-c-brand-1) 35%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s;
+}
+.vp-doc a:hover {
+  text-decoration-color: var(--vp-c-brand-1);
+}
+.vp-doc a > code {
+  color: inherit;
+}
+
+/* Header anchors */
+.vp-doc .header-anchor {
+  font-weight: 400;
+  color: var(--vp-c-text-3);
+}
+
+/* ---------- Inline code ---------- */
+.vp-doc :not(pre) > code {
+  font-size: 0.86em;
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  border: 1px solid var(--bc-line);
+  background: var(--bc-surface);
+  color: var(--vp-c-text-1);
+}
+.vp-doc h2 code,
+.vp-doc h3 code {
+  font-size: 0.9em;
+  border: 0;
+  padding: 0;
+  background: none;
+  font-weight: 600;
+}
+
+/* ---------- Code blocks ---------- */
+.vp-doc div[class*='language-'],
+.vp-code-group .tabs {
+  border-radius: var(--bc-radius) !important;
+}
+.vp-doc div[class*='language-'] {
+  border: 1px solid var(--bc-line);
+  background: var(--bc-surface);
+  margin: 20px 0;
+}
+.vp-doc div[class*='language-'] > span.lang {
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3);
+}
+.vp-code-group {
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-radius);
+  overflow: hidden;
+  margin: 20px 0;
+}
+.vp-code-group .tabs {
+  border-radius: 0 !important;
+  background: var(--vp-c-bg-alt);
+  border-bottom: 1px solid var(--bc-line);
+  box-shadow: none;
+}
+.vp-code-group .blocks div[class*='language-'] {
+  border: 0;
+  border-radius: 0 !important;
+  margin: 0;
+}
+.vp-code-group .tabs label {
+  font-weight: 550;
+}
+.vp-doc [class*='language-'] code .highlighted {
+  background: var(--bc-mark-soft);
+}
+
+/* ---------- Tables ---------- */
+.vp-doc table {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--bc-line);
+  border-radius: var(--bc-radius);
+  overflow: hidden;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+.vp-doc tr {
+  border: 0;
+  background: transparent !important;
+}
+.vp-doc th,
+.vp-doc td {
+  border: 0;
+  border-bottom: 1px solid var(--bc-line);
+  padding: 10px 14px;
+  vertical-align: top;
+}
+.vp-doc tr:last-child td {
+  border-bottom: 0;
+}
+.vp-doc th {
+  background: var(--vp-c-bg-alt);
+  font-weight: 600;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vp-c-text-2);
+}
+.vp-doc tbody tr {
+  transition: background-color 0.15s;
+}
+.vp-doc tbody tr:hover {
+  background: var(--bc-surface) !important;
+}
+.vp-doc td code {
+  white-space: nowrap;
+}
+
+/* ---------- Callouts ---------- */
+.vp-doc .custom-block {
+  border-radius: var(--bc-radius-sm);
+  border: 1px solid transparent;
+  border-left-width: 3px;
+  padding: 14px 18px;
+  font-size: 15px;
+}
+.vp-doc .custom-block .custom-block-title {
+  font-weight: 650;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.vp-doc .custom-block.tip {
+  border-color: color-mix(in srgb, var(--bc-green) 30%, transparent);
+  border-left-color: var(--bc-green);
+}
+.vp-doc .custom-block.info {
+  border-color: color-mix(in srgb, var(--bc-blue) 25%, transparent);
+  border-left-color: var(--bc-blue);
+}
+.vp-doc .custom-block.warning {
+  border-color: color-mix(in srgb, var(--bc-yellow) 30%, transparent);
+  border-left-color: var(--bc-yellow);
+}
+.vp-doc .custom-block.danger {
+  border-color: color-mix(in srgb, var(--bc-red) 30%, transparent);
+  border-left-color: var(--bc-red);
+}
+.vp-doc .custom-block.details {
+  border-left-color: var(--bc-line-strong);
+}
+
+/* ---------- Steps: numbered like Set of Marks ---------- */
+.vp-doc .steps {
+  counter-reset: step;
+  margin: 28px 0;
+  padding-left: 44px;
+  border-left: 1px dashed var(--bc-line-strong);
+  margin-left: 14px;
+}
+.vp-doc .steps > h3 {
+  counter-increment: step;
+  position: relative;
+  margin-top: 32px;
+}
+.vp-doc .steps > h3:first-child {
+  margin-top: 0;
+}
+.vp-doc .steps > h3::before {
+  content: counter(step);
+  position: absolute;
+  left: -59px;
+  top: -1px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  font-family: var(--vp-font-family-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bc-mark);
+  background: var(--vp-c-bg);
+  border: 1.5px solid var(--bc-mark);
+  border-radius: 7px;
+}
+
+/* ---------- Tool reference ---------- */
+.vp-doc .tool-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -4px 0 8px;
+}
+
+/* ---------- Badges ---------- */
+.vp-doc .VPBadge,
+.VPBadge {
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* ---------- Keyboard keys ---------- */
+.vp-doc kbd {
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.8em;
+  padding: 0.1em 0.45em;
+  border: 1px solid var(--bc-line-strong);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--vp-c-bg-alt);
+}
+
+/* ---------- Images ---------- */
+.vp-doc img {
+  border-radius: var(--bc-radius);
+  border: 1px solid var(--bc-line);
+}
+.vp-doc figure {
+  margin: 28px 0;
+}
+.vp-doc figcaption {
+  font-size: 13.5px;
+  color: var(--vp-c-text-3);
+  text-align: center;
+  margin-top: 10px;
+}
+.medium-zoom-overlay {
+  z-index: 100;
+}
+.medium-zoom-image--opened {
+  z-index: 101;
+}
+
+/* ---------- Sidebar ---------- */
+.VPSidebar {
+  border-right: 1px solid var(--bc-line);
+}
+.VPSidebarItem.level-0 > .item > .text {
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3) !important;
+}
+.VPSidebarItem.level-1 .link {
+  position: relative;
+}
+.VPSidebarItem.level-1 .text {
+  font-weight: 450;
+  transition: color 0.15s;
+}
+.VPSidebarItem.level-1.is-active > .item > .indicator {
+  background: var(--bc-mark);
+  width: 2px;
+  border-radius: 2px;
+}
+.VPSidebarItem.level-1.is-active > .item .text {
+  font-weight: 600;
+}
+
+/* ---------- Outline (on this page) ---------- */
+.VPDocAsideOutline .outline-title {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3);
+}
+.VPDocAsideOutline .outline-marker {
+  background: var(--bc-mark);
+  width: 2px;
+}
+.VPDocAsideOutline .outline-link {
+  font-size: 13.5px;
+}
+
+/* ---------- Prev / next ---------- */
+.VPDocFooter .pager-link {
+  border-radius: var(--bc-radius);
+  border: 1px solid var(--bc-line);
+  transition:
+    border-color 0.2s,
+    transform 0.2s var(--bc-ease);
+}
+.VPDocFooter .pager-link:hover {
+  border-color: var(--bc-mark);
+  transform: translateY(-2px);
+}
+
+/* ---------- llms copy-page buttons ---------- */
+.vp-doc h1 + div:has(> button),
+.vp-doc .markdown-copy-buttons {
+  margin-bottom: 18px;
+}
