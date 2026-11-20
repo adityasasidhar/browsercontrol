@@ -41,11 +41,12 @@ Before acting, it checks that the element is still there and still where the scr
 
 ## Find controls on crowded pages
 
-For pages with hundreds of interactive elements (Google search results, infinite-scroll feeds), the element map gets crowded. Strategies:
+For pages with hundreds of interactive elements (search results, infinite-scroll feeds), the element map gets crowded, and the control you want may not be on screen at all. Strategies:
 
-- **Scroll first** — call `scroll(direction)` to bring different parts of the page into view, and read the new map returned by the tool.
-- **Use `get_text`** — read text from a specific element instead of trying to pick from a noisy screenshot.
-- **Use `run_javascript`** — extract structured data directly from the DOM when you know what you want.
+- **Search instead of scanning** — [`find("Add to cart")`](../tools/navigation.md#find) searches the whole page, off-screen content, iframes, and shadow DOM included, scrolls to the match, and returns its ID in the new map. Add `role="button"` to skip matching text that isn't a control.
+- **Scroll** — call `scroll(direction)` to bring a different part of the page into view, and read the new map returned by the tool.
+- **Batch steps** — once you have the IDs you need, [`act`](../tools/interaction.md#act) runs several actions against the same map in one call.
+- **Extract instead of reading** — [`extract_table`, `extract_links`, or `extract`](../tools/extraction.md) return structured data without picking elements from a noisy screenshot.
 
 ## See also
 

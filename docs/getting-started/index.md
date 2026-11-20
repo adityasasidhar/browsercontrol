@@ -1,7 +1,9 @@
 # Getting started
 
 BrowserControl runs as a local server. Your AI client starts it over MCP stdio
-and calls its tools to control Chromium.
+and calls its tools to control Chromium. To share one browser between several
+clients, you can [serve it over HTTP](connect-your-ai.md#share-one-browser-over-http)
+instead.
 
 ## Setup
 

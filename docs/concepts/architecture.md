@@ -9,7 +9,7 @@ BrowserControl has three runtime components: the **AI agent** (your model + MCP 
 │  GPT, local…)   │     │                    │     │             │
 └─────────────────┘     └────────────────────┘     └─────────────┘
         │                        │                       │
-        │  call_tool("click",5)  │  page.click(handle)    │
+        │  call_tool("click",5)  │  locator.click()       │
         │  ◀─────────────────────│  ◀─────────────────────│
         │  annotated PNG +       │  screenshot.png        │
         │  element map           │  + SoM overlay         │
@@ -20,8 +20,9 @@ BrowserControl has three runtime components: the **AI agent** (your model + MCP 
 1. **Agent calls a tool** — e.g. `click(5)`.
 2. **Server resolves the element** — Looks up element 5 in the active tab's map from the last SoM pass and finds it again by its `data-bc-id` tag, in its own frame and through shadow DOM. If it was removed or moved since, the tool returns a "stale" error and a fresh screenshot instead of acting.
 3. **Browser executes** — Playwright drives the real Chromium.
-4. **Server re-screenshots** — New screenshot, fresh element detection in every frame (shadow DOM included), numbered boxes drawn with Pillow.
-5. **Annotated result returns** — Both image and textual map are sent back so the model can pick its preferred representation.
+4. **Page settles** — The server waits for DOMContentLoaded, then for in-flight requests, then for the DOM to stop changing, bounded by [`BROWSER_SETTLE_TIMEOUT`](../configuration.md#browser_settle_timeout). No fixed sleeps.
+5. **Server re-screenshots** — New screenshot, fresh element detection in every frame (shadow DOM included), numbered boxes drawn with Pillow.
+6. **Annotated result returns** — Both image and textual map are sent back so the model can pick its preferred representation. Dialogs and downloads that happened along the way are reported as `Notice:` lines at the top.
 
 The agent never sees a raw DOM tree. It sees a screenshot and a list of numbered elements.
 
@@ -30,16 +31,29 @@ The agent never sees a raw DOM tree. It sees a screenshot and a list of numbered
 ### MCP server (`browsercontrol.server`)
 
 - Built on [FastMCP](https://github.com/jlowin/fastmcp).
-- Registers 69 tools in twelve categories, eight MCP resources, and middleware that runs each call in the calling client's browser session.
+- Registers 69 tools in fourteen modules, eight `browser://` MCP resources, and middleware that runs each call in the calling client's browser session.
 - Manages browser lifecycle via the `lifespan` async context manager.
+- Serves over stdio by default, or Streamable HTTP with `--transport http`.
 - Reads config from environment variables.
 
 ### Browser manager (`browsercontrol.browser`)
 
-- Owns the Playwright `Browser`, `BrowserContext`, and `Page` instances.
-- Runs `launch_persistent_context` so cookies, `localStorage`, and login state survive restarts.
+- Starts the browser in one of two ways: `launch_persistent_context` against its own profile, or `connect_over_cdp` to attach to [your running Chrome](../guides/use-your-chrome.md).
+- Holds one or more sessions and resolves which one the calling client is bound to.
+- Waits for the page to settle after each action.
 - Draws the SoM overlay and keeps one element map per tab.
 - Provides `screenshot_with_som()`, `get_element_map()` and `resolve_element(id)`.
+
+### Sessions (`browsercontrol.session`)
+
+- A `Session` is one browser context: the default (persistent profile or attached Chrome) or an isolated one from `create_session`.
+- Each session keeps its own tabs, console logs, network traffic, page errors, dialog policy, downloads, emulation settings, and action log.
+- Event listeners are wired to every new page and popup in the session.
+
+### Emulation and codegen
+
+- `browsercontrol.emulation` applies device, geolocation, timezone, color scheme, and network throttling per page, and re-applies them to new tabs.
+- `browsercontrol.codegen` turns a session's action log into a pytest-playwright or `@playwright/test` file for `export_test`.
 
 ### Element detection (`browsercontrol.elements`)
 
@@ -52,21 +66,30 @@ Each module registers a related group of tools:
 | Module | Tools |
 |---|---|
 | `navigation.py` | `navigate_to`, `go_back`, `go_forward`, `refresh_page`, `scroll` |
-| `interaction.py` | `click`, `click_at`, `type_text`, `press_key`, `hover`, `scroll_to_element`, `wait` |
+| `search.py` | `find` |
+| `interaction.py` | `click`, `click_at`, `type_text`, `press_key`, `hover`, `double_click`, `right_click`, `drag`, `scroll_to_element`, `wait` |
+| `batch.py` | `act` |
+| `waiting.py` | `wait_for`, `handle_dialog`, `list_downloads` |
 | `forms.py` | `select_option`, `check_checkbox`, `upload_file` |
 | `content.py` | `get_page_content`, `get_text`, `get_page_info`, `run_javascript`, `screenshot` |
+| `extract.py` | `extract_table`, `extract_links`, `extract` |
 | `devtools.py` | `get_console_logs`, `get_network_requests`, `get_page_errors`, `run_in_console`, `inspect_element`, `get_page_performance`, `get_cookies`, `set_cookie`, `delete_cookie`, `clear_cookies`, `set_viewport` |
-| `recording.py` | `start_recording`, `stop_recording`, `take_snapshot`, `list_recordings` |
+| `network.py` | `mock_route`, `clear_mocks`, `get_request_details`, `wait_for_response`, `export_har` |
+| `emulate.py` | `list_devices`, `emulate_device`, `set_geolocation`, `set_timezone`, `set_color_scheme`, `throttle_network`, `reset_emulation` |
+| `recording.py` | `start_recording`, `stop_recording`, `take_snapshot`, `list_recordings`, `export_test` |
 | `tabs.py` | `create_tab`, `switch_tab`, `close_tab`, `list_tabs` |
+| `sessions.py` | `create_session`, `switch_session`, `list_sessions`, `close_session`, `connect_to_chrome`, `disconnect_chrome` |
 
 ### Persistence
 
-BrowserControl uses `launch_persistent_context`, not `launch`. This means:
+In its default mode BrowserControl uses `launch_persistent_context`, not `launch`. This means:
 
 - Cookies persist across runs (login once).
 - `localStorage` and `sessionStorage` persist.
 - The browser profile directory (`~/.browsercontrol/user_data/` by default) holds extensions, history, and other profile state.
 - Override the location with `BROWSER_USER_DATA_DIR`.
+
+When attached to your own Chrome over CDP, the profile is Chrome's, and stopping the server only disconnects. Isolated sessions are in-memory and discarded when closed.
 
 ## Why SoM over selectors?
 

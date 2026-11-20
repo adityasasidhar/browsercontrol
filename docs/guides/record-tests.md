@@ -1,6 +1,6 @@
 # Record a test run
 
-Capture a Playwright trace as the agent walks through a flow. The saved trace can be replayed in the official trace viewer — perfect for bug reports and PR review.
+Capture a Playwright trace as the agent walks through a flow, then turn the same run into a Playwright test you can keep. The trace replays in the official trace viewer for bug reports and PR review. The test runs in CI.
 
 ## What the agent does
 
@@ -12,10 +12,11 @@ Capture a Playwright trace as the agent walks through a flow. The saved trace ca
 → type_text(3, "user@example.com")
 → type_text(4, "hunter2")
 → click(5)             # Sign In button
-→ wait(2.0)
+→ wait_for(text="Dashboard")
 → take_snapshot("after_login")
 → stop_recording()
 → "Saved ~/.browsercontrol/recordings/login_flow_20260228.zip"
+→ export_test("login_flow")
 ```
 
 ## Step by step
@@ -39,13 +40,14 @@ type_text(4, "hunter2")
 click(5)
 ```
 
-### 3. Wait for any async behavior
+### 3. Wait for the result
+
+Every action already waits for the page to settle. When the redirect takes
+longer, wait for something the next page shows instead of sleeping:
 
 ```text
-wait(2.0)                       # let the login API respond and the redirect complete
+wait_for(text="Dashboard")
 ```
-
-Without the wait, the trace might end before the post-login page finishes loading.
 
 ### 4. Snapshot the interesting state (optional)
 
@@ -62,6 +64,30 @@ stop_recording()
 ```
 
 Returns the saved path. The trace file is a standard Playwright trace zip.
+
+### 6. Export a Playwright test
+
+```text
+export_test("login_flow")                          # pytest-playwright
+export_test("login_flow", language="typescript")   # @playwright/test
+```
+
+`start_recording()` restarts the action log, so the test covers the same run as
+the trace. Each step uses the locator a person would write (role and name,
+label, text), checked against the live page before the action ran:
+
+```python
+def test_login_flow(page: Page) -> None:
+    page.goto("https://staging.example.com/login")
+    page.get_by_label("Email", exact=True).fill("user@example.com")
+    page.get_by_label("Password", exact=True).fill(os.environ["BC_SECRET_1"])
+    page.get_by_role("button", name="Sign in", exact=True).click()
+```
+
+Typed passwords are never written to the file. Set `BC_SECRET_1` (and so on)
+when you run the test. Files land in `~/.browsercontrol/generated_tests/`.
+Review them before committing: the agent's exploration often includes steps
+the test doesn't need.
 
 ## Viewing the recording
 

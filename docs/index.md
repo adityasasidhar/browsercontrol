@@ -51,6 +51,39 @@ BrowserControl marks the form’s controls. In this screenshot, `click(2)` press
 
 </div>
 
+## What you can do
+
+<div class="grid cards" markdown>
+
+-   :material-cursor-default-click-outline: **[Act on what it sees](tools/interaction.md)**
+
+    Click, type, drag, and `find("text")` anywhere on the page, iframes and
+    shadow DOM included. Batch steps with `act`.
+
+-   :material-google-chrome: **[Use your own Chrome](guides/use-your-chrome.md)**
+
+    Attach to the Chrome you're signed in to, or open isolated sessions for a
+    second user.
+
+-   :material-table-arrow-right: **[Extract data](tools/extraction.md)**
+
+    Read pages as Markdown, or pull tables, links, and fields as JSON.
+
+-   :material-bug-outline: **[Debug a web app](guides/debug-web-app.md)**
+
+    Console logs, request headers and bodies, page errors, and HAR export.
+
+-   :material-test-tube: **[Test edge states](guides/mock-apis.md)**
+
+    Mock API responses, throttle the network, and emulate devices, timezones,
+    and dark mode.
+
+-   :material-record-circle-outline: **[Record and export tests](guides/record-tests.md)**
+
+    Save Playwright traces and turn the session into a runnable Playwright test.
+
+</div>
+
 ## Find what you need
 
 <div class="grid cards bc-paths" markdown>
@@ -69,7 +102,7 @@ BrowserControl marks the form’s controls. In this screenshot, `click(2)` press
 
 -   :material-cog-outline: **[Configuration](configuration.md)**
 
-    Set the viewport, browser profile, and recording paths.
+    Set the viewport, browser profile, settle timeout, transport, and more.
 
 </div>
 

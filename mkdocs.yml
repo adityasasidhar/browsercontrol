@@ -144,6 +144,8 @@ nav:
       - Web research: guides/web-research.md
       - Debug a web app: guides/debug-web-app.md
       - Record a test run: guides/record-tests.md
+      - Test error and edge states: guides/mock-apis.md
+      - Use your own Chrome: guides/use-your-chrome.md
       - Fill a form: guides/fill-forms.md
       - Multi-tab research: guides/multi-tab.md
       - Mobile responsive check: guides/mobile-responsive.md
