@@ -6,6 +6,7 @@ from fastmcp.utilities.types import Image
 from playwright.async_api import ElementHandle
 
 from browsercontrol.browser import browser, get_element_map
+from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
 
@@ -19,29 +20,6 @@ async def _resolve_element(elem: dict[str, Any], element_id: int) -> ElementHand
     if element is None:
         raise RuntimeError(f"Could not find DOM element at ID {element_id}")
     return element
-
-
-async def _get_screenshot_with_summary() -> tuple[Image, str]:
-    """Helper to get annotated screenshot with element summary."""
-    screenshot_bytes, elem_map = await browser.screenshot_with_som()
-    image = Image(data=screenshot_bytes, format="png")
-
-    summary_lines = [f"Found {len(elem_map)} interactive elements:"]
-    for eid, elem in list(elem_map.items())[:30]:
-        tag = elem.get("tag", "unknown")
-        elem_type = elem.get("type", "")
-        # Show the input type so checkboxes, radios and file inputs are
-        # distinguishable instead of all rendering as a bare "input".
-        label = f"{tag}[{elem_type}]" if elem_type and elem_type != tag else tag
-        # Collapse whitespace so multi-line text (e.g. a <select>'s options)
-        # cannot break the one-line-per-element format.
-        text = " ".join((elem.get("text") or "").split())[:40]
-        summary_lines.append(f"  [{eid}] {label} - {text}" if text else f"  [{eid}] {label}")
-
-    if len(elem_map) > 30:
-        summary_lines.append(f"  ... and {len(elem_map) - 30} more")
-
-    return image, "\n".join(summary_lines)
 
 
 def register_form_tools(mcp: FastMCP) -> None:
@@ -61,7 +39,7 @@ def register_form_tools(mcp: FastMCP) -> None:
             elem_map = get_element_map()
 
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error: Element {element_id} not found.\n\n{summary}", image
 
             elem = elem_map[element_id]
@@ -96,7 +74,7 @@ def register_form_tools(mcp: FastMCP) -> None:
             await element.select_option(value=match["value"])
 
             selected = await element.evaluate("el => el.value")
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return (
                 f"Selected {match['label']!r} from element {element_id} "
                 f"(value is now {selected!r})\n\n{summary}",
@@ -121,7 +99,7 @@ def register_form_tools(mcp: FastMCP) -> None:
             elem_map = get_element_map()
 
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error: Element {element_id} not found.\n\n{summary}", image
 
             elem = elem_map[element_id]
@@ -151,7 +129,7 @@ def register_form_tools(mcp: FastMCP) -> None:
                 await element.uncheck()
 
             is_checked = await element.evaluate("el => el.checked")
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             action = "Checked" if check else "Unchecked"
             return (
                 f"{action} element {element_id} (checked is now {is_checked})\n\n{summary}",
@@ -182,7 +160,7 @@ def register_form_tools(mcp: FastMCP) -> None:
             elem_map = get_element_map()
 
             if element_id not in elem_map:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error: Element {element_id} not found.\n\n{summary}", image
 
             elem = elem_map[element_id]
@@ -191,7 +169,7 @@ def register_form_tools(mcp: FastMCP) -> None:
             elem_handle = await _resolve_element(elem, element_id)
             await elem_handle.set_input_files(str(path))
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Uploaded '{path.name}' to element {element_id}\n\n{summary}", image
 
         except Exception as e:

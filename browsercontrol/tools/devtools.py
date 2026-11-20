@@ -4,31 +4,9 @@ from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
+from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
-
-
-async def _get_screenshot_with_summary() -> tuple[Image, str]:
-    """Helper to get annotated screenshot with element summary."""
-    screenshot_bytes, elem_map = await browser.screenshot_with_som()
-    image = Image(data=screenshot_bytes, format="png")
-
-    summary_lines = [f"Found {len(elem_map)} interactive elements:"]
-    for eid, elem in list(elem_map.items())[:30]:
-        tag = elem.get("tag", "unknown")
-        elem_type = elem.get("type", "")
-        # Show the input type so checkboxes, radios and file inputs are
-        # distinguishable instead of all rendering as a bare "input".
-        label = f"{tag}[{elem_type}]" if elem_type and elem_type != tag else tag
-        # Collapse whitespace so multi-line text (e.g. a <select>'s options)
-        # cannot break the one-line-per-element format.
-        text = " ".join((elem.get("text") or "").split())[:40]
-        summary_lines.append(f"  [{eid}] {label} - {text}" if text else f"  [{eid}] {label}")
-
-    if len(elem_map) > 30:
-        summary_lines.append(f"  ... and {len(elem_map) - 30} more")
-
-    return image, "\n".join(summary_lines)
 
 
 def register_devtools(mcp: FastMCP) -> None:
@@ -195,13 +173,13 @@ def register_devtools(mcp: FastMCP) -> None:
 
             result = await browser.page.evaluate(wrapped_code)
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Console Result:\n{result}\n\n{summary}", image
 
         except Exception as e:
             logger.error(f"Run in console failed: {e}")
             try:
-                image, summary = await _get_screenshot_with_summary()
+                image, summary = await get_screenshot_with_summary(browser)
                 return f"Error executing code: {e}\n\n{summary}", image
             except Exception:
                 raise RuntimeError(f"Run in console failed: {e}")
@@ -456,7 +434,7 @@ def register_devtools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             await browser.page.set_viewport_size({"width": width, "height": height})
 
-            image, summary = await _get_screenshot_with_summary()
+            image, summary = await get_screenshot_with_summary(browser)
             return f"Viewport set to {width}x{height}\n\n{summary}", image
 
         except Exception as e:

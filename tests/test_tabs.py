@@ -23,7 +23,7 @@ class TestCreateTab:
         register_tab_tools(mcp_server)
 
         with patch("browsercontrol.tools.tabs.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.tabs._get_screenshot_with_summary") as mock_screenshot:
+            with patch("browsercontrol.tools.tabs.get_screenshot_with_summary") as mock_screenshot:
                 mock_screenshot.return_value = (None, "Summary")
 
                 tool = await mcp_server.get_tool("create_tab")
@@ -38,7 +38,7 @@ class TestCreateTab:
         register_tab_tools(mcp_server)
 
         with patch("browsercontrol.tools.tabs.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.tabs._get_screenshot_with_summary") as mock_screenshot:
+            with patch("browsercontrol.tools.tabs.get_screenshot_with_summary") as mock_screenshot:
                 mock_screenshot.return_value = (None, "Summary")
 
                 tool = await mcp_server.get_tool("create_tab")
@@ -57,7 +57,7 @@ class TestSwitchTab:
         register_tab_tools(mcp_server)
 
         with patch("browsercontrol.tools.tabs.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.tabs._get_screenshot_with_summary") as mock_screenshot:
+            with patch("browsercontrol.tools.tabs.get_screenshot_with_summary") as mock_screenshot:
                 mock_screenshot.return_value = (None, "Summary")
 
                 tool = await mcp_server.get_tool("switch_tab")
@@ -76,7 +76,7 @@ class TestCloseTab:
         register_tab_tools(mcp_server)
 
         with patch("browsercontrol.tools.tabs.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.tabs._get_screenshot_with_summary") as mock_screenshot:
+            with patch("browsercontrol.tools.tabs.get_screenshot_with_summary") as mock_screenshot:
                 mock_screenshot.return_value = (None, "Summary")
 
                 tool = await mcp_server.get_tool("close_tab")

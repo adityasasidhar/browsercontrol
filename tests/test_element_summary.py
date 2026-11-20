@@ -1,26 +1,16 @@
-"""Tests for the element summary shared by every tool module.
+"""Tests for the element summary returned alongside every annotated screenshot."""
 
-`_get_screenshot_with_summary` is duplicated across the tool modules, so these
-tests pin the format in all of them at once to stop the copies drifting apart.
-"""
-
-from unittest.mock import AsyncMock, patch
+import ast
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from browsercontrol.tools.content import _get_screenshot_with_summary as content_summary
-from browsercontrol.tools.devtools import _get_screenshot_with_summary as devtools_summary
-from browsercontrol.tools.forms import _get_screenshot_with_summary as forms_summary
-from browsercontrol.tools.interaction import _get_screenshot_with_summary as interaction_summary
-from browsercontrol.tools.navigation import _get_screenshot_with_summary as navigation_summary
-
-ALL_SUMMARIES = [
-    ("forms", forms_summary),
-    ("navigation", navigation_summary),
-    ("content", content_summary),
-    ("interaction", interaction_summary),
-    ("devtools", devtools_summary),
-]
+from browsercontrol.tools._summary import (
+    MAX_SUMMARY_ELEMENTS,
+    format_element_summary,
+    get_screenshot_with_summary,
+)
 
 ELEMENT_MAP = {
     1: {"tag": "button", "type": "submit", "text": "Click Me"},
@@ -32,19 +22,12 @@ ELEMENT_MAP = {
     7: {"tag": "a", "type": "a", "text": "Products"},
 }
 
-
-async def _run(module_name, summary_fn):
-    with patch(f"browsercontrol.tools.{module_name}.browser") as mock_browser:
-        mock_browser.screenshot_with_som = AsyncMock(return_value=(b"png", ELEMENT_MAP))
-        _image, summary = await summary_fn()
-        return summary
+TOOLS_DIR = Path(__file__).resolve().parent.parent / "browsercontrol" / "tools"
 
 
-@pytest.mark.parametrize(("module_name", "summary_fn"), ALL_SUMMARIES)
-@pytest.mark.asyncio
-async def test_input_types_are_distinguishable(module_name, summary_fn):
+def test_input_types_are_distinguishable() -> None:
     """Checkbox, radio and file inputs must not all render as a bare 'input'."""
-    summary = await _run(module_name, summary_fn)
+    summary = format_element_summary(ELEMENT_MAP)
 
     assert "[3] input[checkbox]" in summary
     assert "[4] input[radio]" in summary
@@ -52,29 +35,49 @@ async def test_input_types_are_distinguishable(module_name, summary_fn):
     assert "[2] input[text] - plain text input" in summary
 
 
-@pytest.mark.parametrize(("module_name", "summary_fn"), ALL_SUMMARIES)
-@pytest.mark.asyncio
-async def test_one_line_per_element(module_name, summary_fn):
+def test_one_line_per_element() -> None:
     """Multi-line text (e.g. a <select>'s options) must not break the format."""
-    summary = await _run(module_name, summary_fn)
+    summary = format_element_summary(ELEMENT_MAP)
 
     # 7 elements + the "Found N" header, and nothing wrapping onto extra lines.
     assert len(summary.splitlines()) == len(ELEMENT_MAP) + 1
     assert "[6] select[select-one] - Alpha Beta Gamma" in summary
 
 
-@pytest.mark.parametrize(("module_name", "summary_fn"), ALL_SUMMARIES)
-@pytest.mark.asyncio
-async def test_redundant_type_is_omitted(module_name, summary_fn):
+def test_redundant_type_is_omitted() -> None:
     """When type adds nothing over the tag, don't repeat it."""
-    summary = await _run(module_name, summary_fn)
+    assert "[7] a - Products" in format_element_summary(ELEMENT_MAP)
 
-    assert "[7] a - Products" in summary
+
+def test_long_maps_are_truncated() -> None:
+    elem_map = {i: {"tag": "button", "text": f"b{i}"} for i in range(1, 46)}
+    lines = format_element_summary(elem_map).splitlines()
+
+    assert lines[0] == "Found 45 interactive elements:"
+    assert len(lines) == MAX_SUMMARY_ELEMENTS + 2
+    assert lines[-1] == "  ... and 15 more"
 
 
 @pytest.mark.asyncio
-async def test_all_modules_agree():
-    """Every duplicated copy must produce byte-identical output."""
-    outputs = {name: await _run(name, fn) for name, fn in ALL_SUMMARIES}
+async def test_get_screenshot_with_summary_uses_given_manager() -> None:
+    manager = MagicMock()
+    manager.screenshot_with_som = AsyncMock(return_value=(b"png", ELEMENT_MAP))
 
-    assert len(set(outputs.values())) == 1, f"summary helpers have drifted: {outputs}"
+    image, summary = await get_screenshot_with_summary(manager)
+
+    manager.screenshot_with_som.assert_awaited_once()
+    assert image.data == b"png"
+    assert summary == format_element_summary(ELEMENT_MAP)
+
+
+def test_no_tool_module_redefines_the_helper() -> None:
+    """Guard against the summary helper being copy-pasted back into a tool module."""
+    offenders = []
+    for path in TOOLS_DIR.glob("*.py"):
+        if path.name == "_summary.py":
+            continue
+        for node in ast.parse(path.read_text()).body:
+            if isinstance(node, ast.AsyncFunctionDef | ast.FunctionDef) and "summary" in node.name:
+                offenders.append(f"{path.name}:{node.name}")
+
+    assert not offenders, f"use browsercontrol.tools._summary instead: {offenders}"
