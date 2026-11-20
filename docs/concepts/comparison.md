@@ -8,7 +8,7 @@ Honest comparisons with the other browser-automation options in the MCP / agent 
 |---|:-:|:-:|:-:|:-:|
 | **Set of Marks** (numbered boxes) | ✅ | ❌ text-tree only | ❌ | ❌ |
 | **Shadow DOM traversal** | ✅ recursive | ⚠️ partial | ⚠️ varies | ⚠️ varies |
-| **Same-origin iframe support** | ✅ with offset coords | ⚠️ basic | ⚠️ varies | ❌ |
+| **Iframe support** (incl. cross-origin) | ✅ every frame | ⚠️ basic | ⚠️ varies | ❌ |
 | **Native `set_input_files` upload** | ✅ | ⚠️ manual | ❌ | ❌ |
 | **Built-in devtools** (console/network/errors/perf) | ✅ 11 tools | ⚠️ partial | ❌ | ❌ |
 | **Multi-tab control** | ✅ | ⚠️ implicit | ⚠️ varies | ❌ |

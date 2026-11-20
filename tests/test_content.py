@@ -5,7 +5,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastmcp import FastMCP
 
-from browsercontrol.tools.content import register_content_tools
+from browsercontrol.elements import ElementNotFoundError
+from browsercontrol.tools.content import MAX_TEXT_CHARS, register_content_tools
 
 
 @pytest.fixture
@@ -40,22 +41,46 @@ class TestGetText:
     """Test get_text tool."""
 
     @pytest.mark.asyncio
-    async def test_get_text_from_element(
-        self, mcp_server, mock_browser_manager, mock_page, sample_element_map
-    ):
-        """Test getting text from an element."""
+    async def test_get_text_reads_the_live_element(self, mcp_server, mock_browser_manager):
+        """get_text reads the page, not the truncated label cached in the element map."""
         register_content_tools(mcp_server)
+        full_text = "Sign In " + "x" * 200
+        locator = AsyncMock()
+        locator.evaluate = AsyncMock(return_value=full_text)
+        mock_browser_manager.resolve_element = AsyncMock(return_value=locator)
 
-        with (
-            patch("browsercontrol.tools.content.browser", mock_browser_manager),
-            patch("browsercontrol.tools.content.get_element_map", return_value=sample_element_map),
-        ):
-            mock_browser_manager.page = mock_page
-
+        with patch("browsercontrol.tools.content.browser", mock_browser_manager):
             tool = await mcp_server.get_tool("get_text")
             result = await tool.fn(element_id=1)
 
-            assert "Sign In" in result
+        mock_browser_manager.resolve_element.assert_awaited_once_with(1)
+        assert result == f"Element 1 text: {full_text}"
+
+    @pytest.mark.asyncio
+    async def test_get_text_truncates_huge_text(self, mcp_server, mock_browser_manager):
+        register_content_tools(mcp_server)
+        locator = AsyncMock()
+        locator.evaluate = AsyncMock(return_value="y" * (MAX_TEXT_CHARS + 50))
+        mock_browser_manager.resolve_element = AsyncMock(return_value=locator)
+
+        with patch("browsercontrol.tools.content.browser", mock_browser_manager):
+            tool = await mcp_server.get_tool("get_text")
+            result = await tool.fn(element_id=1)
+
+        assert result.endswith("[text truncated]")
+
+    @pytest.mark.asyncio
+    async def test_get_text_unknown_element(self, mcp_server, mock_browser_manager):
+        register_content_tools(mcp_server)
+        mock_browser_manager.resolve_element = AsyncMock(
+            side_effect=ElementNotFoundError(9, [1, 2])
+        )
+
+        with patch("browsercontrol.tools.content.browser", mock_browser_manager):
+            tool = await mcp_server.get_tool("get_text")
+            result = await tool.fn(element_id=9)
+
+        assert result == "Error: Element 9 not found. Valid IDs: [1, 2]"
 
 
 class TestGetPageInfo:

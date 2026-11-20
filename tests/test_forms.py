@@ -1,10 +1,11 @@
 """Tests for form handling tools."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastmcp import FastMCP
 
+from browsercontrol.elements import ACTION_TIMEOUT_MS, StaleElementError
 from browsercontrol.tools.forms import register_form_tools
 
 
@@ -37,11 +38,9 @@ CHECKBOX_MAP_ENTRY = {
 }
 
 
-def _attach_element(mock_page, element):
-    """Wire an element handle up to the page's evaluate_handle call."""
-    handle = MagicMock()
-    handle.as_element = MagicMock(return_value=element)
-    mock_page.evaluate_handle = AsyncMock(return_value=handle)
+def _attach_element(manager, element):
+    """Make the manager resolve every element ID to the given locator."""
+    manager.resolve_element = AsyncMock(return_value=element)
 
 
 class TestSelectOption:
@@ -65,17 +64,19 @@ class TestSelectOption:
                 "opt1",
             ]
         )
-        _attach_element(mock_page, element)
+        _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.forms.get_element_map", return_value=select_map):
+            with patch.object(mock_browser_manager, "get_element_map", return_value=select_map):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", select_map)
 
                 tool = await mcp_server.get_tool("select_option")
                 result = await tool.fn(element_id=4, option="Option 1")
 
-                element.select_option.assert_awaited_once_with(value="opt1")
+                element.select_option.assert_awaited_once_with(
+                    value="opt1", timeout=ACTION_TIMEOUT_MS
+                )
                 assert "Selected 'Option 1'" in result[0]
 
     @pytest.mark.asyncio
@@ -91,10 +92,10 @@ class TestSelectOption:
         element.evaluate = AsyncMock(
             side_effect=["select", [{"value": "opt1", "label": "Option 1"}]]
         )
-        _attach_element(mock_page, element)
+        _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.forms.get_element_map", return_value=select_map):
+            with patch.object(mock_browser_manager, "get_element_map", return_value=select_map):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (b"screenshot", select_map)
 
@@ -114,11 +115,11 @@ class TestSelectOption:
 
         element = AsyncMock()
         element.evaluate = AsyncMock(return_value="button")
-        _attach_element(mock_page, element)
+        _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
-            with patch(
-                "browsercontrol.tools.forms.get_element_map", return_value=sample_element_map
+            with patch.object(
+                mock_browser_manager, "get_element_map", return_value=sample_element_map
             ):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (
@@ -147,10 +148,10 @@ class TestCheckCheckbox:
 
         element = AsyncMock()
         element.evaluate = AsyncMock(side_effect=["checkbox", True])
-        _attach_element(mock_page, element)
+        _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.forms.get_element_map", return_value=checkbox_map):
+            with patch.object(mock_browser_manager, "get_element_map", return_value=checkbox_map):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (
                     b"screenshot",
@@ -175,10 +176,10 @@ class TestCheckCheckbox:
 
         element = AsyncMock()
         element.evaluate = AsyncMock(side_effect=["checkbox", False])
-        _attach_element(mock_page, element)
+        _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.forms.get_element_map", return_value=checkbox_map):
+            with patch.object(mock_browser_manager, "get_element_map", return_value=checkbox_map):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (
                     b"screenshot",
@@ -201,11 +202,11 @@ class TestCheckCheckbox:
 
         element = AsyncMock()
         element.evaluate = AsyncMock(return_value="text")
-        _attach_element(mock_page, element)
+        _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
-            with patch(
-                "browsercontrol.tools.forms.get_element_map", return_value=sample_element_map
+            with patch.object(
+                mock_browser_manager, "get_element_map", return_value=sample_element_map
             ):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (
@@ -230,10 +231,10 @@ class TestCheckCheckbox:
 
         element = AsyncMock()
         element.evaluate = AsyncMock(return_value="radio")
-        _attach_element(mock_page, element)
+        _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.forms.get_element_map", return_value=checkbox_map):
+            with patch.object(mock_browser_manager, "get_element_map", return_value=checkbox_map):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (
                     b"screenshot",
@@ -276,12 +277,10 @@ class TestUploadFile:
         }
 
         mock_element = AsyncMock()
-        mock_handle = MagicMock()
-        mock_handle.as_element.return_value = mock_element
-        mock_page.evaluate_handle.return_value = mock_handle
+        _attach_element(mock_browser_manager, mock_element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
-            with patch("browsercontrol.tools.forms.get_element_map", return_value=file_input_map):
+            with patch.object(mock_browser_manager, "get_element_map", return_value=file_input_map):
                 mock_browser_manager.page = mock_page
                 mock_browser_manager.screenshot_with_som.return_value = (
                     b"screenshot",
@@ -291,5 +290,31 @@ class TestUploadFile:
                 tool = await mcp_server.get_tool("upload_file")
                 result = await tool.fn(element_id=6, file_path=str(test_file))
 
-                mock_element.set_input_files.assert_called_once_with(str(test_file))
+                mock_element.set_input_files.assert_called_once_with(
+                    str(test_file), timeout=ACTION_TIMEOUT_MS
+                )
                 assert "Uploaded" in result[0]
+
+
+class TestStaleElement:
+    """Form tools report stale IDs with a fresh screenshot instead of acting."""
+
+    @pytest.mark.asyncio
+    async def test_stale_element_returns_error_and_fresh_screenshot(
+        self, mcp_server, mock_browser_manager, mock_page, sample_element_map
+    ):
+        register_form_tools(mcp_server)
+        mock_browser_manager.resolve_element = AsyncMock(
+            side_effect=StaleElementError(1, "it moved")
+        )
+
+        with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
+            mock_browser_manager.screenshot_with_som.return_value = (
+                b"screenshot",
+                sample_element_map,
+            )
+            tool = await mcp_server.get_tool("check_checkbox")
+            result = await tool.fn(element_id=1)
+
+        assert "Error: Element 1 is stale (it moved)" in result[0]
+        assert "Found 3 interactive elements" in result[0]

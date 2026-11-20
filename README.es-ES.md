@@ -97,7 +97,8 @@ Por lo tanto, un agente nunca debería planificar dos clics a partir de una sola
 Dos corolarios:
 
 - **Solo lo que está en el viewport se marca.** La ausencia de un número suele significar "más abajo" — desplázate y vuelve a mirar.
-- **Los iframes de origen cruzado nunca se marcan.** Las raíces de sombra abiertas y los frames del mismo origen se recorren y numeran; los campos de pago de terceros y los widgets embebidos no pueden. Es un límite del navegador, no un error.
+- **Solo se numera lo que se ve.** Se recorren las raíces de sombra abiertas y todos los iframes (también los de origen cruzado), pero los elementos ocultos, transparentes o tapados por otro (un banner de cookies, un modal) se omiten. Los controles deshabilitados se numeran en gris y se marcan `(disabled)`.
+- **Los números obsoletos se detectan, no se adivinan.** Si el elemento se eliminó o se movió después de la captura, la herramienta no actúa y devuelve una captura nueva.
 
 ## Herramientas
 

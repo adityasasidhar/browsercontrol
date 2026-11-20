@@ -46,17 +46,32 @@ The flow is: agent calls an MCP tool → tool drives the Playwright page → a f
 annotated screenshot + element map is captured → both are returned to the agent.
 
 **`browser.py` — the heart of the system.** Exposes a single module-global
-`browser = BrowserManager()` instance and a module-global `element_map` dict.
-Key behaviors to understand before touching anything:
+`browser = BrowserManager()` instance. Key behaviors to understand before
+touching anything:
 
 - `screenshot_with_som()` is called at the end of nearly every tool. It takes a
-  screenshot, runs `get_interactive_elements()` (injected JS that collects
-  visible, on-screen interactive elements and their bounding boxes), draws the
-  numbered boxes, and **overwrites the global `element_map`** with 1-indexed IDs.
+  screenshot, runs `get_interactive_elements()`, draws the numbered boxes, and
+  **replaces the active tab's element map** with 1-indexed IDs. Maps are kept
+  per tab (`_element_maps`), so IDs never resolve against another tab.
 - **Element IDs are ephemeral.** They are only valid against the most recent
   screenshot. Any navigation, click, scroll, or screenshot regenerates the map
-  and renumbers everything. Tools look up the target via `get_element_map()` and
-  return an error listing valid IDs when the ID is missing.
+  and renumbers everything.
+- **Tools act through `await browser.resolve_element(id)`**, which returns a
+  Playwright `Locator` and raises `ElementNotFoundError` / `StaleElementError`
+  (both `ElementError`). Tools catch `ElementError` and return
+  `element_error_result(browser, e)` from `tools/_summary.py`. Never act at an
+  element's stored coordinates (`elementFromPoint`, `mouse.click`): that hits
+  shadow hosts, `<iframe>` elements, and overlays instead of the target.
+
+**`elements.py` — detection and resolution.** `collect_elements()` runs injected
+JS in **every frame** (`page.frames`, so cross-origin iframes too), recursing into
+open shadow roots. It keeps visible, unobscured elements (hit-tested; matched by
+selector or by a non-inherited `cursor: pointer`), flags disabled ones, and tags
+each with `data-bc-id`. `locate()` finds the element again by that tag through a
+frame-scoped locator and refuses it as stale if it is gone or moved. The moved
+check compares frame-local boxes on purpose: Playwright's `bounding_box()` is off
+by the iframe border for elements inside cross-origin frames.
+
 - The browser uses `launch_persistent_context` against a profile directory
   (`~/.browsercontrol/user_data` by default), so cookies, localStorage, and login
   state persist across server restarts. Launch args include localhost proxy
@@ -93,7 +108,12 @@ import time, env changes require a server restart.
 
 ## Testing conventions
 
-Tests **do not launch a real browser** — everything is mocked. The pattern:
+Almost all tests **do not launch a real browser** — everything is mocked. The
+exception is `tests/test_som_real_browser.py` (marker `browser`), which drives a
+real headless Chromium or installed Chrome against fixture pages served on two
+local origins, and skips when no browser is available. Run it after any change to
+`elements.py`: mocks cannot tell whether an ID reaches the right element. The
+mocked pattern:
 
 - `tests/conftest.py` provides `mock_browser_manager` (a fully stubbed
   `BrowserManager`), `mock_page`, `mock_context`, and `sample_element_map`.

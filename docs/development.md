@@ -114,13 +114,13 @@ async def my_new_tool(element_id: int) -> tuple[str, Image]:
     """
     try:
         await browser.ensure_started()
-        elem_map = get_element_map()
+        try:
+            # A Playwright Locator for the numbered element, verified not stale.
+            locator = await browser.resolve_element(element_id)
+        except ElementError as e:
+            return await element_error_result(browser, e)
 
-        if element_id not in elem_map:
-            image, summary = await get_screenshot_with_summary(browser)
-            return f"Error: Element {element_id} not found.\n\n{summary}", image
-
-        # ... your logic ...
+        # ... your logic, e.g. await locator.click(timeout=ACTION_TIMEOUT_MS) ...
 
         image, summary = await get_screenshot_with_summary(browser)
         return f"Did the thing to element {element_id}\n\n{summary}", image

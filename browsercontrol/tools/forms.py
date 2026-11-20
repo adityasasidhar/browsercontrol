@@ -1,25 +1,13 @@
 import logging
-from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
-from playwright.async_api import ElementHandle
 
-from browsercontrol.browser import browser, get_element_map
-from browsercontrol.tools._summary import get_screenshot_with_summary
+from browsercontrol.browser import browser
+from browsercontrol.elements import ACTION_TIMEOUT_MS, ElementError
+from browsercontrol.tools._summary import element_error_result, get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
-
-
-async def _resolve_element(elem: dict[str, Any], element_id: int) -> ElementHandle:
-    """Resolve the DOM element sitting at a mapped element's center point."""
-    handle = await browser.page.evaluate_handle(
-        f"document.elementFromPoint({elem['centerX']}, {elem['centerY']})"
-    )
-    element = handle.as_element()
-    if element is None:
-        raise RuntimeError(f"Could not find DOM element at ID {element_id}")
-    return element
 
 
 def register_form_tools(mcp: FastMCP) -> None:
@@ -36,16 +24,12 @@ def register_form_tools(mcp: FastMCP) -> None:
         """
         try:
             await browser.ensure_started()
-            elem_map = get_element_map()
+            try:
+                element = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return await element_error_result(browser, e)
 
-            if element_id not in elem_map:
-                image, summary = await get_screenshot_with_summary(browser)
-                return f"Error: Element {element_id} not found.\n\n{summary}", image
-
-            elem = elem_map[element_id]
             logger.info(f"Selecting option '{option}' from element {element_id}")
-
-            element = await _resolve_element(elem, element_id)
 
             tag = await element.evaluate("el => el.tagName.toLowerCase()")
             if tag != "select":
@@ -70,8 +54,7 @@ def register_form_tools(mcp: FastMCP) -> None:
                     f"Available options: {available or '(none)'}"
                 )
 
-            await element.scroll_into_view_if_needed()
-            await element.select_option(value=match["value"])
+            await element.select_option(value=match["value"], timeout=ACTION_TIMEOUT_MS)
 
             selected = await element.evaluate("el => el.value")
             image, summary = await get_screenshot_with_summary(browser)
@@ -96,16 +79,12 @@ def register_form_tools(mcp: FastMCP) -> None:
         """
         try:
             await browser.ensure_started()
-            elem_map = get_element_map()
+            try:
+                element = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return await element_error_result(browser, e)
 
-            if element_id not in elem_map:
-                image, summary = await get_screenshot_with_summary(browser)
-                return f"Error: Element {element_id} not found.\n\n{summary}", image
-
-            elem = elem_map[element_id]
             logger.info(f"{'Checking' if check else 'Unchecking'} element {element_id}")
-
-            element = await _resolve_element(elem, element_id)
 
             input_type = await element.evaluate(
                 "el => el.tagName.toLowerCase() === 'input' ? (el.type || '').toLowerCase() : ''"
@@ -121,12 +100,13 @@ def register_form_tools(mcp: FastMCP) -> None:
                     "Select a different radio in the group instead."
                 )
 
-            await element.scroll_into_view_if_needed()
             # check()/uncheck() are idempotent state setters, unlike a raw click.
+            # force skips the hit-test, since sites often hide the real input under
+            # a styled stand-in that would otherwise "intercept" the click.
             if check:
-                await element.check()
+                await element.check(timeout=ACTION_TIMEOUT_MS, force=True)
             else:
-                await element.uncheck()
+                await element.uncheck(timeout=ACTION_TIMEOUT_MS, force=True)
 
             is_checked = await element.evaluate("el => el.checked")
             image, summary = await get_screenshot_with_summary(browser)
@@ -157,17 +137,14 @@ def register_form_tools(mcp: FastMCP) -> None:
                 raise ValueError(f"File not found: {file_path}")
 
             await browser.ensure_started()
-            elem_map = get_element_map()
+            try:
+                element = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return await element_error_result(browser, e)
 
-            if element_id not in elem_map:
-                image, summary = await get_screenshot_with_summary(browser)
-                return f"Error: Element {element_id} not found.\n\n{summary}", image
-
-            elem = elem_map[element_id]
             logger.info(f"Uploading file '{file_path}' to element {element_id}")
 
-            elem_handle = await _resolve_element(elem, element_id)
-            await elem_handle.set_input_files(str(path))
+            await element.set_input_files(str(path), timeout=ACTION_TIMEOUT_MS)
 
             image, summary = await get_screenshot_with_summary(browser)
             return f"Uploaded '{path.name}' to element {element_id}\n\n{summary}", image

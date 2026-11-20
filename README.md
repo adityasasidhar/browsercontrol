@@ -102,9 +102,12 @@ Two corollaries:
 
 - **Only what's in the viewport gets marked.** No number usually means "below the
   fold" — scroll, then look again.
-- **Cross-origin iframes are never marked.** Open shadow roots and same-origin
-  frames are traversed and numbered; third-party payment fields and embedded
-  widgets can't be. That's a boundary of the browser, not a bug.
+- **Only what you can see gets a number.** Open shadow roots and every iframe
+  (cross-origin included) are traversed, but elements that are hidden,
+  transparent, or covered by something else (a cookie banner, a modal) are left
+  out. Disabled controls are numbered but drawn grey and flagged `(disabled)`.
+- **Stale numbers are caught, not guessed.** If the element was removed or moved
+  after the screenshot, the tool refuses to act and returns a fresh screenshot.
 
 ## Tools
 

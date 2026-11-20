@@ -4,6 +4,7 @@ from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
+from browsercontrol.elements import ElementError
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
@@ -197,24 +198,18 @@ def register_devtools(mcp: FastMCP) -> None:
         """
         try:
             await browser.ensure_started()
-            from browsercontrol.browser import get_element_map
-
-            elem_map = get_element_map()
-            if element_id not in elem_map:
-                return f"Error: Element {element_id} not found."
-
-            elem = elem_map[element_id]
+            try:
+                locator = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return f"Error: {e}"
 
             # Get detailed info about the element
-            inspect_code = f"""
-            (() => {{
-                const el = document.elementFromPoint({elem["centerX"]}, {elem["centerY"]});
-                if (!el) return {{ error: 'Element not found at coordinates' }};
-
+            inspect_code = """
+            (el) => {
                 const rect = el.getBoundingClientRect();
                 const styles = window.getComputedStyle(el);
 
-                return {{
+                return {
                     tag: el.tagName.toLowerCase(),
                     id: el.id || null,
                     classes: Array.from(el.classList),
@@ -222,13 +217,13 @@ def register_devtools(mcp: FastMCP) -> None:
                     href: el.href || null,
                     src: el.src || null,
                     value: el.value || null,
-                    dimensions: {{
+                    dimensions: {
                         width: Math.round(rect.width),
                         height: Math.round(rect.height),
                         top: Math.round(rect.top),
                         left: Math.round(rect.left)
-                    }},
-                    styles: {{
+                    },
+                    styles: {
                         color: styles.color,
                         backgroundColor: styles.backgroundColor,
                         fontSize: styles.fontSize,
@@ -236,13 +231,13 @@ def register_devtools(mcp: FastMCP) -> None:
                         display: styles.display,
                         position: styles.position,
                         zIndex: styles.zIndex
-                    }},
-                    attributes: Array.from(el.attributes).map(a => ({{ name: a.name, value: a.value }})).slice(0, 10)
-                }};
-            }})()
+                    },
+                    attributes: Array.from(el.attributes).filter(a => a.name !== 'data-bc-id').map(a => ({ name: a.name, value: a.value })).slice(0, 10)
+                };
+            }
             """
 
-            info = await browser.page.evaluate(inspect_code)
+            info = await locator.evaluate(inspect_code)
 
             # Format the info nicely
             lines = [f"Element {element_id} Inspection:"]

@@ -4,8 +4,28 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastmcp import FastMCP
+from playwright.async_api import Error as PlaywrightError
 
+from browsercontrol.elements import ACTION_TIMEOUT_MS, ElementNotFoundError, StaleElementError
 from browsercontrol.tools.interaction import register_interaction_tools
+
+
+def _wire(manager, elem_map):
+    """Give the mocked manager an element map and a resolver that honours it.
+
+    Returns the locator that every known ID resolves to.
+    """
+    locator = AsyncMock()
+
+    async def resolve(element_id):
+        if element_id not in elem_map:
+            raise ElementNotFoundError(element_id, list(elem_map))
+        return locator
+
+    manager.get_element_map = MagicMock(return_value=elem_map)
+    manager.resolve_element = AsyncMock(side_effect=resolve)
+    manager.screenshot_with_som.return_value = (b"screenshot", elem_map)
+    return locator
 
 
 @pytest.fixture
@@ -21,33 +41,20 @@ class TestClick:
     async def test_click_valid_element(
         self, mcp_server, mock_browser_manager, mock_page, sample_element_map
     ):
-        """Test clicking a valid element by ID."""
+        """Clicking resolves the ID to a locator and clicks it (not a screen position)."""
         register_interaction_tools(mcp_server)
-
-        element = AsyncMock()
-        handle = MagicMock()
-        handle.as_element = MagicMock(return_value=element)
-        mock_page.evaluate_handle = AsyncMock(return_value=handle)
+        locator = _wire(mock_browser_manager, sample_element_map)
         mock_page.wait_for_load_state = AsyncMock()
 
-        with (
-            patch("browsercontrol.tools.interaction.browser", mock_browser_manager),
-            patch(
-                "browsercontrol.tools.interaction.get_element_map", return_value=sample_element_map
-            ),
-        ):
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
-            mock_browser_manager.screenshot_with_som.return_value = (
-                b"screenshot",
-                sample_element_map,
-            )
-
             tool = await mcp_server.get_tool("click")
             result = await tool.fn(element_id=1)
 
-            element.scroll_into_view_if_needed.assert_called()
-            element.click.assert_called()
-            assert "Clicked element 1" in result[0]
+        mock_browser_manager.resolve_element.assert_awaited_once_with(1)
+        locator.click.assert_awaited_once_with(timeout=ACTION_TIMEOUT_MS)
+        mock_page.mouse.click.assert_not_called()
+        assert "Clicked element 1 (button: Sign In)" in result[0]
 
     @pytest.mark.asyncio
     async def test_click_invalid_element(
@@ -55,23 +62,34 @@ class TestClick:
     ):
         """Test clicking an invalid element ID returns error."""
         register_interaction_tools(mcp_server)
+        _wire(mock_browser_manager, sample_element_map)
 
-        with (
-            patch("browsercontrol.tools.interaction.browser", mock_browser_manager),
-            patch(
-                "browsercontrol.tools.interaction.get_element_map", return_value=sample_element_map
-            ),
-        ):
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
-            mock_browser_manager.screenshot_with_som.return_value = (
-                b"screenshot",
-                sample_element_map,
-            )
-
             tool = await mcp_server.get_tool("click")
             result = await tool.fn(element_id=999)
 
-            assert "Error: Element 999 not found" in result[0]
+        assert "Error: Element 999 not found. Valid IDs: [1, 2, 3]" in result[0]
+
+    @pytest.mark.asyncio
+    async def test_click_stale_element_does_not_click(
+        self, mcp_server, mock_browser_manager, mock_page, sample_element_map
+    ):
+        """A stale ID is reported with a fresh screenshot, and nothing is clicked."""
+        register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
+        mock_browser_manager.resolve_element.side_effect = StaleElementError(
+            1, "it is no longer on the page"
+        )
+
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
+            mock_browser_manager.page = mock_page
+            tool = await mcp_server.get_tool("click")
+            result = await tool.fn(element_id=1)
+
+        locator.click.assert_not_awaited()
+        assert "Element 1 is stale (it is no longer on the page)" in result[0]
+        assert "Found 3 interactive elements" in result[0]
 
     @pytest.mark.asyncio
     async def test_click_at_coordinates(self, mcp_server, mock_browser_manager, mock_page):
@@ -98,30 +116,33 @@ class TestTypeText:
     ):
         """Test typing text into an input element."""
         register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
 
-        element = AsyncMock()
-        handle = MagicMock()
-        handle.as_element = MagicMock(return_value=element)
-        mock_page.evaluate_handle = AsyncMock(return_value=handle)
-
-        with (
-            patch("browsercontrol.tools.interaction.browser", mock_browser_manager),
-            patch(
-                "browsercontrol.tools.interaction.get_element_map", return_value=sample_element_map
-            ),
-        ):
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
-            mock_browser_manager.screenshot_with_som.return_value = (
-                b"screenshot",
-                sample_element_map,
-            )
-
             tool = await mcp_server.get_tool("type_text")
             result = await tool.fn(element_id=2, text="Hello World")
 
-            element.scroll_into_view_if_needed.assert_called()
-            element.fill.assert_called_with("Hello World")
-            assert "Typed 'Hello World'" in result[0]
+        locator.fill.assert_awaited_once_with("Hello World", timeout=ACTION_TIMEOUT_MS)
+        mock_page.keyboard.type.assert_not_called()
+        assert "Typed 'Hello World'" in result[0]
+
+    @pytest.mark.asyncio
+    async def test_type_text_falls_back_to_keyboard_when_not_fillable(
+        self, mcp_server, mock_browser_manager, mock_page, sample_element_map
+    ):
+        """Custom widgets that reject fill() get focused by a click and typed into."""
+        register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
+        locator.fill.side_effect = PlaywrightError("Element is not an <input>")
+
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
+            mock_browser_manager.page = mock_page
+            tool = await mcp_server.get_tool("type_text")
+            await tool.fn(element_id=2, text="Hi")
+
+        locator.click.assert_awaited_once()
+        mock_page.keyboard.type.assert_awaited_once_with("Hi")
 
 
 class TestKeyboard:
@@ -152,24 +173,16 @@ class TestHover:
     ):
         """Test hovering over an element."""
         register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
 
-        with (
-            patch("browsercontrol.tools.interaction.browser", mock_browser_manager),
-            patch(
-                "browsercontrol.tools.interaction.get_element_map", return_value=sample_element_map
-            ),
-        ):
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
-            mock_browser_manager.screenshot_with_som.return_value = (
-                b"screenshot",
-                sample_element_map,
-            )
-
             tool = await mcp_server.get_tool("hover")
             result = await tool.fn(element_id=3)
 
-            mock_page.mouse.move.assert_called_once_with(330, 60)
-            assert "Hovering over element 3" in result[0]
+        locator.hover.assert_awaited_once_with(timeout=ACTION_TIMEOUT_MS)
+        mock_page.mouse.move.assert_not_called()
+        assert "Hovering over element 3" in result[0]
 
 
 class TestScrollToElement:
@@ -179,26 +192,17 @@ class TestScrollToElement:
     async def test_scroll_to_element(
         self, mcp_server, mock_browser_manager, mock_page, sample_element_map
     ):
-        """Test scrolling to bring element into view."""
+        """Scrolling acts on the element itself, so nested scroll containers work too."""
         register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
 
-        with (
-            patch("browsercontrol.tools.interaction.browser", mock_browser_manager),
-            patch(
-                "browsercontrol.tools.interaction.get_element_map", return_value=sample_element_map
-            ),
-        ):
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
-            mock_browser_manager.screenshot_with_som.return_value = (
-                b"screenshot",
-                sample_element_map,
-            )
-
             tool = await mcp_server.get_tool("scroll_to_element")
             await tool.fn(element_id=1)
 
-            # Element at y=200, should scroll relative by y-100 (200-100)
-            mock_page.evaluate.assert_called_once_with("window.scrollBy(0, 200 - 100)")
+        locator.evaluate.assert_awaited_once()
+        assert "scrollIntoView" in locator.evaluate.call_args.args[0]
 
 
 class TestWait:

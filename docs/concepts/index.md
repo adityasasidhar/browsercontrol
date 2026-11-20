@@ -37,7 +37,7 @@ flowchart LR
 ```
 
 1. The agent calls a tool.
-2. The MCP server resolves the element via `document.elementFromPoint(x, y)` and drives Chromium.
+2. The MCP server finds the numbered element again (by the tag it gave it during detection), checks it hasn't gone stale, and drives Chromium.
 3. Chromium returns a fresh screenshot.
 4. The MCP server annotates the screenshot with numbered red boxes and returns both the image and a textual element map.
 

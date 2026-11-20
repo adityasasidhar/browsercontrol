@@ -53,23 +53,20 @@ When the site gets redesigned, CSS selectors break. SoM numbers don't — they p
 
 ## How BrowserControl implements SoM
 
-1. **Detect** interactive elements (`<a>`, `<button>`, `<input>`, `<select>`, `<textarea>`, `[onclick]`, `[role=button]`, etc.).
-2. **Recurse** into open shadow roots and same-origin iframes with coordinate offset compensation.
-3. **Filter** out elements that are off-screen, hidden, or have zero size.
-4. **Annotate** the screenshot with numbered red boxes drawn at each element's bounding box.
-5. **Return** both the annotated image and the textual element map.
+1. **Detect** interactive elements (`<a>`, `<button>`, `<input>`, `<select>`, `<textarea>`, `[onclick]`, `[role=button]`, etc.), plus framework click targets that only show up as a `cursor: pointer` (React/Vue handlers leave no attribute). A pointer cursor inherited from a parent doesn't count, so a clickable card is one element, not one per child.
+2. **Recurse** into open shadow roots, and run in **every frame** of the page (cross-origin iframes included, via Playwright's frame API), offsetting each frame's boxes by its position on screen.
+3. **Filter** out elements that are off-screen, zero-size, `visibility: hidden`, transparent (`opacity: 0`), or covered by another element (checked by hit-testing the centre and corners). Transparent checkbox, radio, and file inputs are kept, since sites routinely hide them under a styled stand-in. Disabled controls are kept but flagged.
+4. **Tag** each kept element with a `data-bc-id` attribute.
+5. **Annotate** the screenshot with numbered boxes (red, or grey for disabled) drawn with Pillow.
+6. **Return** both the annotated image and the textual element map.
 
-The annotation is done in Python with Pillow — no JS injection, no DOM mutation. The page itself is never modified.
+The `data-bc-id` attribute is the only change made to the page.
 
-## Resolution: element ↔ pixel
+## Resolution: number → element
 
-When the agent calls `click(5)`, BrowserControl doesn't click at the literal center of the box. It does:
+When the agent calls `click(5)`, BrowserControl finds element 5 again by its `data-bc-id`, using a locator scoped to the frame it was found in. Playwright's CSS locators pierce open shadow roots, so the click reaches the numbered element itself, whether it sits in a shadow root, an iframe, or the main document.
 
-```js
-document.elementFromPoint(elem.centerX, elem.centerY)
-```
-
-This returns the **actual** DOM element at those coordinates, which is what the click hits. This is what lets the click get through sticky headers, modals, and overlays that would otherwise fool a coordinate-only clicker.
+Before acting, it checks that the element is still there and still where the screenshot showed it. If it was removed, hidden, or moved by more than a few pixels, the tool doesn't act. It returns `Element 5 is stale (...)` with a fresh screenshot. Element maps are kept per tab, so IDs from one tab never resolve against another.
 
 ## When SoM is not enough
 

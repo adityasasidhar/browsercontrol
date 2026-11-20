@@ -18,9 +18,9 @@ BrowserControl has three runtime components: the **AI agent** (your model + MCP 
 ## The action loop
 
 1. **Agent calls a tool** — e.g. `click(5)`.
-2. **Server resolves the element** — Looks up element 5 from the last SoM pass, then calls `document.elementFromPoint(x, y)` to get the *actual* DOM element (handles overlays, sticky headers, and shadow boundaries).
+2. **Server resolves the element** — Looks up element 5 in the active tab's map from the last SoM pass and finds it again by its `data-bc-id` tag, in its own frame and through shadow DOM. If it was removed or moved since, the tool returns a "stale" error and a fresh screenshot instead of acting.
 3. **Browser executes** — Playwright drives the real Chromium.
-4. **Server re-screenshots** — New screenshot, fresh element detection (with shadow DOM + iframe recursion), numbered boxes drawn with Pillow.
+4. **Server re-screenshots** — New screenshot, fresh element detection in every frame (shadow DOM included), numbered boxes drawn with Pillow.
 5. **Annotated result returns** — Both image and textual map are sent back so the model can pick its preferred representation.
 
 The agent never sees a raw DOM tree. It sees a screenshot and a list of numbered elements.
@@ -38,8 +38,12 @@ The agent never sees a raw DOM tree. It sees a screenshot and a list of numbered
 
 - Owns the Playwright `Browser`, `BrowserContext`, and `Page` instances.
 - Runs `launch_persistent_context` so cookies, `localStorage`, and login state survive restarts.
-- Implements the SoM renderer (detect → annotate → return).
-- Provides `screenshot_with_som()` and `get_element_map()` helpers.
+- Draws the SoM overlay and keeps one element map per tab.
+- Provides `screenshot_with_som()`, `get_element_map()` and `resolve_element(id)`.
+
+### Element detection (`browsercontrol.elements`)
+
+- Collects and tags elements in every frame (`collect_elements`), and resolves an ID back to a live, verified locator (`locate`).
 
 ### Tools (`browsercontrol.tools.*`)
 
@@ -83,8 +87,8 @@ Internally, Chromium is launched with `--proxy-bypass-list=<-loopback>` so the p
 
 Modern web apps love shadow DOM and iframes. Both are first-class in BrowserControl:
 
-- **Shadow DOM** — The SoM renderer recursively descends into open shadow roots. Each shadow root gets its own element map with offset coordinates.
-- **Same-origin iframes** — Recursively scanned, with coordinate offsets so clicks land in the right place.
+- **Shadow DOM** — Detection descends into open shadow roots, and resolution goes through Playwright locators, which pierce them.
+- **Iframes, cross-origin included** — Detection runs in every frame Playwright exposes, and each frame's boxes are offset by where its content sits on screen (border and padding included). Actions run in the element's own frame.
 
 This is one of the things BrowserControl does that most alternatives don't.
 
