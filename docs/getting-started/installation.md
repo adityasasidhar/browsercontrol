@@ -1,35 +1,32 @@
-# Installation
+# Install BrowserControl
 
-Installing BrowserControl also installs the Playwright Python package. BrowserControl selects the browser binary when the MCP server starts.
+Use Python 3.11 or newer on Linux, macOS, or Windows. Allow roughly 300 MB
+if BrowserControl needs to download Chromium.
 
-## Requirements
+## Choose how to run the server
 
-- **Python 3.11+**
-- **Operating system:** Linux, macOS, or Windows
-- **Disk space:** ~300 MB once Chromium is downloaded
-- **Linux:** Chromium may require additional system libraries.
+=== "uv"
 
-## Install with your tool of choice
-
-=== "uv (recommended)"
+    With [uv installed](https://docs.astral.sh/uv/getting-started/installation/),
+    install BrowserControl as a standalone command:
 
     ```bash
-    uv add browsercontrol
+    uv tool install browsercontrol
     ```
 
-    If you don't have `uv` yet:
-
-    ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
+    If uv reports that its tools directory is missing from `PATH`, run
+    `uv tool update-shell`, then open a new terminal.
 
 === "pip"
 
     ```bash
-    pip install browsercontrol
+    python -m pip install browsercontrol
     ```
 
-=== "pipx (isolated CLI)"
+    If you install into a virtual environment, use the full path to its
+    `browsercontrol` executable in your MCP client.
+
+=== "pipx"
 
     ```bash
     pipx install browsercontrol
@@ -43,52 +40,28 @@ Installing BrowserControl also installs the Playwright Python package. BrowserCo
     uv sync
     ```
 
-!!! info "Browser selection at startup"
-    BrowserControl tries Playwright's cached Chromium first, then Google Chrome if installed in a standard location. Chrome uses its own profile, a sibling of the configured one with a `-chrome` suffix, because sharing one profile between Chrome and Chromium builds can corrupt it. If neither starts (missing, or Chrome fails to launch), it downloads Chromium into Playwright's browser cache and retries. A configured `BROWSER_EXECUTABLE_PATH` takes precedence. When `BROWSER_EXTENSION_PATH` is set, automatic browser selection uses Playwright's Chromium for extension support.
+    Tell your client to run `uv --directory /path/to/browsercontrol run browsercontrol`.
+    Replace the path with the absolute path to your checkout.
 
-    To preinstall Chromium or retry a failed download, run this in the environment where BrowserControl is installed. In a uv project, prefix the command with `uv run`.
+You can also [configure your client to run `uvx browsercontrol`](connect-your-ai.md#uvx-pipx-no-install-needed).
+It downloads the package when needed.
 
-    ```bash
-    python -m playwright install chromium
-    ```
+## Browser selection at startup
 
-    On Linux you may also want system deps:
+BrowserControl first looks for Playwright’s cached Chromium, then checks for
+Google Chrome. Chrome uses a separate profile to protect its data. If neither
+browser starts, BrowserControl downloads Chromium. An explicit
+[`BROWSER_EXECUTABLE_PATH`](../configuration.md#browser_executable_path) takes
+precedence. With an extension configured, automatic selection uses Playwright’s
+Chromium.
 
-    ```bash
-    python -m playwright install chromium --with-deps
-    ```
-
-## Verify the install
+To preinstall Chromium or retry a download, run this in a Python environment with
+Playwright installed. In a uv project, prefix the command with `uv run`.
 
 ```bash
-# Show the CLI help
-browsercontrol --help
-
-# Run the server (will block waiting for an MCP client)
-browsercontrol
+python -m playwright install chromium
 ```
 
-If you see a `BrowserControl MCP server initialized with all tools` log line, you're ready to [connect your AI](connect-your-ai.md).
+Linux may need additional system libraries. See [browser startup troubleshooting](../troubleshooting.md#chromium-executable-doesnt-exist).
 
-## Optional: install for a specific Python
-
-=== "pyenv"
-
-    ```bash
-    pyenv install 3.12
-    pyenv shell 3.12
-    pip install browsercontrol
-    ```
-
-=== "conda"
-
-    ```bash
-    conda create -n browsercontrol python=3.12
-    conda activate browsercontrol
-    pip install browsercontrol
-    ```
-
-## Next
-
-- **[Connect it to your AI](connect-your-ai.md)** — drop-in configs for every major client.
-- **[Run your first session](first-session.md)** — a guided walkthrough.
+[Connect your MCP client](connect-your-ai.md){ .md-button .md-button--primary }

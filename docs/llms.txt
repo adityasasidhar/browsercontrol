@@ -1,19 +1,19 @@
 # BrowserControl
 
-> An MCP server that gives AI agents a real browser they can see. Every action returns an annotated screenshot in which each interactive element is overlaid with a numbered red box (the Set of Marks pattern), so the agent acts by referring to a number — `click(7)` — instead of a CSS selector or XPath. Runs locally on the user's machine via Playwright: no cloud API, no per-action cost, no data leaving the host.
+> A local MCP server for browser automation. BrowserControl marks interactive elements in Chromium screenshots with numbered boxes. Agents refer to those IDs in tool calls such as `click(7)`.
 
 Written in Python 3.11+ on FastMCP + Playwright + Pillow. MIT licensed. 39 tools across seven categories: navigation, interaction, forms, content, tabs, devtools, and recording.
 
 Two facts govern correct use and are worth reading before anything else:
 
 - **Element IDs are ephemeral.** The element map is rebuilt from scratch after every click, type, scroll, navigation, tab switch, and screenshot. An ID is valid only against the most recent screenshot; never plan two actions from one screenshot.
-- **Only elements visible in the viewport are marked.** Off-screen elements are filtered out before numbering, so a missing number usually means "scroll", not "absent". Open shadow roots and same-origin iframes are traversed; cross-origin iframes are not.
+- **Only elements visible in the viewport are marked.** Off-screen elements are filtered out before numbering, so a missing number usually means "scroll", not "absent". BrowserControl traverses open shadow roots and iframes, including cross-origin frames.
 
 ## Start here
 
 - [Agent skill (SKILL.md)](https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/skills/browsercontrol/SKILL.md): Complete operating playbook for an agent driving this server — the loop, the failure modes, recipes, and recovery. Read this first if you are the agent.
 - [Set of Marks (SoM)](https://adityasasidhar.github.io/browsercontrol/concepts/set-of-marks/): How the numbering works and why IDs are regenerated every action.
-- [Installation](https://adityasasidhar.github.io/browsercontrol/getting-started/installation/): `uv add browsercontrol` (or pip/pipx) plus the one-time Chromium download.
+- [Installation](https://adityasasidhar.github.io/browsercontrol/getting-started/installation/): Install with uv, pip, or pipx. BrowserControl finds a compatible browser or downloads Chromium on first launch.
 - [Connect your AI](https://adityasasidhar.github.io/browsercontrol/getting-started/connect-your-ai/): MCP client configuration for Claude Code, Claude Desktop, Cursor, and others.
 - [First session](https://adityasasidhar.github.io/browsercontrol/getting-started/first-session/): An end-to-end walkthrough of a real browsing task.
 

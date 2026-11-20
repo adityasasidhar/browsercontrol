@@ -1,6 +1,14 @@
 # Troubleshooting
 
-Solutions to common issues, in roughly the order you'll hit them.
+## Find your symptom
+
+| Symptom | Start here |
+| --- | --- |
+| The client cannot find BrowserControl | [MCP server does not connect](#mcp-server-does-not-connect) |
+| Chromium fails to launch | [Chromium executable doesn't exist](#chromium-executable-doesnt-exist) |
+| A number stops working after an action | [Element IDs expired](#element-ids-expired-after-a-page-change) |
+| A file won’t upload | [File upload fails silently](#file-upload-fails-silently) |
+| A trace won’t open | [View session recordings](#view-session-recordings) |
 
 ## Installation
 
@@ -75,18 +83,21 @@ ls -la ~/.browsercontrol/
 
 Override with `BROWSER_USER_DATA_DIR=/some/writable/path`. See [Configuration](configuration.md#browser_user_data_dir).
 
-### "Connection refused" — port already in use
+### MCP server does not connect
 
-```bash
-pkill -f browsercontrol
-browsercontrol
-```
+BrowserControl uses stdio. Check the MCP logs in your client to see why its
+local server process failed. If the executable is missing, verify the command
+in [your client setup](getting-started/connect-your-ai.md) and try its full path.
+
+If startup failed because the profile is already in use, close the other
+BrowserControl session or assign a separate
+[`BROWSER_USER_DATA_DIR`](configuration.md#browser_user_data_dir).
 
 ## Using
 
 ### Element IDs "expired" after a page change
 
-Element IDs are only valid until the next screenshot. After any navigation, click, or state change, **call the tool again and read the new IDs from the latest screenshot/map**. Tools re-screenshot automatically — your agent just needs to look at the response.
+Element IDs are only valid until the next screenshot. After any navigation, click, or state change, read the current IDs from the latest annotated screenshot or element map before choosing the next action.
 
 !!! tip "The pattern"
     ```text

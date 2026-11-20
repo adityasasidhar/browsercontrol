@@ -13,6 +13,9 @@ your agent loads on demand, only when it's actually driving a browser.
 
 ## Install it
 
+The [Claude Code plugin](connect-your-ai.md#claude-code) already includes this
+skill. Follow the steps below for a manual installation.
+
 The skill lives at
 [`skills/browsercontrol/SKILL.md`](https://github.com/adityasasidhar/browsercontrol/blob/main/skills/browsercontrol/SKILL.md)
 in the repository.

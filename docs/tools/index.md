@@ -1,61 +1,14 @@
-# Tools reference
+# Tool reference
 
-BrowserControl exposes **39 MCP tools** organized into seven categories. Every tool that touches the page returns an **annotated screenshot** plus a textual element map, so the model always has the latest visual context.
+Use this index to find the arguments, return values, and examples for any of
+BrowserControl’s 39 MCP tools. Most tools return an annotated screenshot with
+their result. See [Set of Marks](../concepts/set-of-marks.md) for how to read it.
 
-!!! info "Element IDs are fresh on every response"
-    The `[1]`, `[2]`, … numbers you see in a tool's response are only valid until the next screenshot. After any navigation, click, or state change, **read the new IDs from the latest screenshot/map**. The tools re-screenshot automatically — your agent just needs to look at the response.
+!!! tip "Use IDs from the latest annotated screenshot"
+    If a tool returns a new annotated screenshot, look up the next target in
+    its element map before passing an ID to another tool.
 
-## Categories
-
-<div class="grid cards" markdown>
-
--   :material-compass:{ .lg .middle } **[Navigation](navigation.md)**
-
-    ---
-
-    Navigate the browser: open URLs, history, scroll.
-
--   :material-cursor-default-click:{ .lg .middle } **[Interaction](interaction.md)**
-
-    ---
-
-    Click, type, hover, press keys, wait.
-
--   :material-tab:{ .lg .middle } **[Tabs](tabs.md)**
-
-    ---
-
-    Open, switch, close, and list browser tabs.
-
--   :material-form-select:{ .lg .middle } **[Forms](forms.md)**
-
-    ---
-
-    Dropdowns, checkboxes, file uploads.
-
--   :material-text-box-search:{ .lg .middle } **[Content](content.md)**
-
-    ---
-
-    Read the page: text, markdown, JS evaluation, screenshots.
-
--   :material-tools:{ .lg .middle } **[DevTools](devtools.md)**
-
-    ---
-
-    Console, network, errors, performance, cookies, viewport.
-
--   :material-record-rec:{ .lg .middle } **[Recording](recording.md)**
-
-    ---
-
-    Capture Playwright traces and DOM snapshots for debugging.
-
-</div>
-
-## Quick index
-
-### Navigation
+## Navigation
 
 | Tool | Description |
 |---|---|
@@ -65,19 +18,19 @@ BrowserControl exposes **39 MCP tools** organized into seven categories. Every t
 | [`refresh_page()`](navigation.md#refresh_page) | Reload the current page. |
 | [`scroll(direction, amount)`](navigation.md#scroll) | Scroll the viewport. |
 
-### Interaction
+## Interaction
 
 | Tool | Description |
 |---|---|
-| [`click(element_id)`](interaction.md#click) | Click by SoM number. Resolves the actual DOM element first, so overlays don't fool it. |
+| [`click(element_id)`](interaction.md#click) | Click the element identified by its current screenshot number. |
 | [`click_at(x, y)`](interaction.md#click_at) | Click raw coordinates. |
-| [`type_text(element_id, text)`](interaction.md#type_text) | Atomic `element.fill()` — reliable for forms. |
+| [`type_text(element_id, text)`](interaction.md#type_text) | Replace the text in an editable field. |
 | [`press_key(key)`](interaction.md#press_key) | Any keyboard key: `Enter`, `Tab`, `Escape`, arrows, etc. |
 | [`hover(element_id)`](interaction.md#hover) | Hover for tooltips/menus. |
 | [`scroll_to_element(element_id)`](interaction.md#scroll_to_element) | Scroll the element into view. |
-| [`wait(seconds)`](interaction.md#wait) | Sleep — for animations or lazy-loaded content. |
+| [`wait(seconds)`](interaction.md#wait) | Wait for animations or lazy-loaded content. |
 
-### Tabs
+## Tabs
 
 | Tool | Description |
 |---|---|
@@ -86,7 +39,7 @@ BrowserControl exposes **39 MCP tools** organized into seven categories. Every t
 | [`close_tab(index)`](tabs.md#close_tab) | Close a tab. |
 | [`list_tabs()`](tabs.md#list_tabs) | List all tabs with title, URL, active marker. |
 
-### Forms
+## Forms
 
 | Tool | Description |
 |---|---|
@@ -94,17 +47,17 @@ BrowserControl exposes **39 MCP tools** organized into seven categories. Every t
 | [`check_checkbox(element_id, check=True)`](forms.md#check_checkbox) | Toggle a checkbox. |
 | [`upload_file(element_id, file_path)`](forms.md#upload_file) | Native file upload via `set_input_files`. |
 
-### Content
+## Content
 
 | Tool | Description |
 |---|---|
-| [`get_page_content()`](content.md#get_page_content) | Whole page as Markdown (script/style stripped). |
+| [`get_page_content()`](content.md#get_page_content) | Read page content as Markdown. |
 | [`get_text(element_id)`](content.md#get_text) | Read text from a specific element. |
 | [`get_page_info()`](content.md#get_page_info) | Current URL + title. |
 | [`run_javascript(script)`](content.md#run_javascript) | Run JS, return serialized result + screenshot. |
 | [`screenshot(annotate, full_page)`](content.md#screenshot) | Annotated viewport, clean viewport, or clean full-page. |
 
-### DevTools
+## DevTools
 
 | Tool | Description |
 |---|---|
@@ -120,7 +73,7 @@ BrowserControl exposes **39 MCP tools** organized into seven categories. Every t
 | [`clear_cookies()`](devtools.md#clear_cookies) | Wipe all cookies. |
 | [`set_viewport(width, height)`](devtools.md#set_viewport) | Resize the viewport on the fly. |
 
-### Recording
+## Recording
 
 | Tool | Description |
 |---|---|

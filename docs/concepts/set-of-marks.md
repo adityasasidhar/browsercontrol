@@ -1,66 +1,37 @@
 # Set of Marks (SoM)
 
-**Set of Marks** (SoM) is a visual prompting technique where you draw numbered labels on top of an image to make it easier for a vision-language model to refer to specific parts. BrowserControl uses SoM for every interactive element on the page.
+BrowserControl draws numbered boxes around interactive controls in a screenshot
+and returns the same numbers in a text list. This technique is called **Set of
+Marks**. The agent uses the list and image together to choose its next action.
 
 ## What it looks like
 
-```
-┌─────────────────────────────────────────────────┐
-│  GitHub                          [Sign in]      │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│   ┌──────────────────────┐    ┌──────────────┐  │
-│   │ 1  🔍 Search…        │    │ 2  Pulls     │  │
-│   └──────────────────────┘    │ 3  Issues    │  │
-│                               │ 4  Codespace │  │
-│   ┌───────────────────────┐   └──────────────┘  │
-│   │ 5  Sign in            │                     │
-│   └───────────────────────┘                     │
-└─────────────────────────────────────────────────┘
+![A demo web form with red boxes numbering the visible controls](../assets/images/annotated-web-form.webp){ width="822" height="336" }
 
-Found 5 interactive elements:
-  [1] input - Search or jump to...
-  [2] a - Pulls
-  [3] a - Issues
-  [4] a - Codespaces
-  [5] button - Sign in
-```
+The text input is marked **3** and Submit is marked **2**. An agent could call
+`type_text(3, "Hello")`, then find Submit again in the new response before
+calling `click`.
 
-Every interactive element on the page is overlaid with a numbered red box, and the same elements are returned as a textual list.
+!!! tip "IDs belong to a screenshot and a tab"
+    BrowserControl rebuilds the map whenever it takes an annotated screenshot.
+    Read IDs from the latest response for the active tab.
 
-## Why it beats selectors
+## What gets numbered
 
-| | SoM | CSS selectors | XPath | Accessibility tree |
-|---|---|---|---|---|
-| **Survives redesigns** | ✅ | ❌ | ❌ | ⚠️ partial |
-| **No hallucinated values** | ✅ (pick a number) | ❌ (model invents selectors) | ❌ | ⚠️ |
-| **Tiny tokens** | ✅ (~50 bytes/element) | ❌ | ❌ | ⚠️ |
-| **Vision + text** | ✅ | ❌ text-only | ❌ | ❌ text-only |
-| **Shadow DOM** | ✅ recursive | ⚠️ | ⚠️ | ⚠️ |
-| **iframes** | ✅ with offsets | ⚠️ | ⚠️ | ⚠️ |
+- Visible links, buttons, form controls, and other detected click targets
+  within the viewport.
+- Controls inside open shadow roots and iframes, including cross-origin frames.
+- Disabled controls, which are flagged in the map and drawn in gray.
 
-### The selector problem
-
-CSS selectors and XPath were designed for **humans writing tests**. They assume the author can inspect the DOM and pick a stable path. AI agents don't have that context — they hallucinate `div.flex-container > button.btn-primary:nth-child(3)` and then have to debug when it doesn't work.
-
-### The token problem
-
-A full DOM tree for a moderately complex page is ~50 KB. A SoM element list is ~1 KB — **50× cheaper to send to the model**.
-
-### The drift problem
-
-When the site gets redesigned, CSS selectors break. SoM numbers don't — they point at pixels, which don't change unless the visual layout does.
+Off-screen and covered controls are generally excluded. Styled checkbox,
+radio, and file inputs can still be numbered when the input is transparent.
 
 ## How BrowserControl implements SoM
 
-1. **Detect** interactive elements (`<a>`, `<button>`, `<input>`, `<select>`, `<textarea>`, `[onclick]`, `[role=button]`, etc.), plus framework click targets that only show up as a `cursor: pointer` (React/Vue handlers leave no attribute). A pointer cursor inherited from a parent doesn't count, so a clickable card is one element, not one per child.
-2. **Recurse** into open shadow roots, and run in **every frame** of the page (cross-origin iframes included, via Playwright's frame API), offsetting each frame's boxes by its position on screen.
-3. **Filter** out elements that are off-screen, zero-size, `visibility: hidden`, transparent (`opacity: 0`), or covered by another element (checked by hit-testing the centre and corners). Transparent checkbox, radio, and file inputs are kept, since sites routinely hide them under a styled stand-in. Disabled controls are kept but flagged.
-4. **Tag** each kept element with a `data-bc-id` attribute.
-5. **Annotate** the screenshot with numbered boxes (red, or grey for disabled) drawn with Pillow.
-6. **Return** both the annotated image and the textual element map.
-
-The `data-bc-id` attribute is the only change made to the page.
+1. Detect interactive controls using markup and pointer behavior.
+2. Collect controls from each frame and open shadow root, then filter by visibility.
+3. Assign each control a temporary `data-bc-id` and draw its number on the screenshot.
+4. Return the screenshot and the corresponding element map.
 
 ## Resolution: number → element
 
@@ -68,11 +39,11 @@ When the agent calls `click(5)`, BrowserControl finds element 5 again by its `da
 
 Before acting, it checks that the element is still there and still where the screenshot showed it. If it was removed, hidden, or moved by more than a few pixels, the tool doesn't act. It returns `Element 5 is stale (...)` with a fresh screenshot. Element maps are kept per tab, so IDs from one tab never resolve against another.
 
-## When SoM is not enough
+## Find controls on crowded pages
 
 For pages with hundreds of interactive elements (Google search results, infinite-scroll feeds), the element map gets crowded. Strategies:
 
-- **Scroll first** — call `scroll(direction)` to bring different parts of the page into view, then re-screenshot.
+- **Scroll first** — call `scroll(direction)` to bring different parts of the page into view, and read the new map returned by the tool.
 - **Use `get_text`** — read text from a specific element instead of trying to pick from a noisy screenshot.
 - **Use `run_javascript`** — extract structured data directly from the DOM when you know what you want.
 

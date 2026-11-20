@@ -20,3 +20,11 @@
   <meta name="twitter:image" content="{{ og_image }}">
   <meta name="theme-color" content="#0b0f16">
 {% endblock %}
+
+{% block content %}
+  {% if page.is_homepage %}
+    {{ page.content }}
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
