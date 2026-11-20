@@ -1,196 +1,138 @@
-# Connect your AI
+# Connect an MCP client
 
-BrowserControl speaks MCP stdio, so it works with anything that speaks MCP. Pick your client, paste the config, restart, and you're done.
+Your client launches BrowserControl as a local MCP server over stdio. The
+examples below use `uvx browsercontrol`, which requires
+[uv](https://docs.astral.sh/uv/getting-started/installation/). If you
+[installed BrowserControl](installation.md) separately, use `browsercontrol`
+as the command and omit the arguments.
 
-## Claude Desktop
+## Claude Code
 
-Add to `claude_desktop_config.json`:
+Run this from your project directory, then run `/mcp` in Claude Code
+to check the connection. [Claude Code MCP docs](https://code.claude.com/docs/en/mcp)
 
-- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Linux:** `~/.config/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+```bash
+claude mcp add --transport stdio browsercontrol -- uvx browsercontrol
+```
+
+## Clients that use `mcpServers`
+
+Add the following entry to the indicated settings file. If it already has an
+`mcpServers` object, add the `browsercontrol` entry inside it.
 
 ```json
 {
   "mcpServers": {
     "browsercontrol": {
-      "command": "browsercontrol"
+      "command": "uvx",
+      "args": ["browsercontrol"]
     }
   }
 }
 ```
 
-Restart Claude Desktop. You should see a 🔨 hammer icon in the input box — click it to confirm the tools are loaded.
+| Client | Where the settings live |
+| --- | --- |
+| Claude Desktop | Open **Settings → Developer → Edit Config** to find `claude_desktop_config.json`. |
+| Cursor | Use `.cursor/mcp.json` in your project or `~/.cursor/mcp.json` for all projects. [Cursor docs](https://cursor.com/docs/mcp) |
+| Gemini CLI | Use `.gemini/settings.json` in your project or `~/.gemini/settings.json` for all projects. [Gemini CLI docs](https://geminicli.com/docs/tools/mcp-server/) |
+| Cline | Open **MCP Servers → Configure → Configure MCP Servers**. [Cline docs](https://docs.cline.bot/mcp/mcp-overview) |
+| GitHub Copilot in VS Code | Open **Chat: Open Customizations → MCP Servers → Add Server** and select the destination. In a portable Copilot configuration, add `"type": "stdio"` to the server entry. [VS Code docs](https://code.visualstudio.com/docs/agents/reference/mcp-configuration) |
 
-## Gemini CLI / Google AI Studio
+## Other client formats
 
-Configure MCP servers in Gemini's settings, or via environment:
+=== "OpenCode"
 
-```bash
-export MCP_SERVERS='{"browsercontrol": {"command": "browsercontrol"}}'
-```
+    Add this to your project’s `opencode.json` or to
+    `~/.config/opencode/opencode.json`. This example uses the OpenCode v2
+    format. See the [OpenCode docs](https://opencode.ai/docs/mcp-servers) for
+    version-specific formats. Confirm with `opencode mcp list`.
 
-For Google AI Studio, configure in the MCP settings panel.
-
-## Cline (VS Code)
-
-1. Install [Cline](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev)
-2. Open Cline settings → **MCP Servers** → Add:
-
-```json
-{
-  "browsercontrol": {
-    "command": "browsercontrol"
-  }
-}
-```
-
-## Continue.dev (VS Code / JetBrains)
-
-Add to `~/.continue/config.json`:
-
-```json
-{
-  "mcpServers": [
-    { "name": "browsercontrol", "command": "browsercontrol" }
-  ]
-}
-```
-
-## Cursor IDE
-
-Cursor Settings → **Features** → **Model Context Protocol** → Add:
-
-```json
-{ "browsercontrol": { "command": "browsercontrol" } }
-```
-
-## OpenCode
-
-Add to `opencode.json` — project-local, or global at `~/.config/opencode/opencode.json`:
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "browsercontrol": {
-      "type": "local",
-      "command": ["browsercontrol"],
-      "enabled": true
+    ```json
+    {
+      "mcp": {
+        "servers": {
+          "browsercontrol": {
+            "type": "local",
+            "command": ["uvx", "browsercontrol"]
+          }
+        }
+      }
     }
-  }
-}
-```
+    ```
 
-Or let the CLI write it for you:
+=== "Zed"
 
-```bash
-opencode mcp add
-```
+    Add this to Zed’s settings JSON. [Zed MCP docs](https://zed.dev/docs/ai/mcp)
 
-Run `opencode mcp list` to confirm BrowserControl is connected. To pass environment variables, use the `environment` key rather than `env`:
-
-```json
-{
-  "mcp": {
-    "browsercontrol": {
-      "type": "local",
-      "command": ["browsercontrol"],
-      "environment": { "BROWSER_HEADLESS": "false" }
+    ```json
+    {
+      "context_servers": {
+        "browsercontrol": {
+          "command": "uvx",
+          "args": ["browsercontrol"]
+        }
+      }
     }
-  }
-}
-```
+    ```
 
-## Zed Editor
+=== "Continue"
 
-Add to `~/.config/zed/settings.json`:
+    Add the following to Continue’s `config.yaml`. [Continue MCP docs](https://docs.continue.dev/customize/deep-dives/mcp)
 
-```json
-{
-  "context_servers": {
-    "browsercontrol": {
-      "command": { "path": "browsercontrol" }
-    }
-  }
-}
-```
+    ```yaml
+    mcpServers:
+      - name: browsercontrol
+        type: stdio
+        command: uvx
+        args:
+          - browsercontrol
+    ```
 
-## Python (programmatic)
+## Python
 
-Use the official MCP Python client to drive BrowserControl from a script:
+The MCP Python client can launch BrowserControl from a script. This example
+assumes `uvx` is available on `PATH`.
 
 ```python
 import asyncio
+
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 
 async def main() -> None:
-    params = StdioServerParameters(command="browsercontrol", args=[])
-    async with stdio_client(params) as (read, write):
+    server = StdioServerParameters(command="uvx", args=["browsercontrol"])
+    async with stdio_client(server) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
-            tools = await session.list_tools()
-            result = await session.call_tool("navigate_to", {"url": "https://news.ycombinator.com"})
+            result = await session.call_tool(
+                "navigate_to", {"url": "https://example.com"}
+            )
+            print(result.isError)
 
 
 asyncio.run(main())
 ```
 
-## uvx / pipx (no install needed)
+## Launch options { #uvx-pipx-no-install-needed }
 
-If you don't want to install BrowserControl globally, run it via `uvx` or `pipx`:
+| Installation | Command | Arguments |
+| --- | --- | --- |
+| On demand with uv | `uvx` | `["browsercontrol"]` |
+| On demand with pipx | `pipx` | `["run", "browsercontrol"]` |
+| Standalone install | `browsercontrol` | None |
+| Source checkout | `uv` | `["--directory", "/path/to/browsercontrol", "run", "browsercontrol"]` |
 
-```json
-{
-  "mcpServers": {
-    "browsercontrol": { "command": "uvx", "args": ["browsercontrol"] }
-  }
-}
-```
+A desktop client may have a different `PATH` from your terminal. If it cannot
+find the command, use the executable’s full path. See
+[Configuration](../configuration.md) for environment variables such as
+`BROWSER_HEADLESS=false`.
 
-```json
-{
-  "mcpServers": {
-    "browsercontrol": { "command": "pipx", "args": ["run", "browsercontrol"] }
-  }
-}
-```
+## Verify the connection
 
-## Advanced: environment variables
+Reload the MCP servers or restart your client. Use its MCP tools list to check
+for BrowserControl’s `navigate_to` tool. If the server fails to start, open the
+client’s MCP logs and see [Troubleshooting](../troubleshooting.md).
 
-Pass environment variables to tune the browser:
-
-```json
-{
-  "mcpServers": {
-    "browsercontrol": {
-      "command": "browsercontrol",
-      "env": {
-        "BROWSER_HEADLESS": "false",
-        "BROWSER_VIEWPORT_WIDTH": "1920",
-        "BROWSER_VIEWPORT_HEIGHT": "1080",
-        "LOG_LEVEL": "DEBUG"
-      }
-    }
-  }
-}
-```
-
-See **[Configuration](../configuration.md)** for the full list of environment variables.
-
-## Verifying the connection
-
-Once you've added the config and restarted your client:
-
-1. Look for a tools / MCP indicator in your client's UI.
-2. Ask your agent: _"List the browser tools you have available."_
-3. You should see 39 tools organized into **Navigation**, **Interaction**, **Tabs**, **Forms**, **Content**, **DevTools**, and **Recording**.
-
-If tools are missing, see the [Troubleshooting guide](../troubleshooting.md).
-
-## Next
-
-- **[Run your first session](first-session.md)** — a guided walkthrough.
-- **[Browse the tools](../tools/index.md)** — every MCP tool documented.
+[Run your first session](first-session.md){ .md-button .md-button--primary }

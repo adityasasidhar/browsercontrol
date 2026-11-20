@@ -1,65 +1,24 @@
 # Getting started
 
-Welcome to **BrowserControl** — the vision-first browser automation MCP server. This section walks you from a fresh install to a working agent in under five minutes.
+BrowserControl runs as a local server. Your AI client starts it over MCP stdio
+and calls its tools to control Chromium.
 
-## What you'll do
+## Setup
 
-1. **[Install BrowserControl](installation.md)** — pip / uv / pipx in one command.
-2. **[Connect it to your AI](connect-your-ai.md)** — Claude Desktop, Cursor, Cline, Continue, OpenCode, Zed, or programmatic Python.
-3. **[Run your first session](first-session.md)** — navigate, click, type, and screenshot.
-4. **[Add the agent skill](agent-skill.md)** _(optional)_ — a playbook that teaches your agent to drive the browser well.
+1. [Install BrowserControl](installation.md). Choose a standalone install or let
+   your client launch it with `uvx`.
+2. [Connect an MCP client](connect-your-ai.md). Add the server to your client and
+   confirm its tools are available.
+3. [Run your first session](first-session.md). Open a demo form, fill a field,
+   and verify the submission.
 
-## What you'll need
+You need a client that supports MCP stdio. BrowserControl needs Python 3.11 or
+newer and runs on Linux, macOS, and Windows. If you use `uv`, it can manage
+Python for you.
 
-- **Python 3.11 or newer** on Linux, macOS, or Windows.
-- **An MCP-compatible AI client** — Claude Desktop, Cursor, Cline, Continue, OpenCode, Gemini CLI, or any client that speaks MCP stdio.
-- **No API key, no cloud account, no telemetry.** BrowserControl runs 100% on your machine.
+## After setup
 
-!!! tip "Already have a Python project?"
-    If you're using `uv`, BrowserControl drops in as a normal dependency. At startup it reuses a browser if available and downloads Chromium when needed.
-
-## Quick taste
-
-Once connected, ask your agent:
-
-> _"Open Hacker News and tell me the top story."_
-
-The agent will call the MCP tools:
-
-```
-→ navigate_to("https://news.ycombinator.com")
-→ get_page_content()
-→ "The top story is: ..."
-```
-
-That's the whole loop. No selectors, no XPath, no DOM debugging — just point at numbers.
-
-## Where to next
-
-<div class="grid cards" markdown>
-
--   :material-rocket-launch:{ .lg .middle } **[Install BrowserControl](installation.md)**
-
-    ---
-
-    Pick your installer and get Chromium auto-provisioned.
-
--   :material-link-variant:{ .lg .middle } **[Connect your AI](connect-your-ai.md)**
-
-    ---
-
-    Drop-in configs for every major MCP client.
-
--   :material-school:{ .lg .middle } **[Run your first session](first-session.md)**
-
-    ---
-
-    A guided walkthrough of the most common tools.
-
--   :material-book-open-variant:{ .lg .middle } **[Add the agent skill](agent-skill.md)**
-
-    ---
-
-    A drop-in playbook that makes agents markedly more reliable.
-
-</div>
+- [Add the agent skill](agent-skill.md) if your client supports skills.
+- [Configure BrowserControl](../configuration.md) to show the browser window or
+  choose where the profile and recordings are stored.
+- [Troubleshoot startup](../troubleshooting.md) if the tools don’t appear.

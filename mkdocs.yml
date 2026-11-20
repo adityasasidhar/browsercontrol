@@ -1,12 +1,14 @@
 site_name: BrowserControl
-site_description: Vision-first browser automation for AI agents — local, private, zero-cost.
+site_description: Set up BrowserControl and automate Chromium from an MCP client using annotated screenshots.
 site_url: https://adityasasidhar.github.io/browsercontrol/
 repo_url: https://github.com/adityasasidhar/browsercontrol
-repo_name: adityasasidhar/browsercontrol
+repo_name: GitHub
 edit_uri: edit/main/docs/
 
 docs_dir: docs
 site_dir: site
+exclude_docs: |
+  superpowers/
 
 theme:
   name: material
@@ -107,18 +109,23 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.tilde
 
+validation:
+  links:
+    anchors: warn
+    unrecognized_links: warn
+
 plugins:
   - search
 
 nav:
   - Home: index.md
-  - Getting Started:
+  - Getting started:
       - getting-started/index.md
       - Installation: getting-started/installation.md
-      - Connect your AI: getting-started/connect-your-ai.md
+      - Connect a client: getting-started/connect-your-ai.md
       - First session: getting-started/first-session.md
       - Agent skill: getting-started/agent-skill.md
-  - Tools:
+  - Tool reference:
       - tools/index.md
       - Navigation: tools/navigation.md
       - Interaction: tools/interaction.md
@@ -141,10 +148,11 @@ nav:
       - Set of Marks (SoM): concepts/set-of-marks.md
       - Architecture: concepts/architecture.md
       - How it compares: concepts/comparison.md
-  - Configuration: configuration.md
-  - Troubleshooting: troubleshooting.md
-  - Development: development.md
-  - About:
-      - about/index.md
-      - License: about/license.md
+  - Help:
+      - Configuration: configuration.md
+      - Troubleshooting: troubleshooting.md
+  - Project:
+      - Development: development.md
+      - About: about/index.md
       - Changelog: about/changelog.md
+      - License: about/license.md

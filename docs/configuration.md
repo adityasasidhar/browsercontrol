@@ -1,6 +1,6 @@
 # Configuration
 
-All BrowserControl settings are environment variables. Sensible defaults out of the box.
+Set environment variables in your MCP client or shell. Restart the server after changing a value.
 
 ## Quick reference
 
@@ -11,7 +11,7 @@ All BrowserControl settings are environment variables. Sensible defaults out of 
 | [`BROWSER_VIEWPORT_HEIGHT`](#browser_viewport_width-browser_viewport_height) | `720` | Viewport height in pixels. |
 | [`BROWSER_TIMEOUT`](#browser_timeout) | `30000` | Navigation timeout (ms). |
 | [`BROWSER_USER_DATA_DIR`](#browser_user_data_dir) | `~/.browsercontrol/user_data` | Browser profile dir (cookies, history, extensions persist here). |
-| [`BROWSER_EXTENSION_PATH`](#browser_extension_path) | — | Path to a `.crx`/unpacked extension to load at startup. |
+| [`BROWSER_EXTENSION_PATH`](#browser_extension_path) | — | Directory of an unpacked Chromium extension. |
 | [`BROWSER_EXECUTABLE_PATH`](#browser_executable_path) | — | Chromium binary to drive, for platforms Playwright ships no build for. |
 | [`BROWSER_RECORDINGS_DIR`](#browser_recordings_dir) | `~/.browsercontrol/recordings` | Where to save Playwright traces. |
 | [`BROWSER_SNAPSHOTS_DIR`](#browser_snapshots_dir) | `~/.browsercontrol/snapshots` | Where to save PNG + HTML snapshots. |
@@ -21,11 +21,15 @@ All BrowserControl settings are environment variables. Sensible defaults out of 
 
 ### In MCP client config
 
+Add variables to your server entry. This example uses a client with an `env`
+object. See [client setup](getting-started/connect-your-ai.md) for launch options.
+
 ```json
 {
   "mcpServers": {
     "browsercontrol": {
-      "command": "browsercontrol",
+      "command": "uvx",
+      "args": ["browsercontrol"],
       "env": {
         "BROWSER_HEADLESS": "false",
         "BROWSER_VIEWPORT_WIDTH": "1920",
@@ -127,24 +131,24 @@ BROWSER_USER_DATA_DIR=/var/lib/browsercontrol/profile browsercontrol
 ```
 
 !!! info "Persistent sessions"
-    Because BrowserControl uses `launch_persistent_context`, the profile survives restarts. Log in once, and the session persists forever (until you clear it).
+    BrowserControl reuses the profile across restarts. Sites can still expire your login session.
 
 ### `BROWSER_EXTENSION_PATH`
 
-Path to a Chrome extension to load at startup. Can be a `.crx` file or an unpacked extension directory.
+Set this to the directory of an unpacked Chromium extension.
 
 ```bash
-BROWSER_EXTENSION_PATH=/path/to/extension.crx browsercontrol
 BROWSER_EXTENSION_PATH=/path/to/unpacked/extension browsercontrol
 ```
 
 ### `BROWSER_EXECUTABLE_PATH`
 
 Which Chrome or Chromium binary to drive. Left unset, BrowserControl tries
-Playwright's cached Chromium first, then Google Chrome in its standard install
-location (with its own profile, `BROWSER_USER_DATA_DIR` plus a `-chrome` suffix),
-and downloads Chromium if neither starts. If `BROWSER_EXTENSION_PATH`
-is set, automatic browser selection uses Playwright's Chromium.
+Playwright’s cached Chromium first, then Google Chrome. The Chrome fallback uses
+a separate profile next to the configured profile, with `-chrome` appended to its
+directory name. If neither browser starts, BrowserControl downloads Chromium.
+When `BROWSER_EXTENSION_PATH` is set, automatic selection uses Playwright’s
+Chromium.
 
 Set it when `playwright install chromium` has no build for your platform and
 refuses to install (newer Linux releases hit this), pointing it at a Chrome or

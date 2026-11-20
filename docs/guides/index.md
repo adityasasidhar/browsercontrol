@@ -1,56 +1,14 @@
 # Guides
 
-Real-world patterns for BrowserControl. Each guide is a worked example showing the sequence of tool calls that solves a common task.
+| I want to… | Guide |
+| --- | --- |
+| Find and summarize information on a page | [Web research](web-research.md) |
+| Read console logs, failed requests, and JavaScript errors | [Debug a web app](debug-web-app.md) |
+| Capture a Playwright trace for a repeatable flow | [Record a test run](record-tests.md) |
+| Enter text, select an option, and submit | [Fill a form](fill-forms.md) |
+| Compare information across pages | [Multi-tab research](multi-tab.md) |
+| Check a layout at phone and tablet sizes | [Mobile responsive check](mobile-responsive.md) |
+| Attach a file from the local machine | [Upload a file](upload-files.md) |
 
-## By goal
-
-<div class="grid cards" markdown>
-
--   :material-magnify:{ .lg .middle } **[Web research](web-research.md)**
-
-    ---
-
-    Open a site, search, and summarize the answer.
-
--   :material-bug:{ .lg .middle } **[Debug a web app](debug-web-app.md)**
-
-    ---
-
-    Pull console logs, network requests, and JS errors in 30 seconds.
-
--   :material-record-rec:{ .lg .middle } **[Record a test run](record-tests.md)**
-
-    ---
-
-    Capture a Playwright trace you can rewind and share.
-
--   :material-form-select:{ .lg .middle } **[Fill a form](fill-forms.md)**
-
-    ---
-
-    Type into a contact form end-to-end.
-
--   :material-tab:{ .lg .middle } **[Multi-tab research](multi-tab.md)**
-
-    ---
-
-    Open, switch, and read from multiple tabs in one session.
-
--   :material-cellphone:{ .lg .middle } **[Mobile responsive check](mobile-responsive.md)**
-
-    ---
-
-    Resize the viewport to phone and tablet presets.
-
--   :material-file-upload:{ .lg .middle } **[Upload a file](upload-files.md)**
-
-    ---
-
-    Get through `<input type="file">` reliably.
-
-</div>
-
-## See also
-
-- **[Tools reference](../tools/index.md)** — every MCP tool documented
-- **[Concepts](../concepts/index.md)** — how Set of Marks and the action loop work
+New to BrowserControl? Start with [your first session](../getting-started/first-session.md).
+For tool signatures and defaults, use the [tool reference](../tools/index.md).

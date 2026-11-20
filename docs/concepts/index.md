@@ -1,44 +1,20 @@
 # Concepts
 
-How BrowserControl works under the hood. If you want to debug a tricky case or push the limits, start here.
-
-## What's here
-
-<div class="grid cards" markdown>
-
--   :material-eye-outline:{ .lg .middle } **[Set of Marks (SoM)](set-of-marks.md)**
-
-    ---
-
-    Why numbered boxes beat CSS selectors for AI agents.
-
--   :material-graph-outline:{ .lg .middle } **[Architecture](architecture.md)**
-
-    ---
-
-    The action loop, the components, and the request flow.
-
--   :material-scale-balance:{ .lg .middle } **[How it compares](comparison.md)**
-
-    ---
-
-    BrowserControl vs. Playwright MCP, Stagehand, Browser-Use, AgentQL.
-
-</div>
-
-## Quick mental model
+## How a tool call works
 
 ```mermaid
 flowchart LR
-    A[AI Agent] -- "call_tool('click', 5)" --> B[MCP Server]
-    B -- "page.click(handle)" --> C[Chromium]
-    C -- "screenshot.png" --> B
-    B -- "screenshot + SoM overlay + element map" --> A
+    Agent -->|Call tool| Server[BrowserControl]
+    Server -->|Drive page| Chromium
+    Chromium -->|Return page state| Server
+    Server -->|Return result| Agent
 ```
 
-1. The agent calls a tool.
-2. The MCP server finds the numbered element again (by the tag it gave it during detection), checks it hasn't gone stale, and drives Chromium.
-3. Chromium returns a fresh screenshot.
-4. The MCP server annotates the screenshot with numbered red boxes and returns both the image and a textual element map.
+When the agent calls `click(5)`, BrowserControl resolves **5** from the active
+tab’s latest element map and checks that the element is still in place.
+After the click, it returns a new screenshot and element map for the next action.
 
-That's the whole loop. Read [Architecture](architecture.md) for the details.
+- [Set of Marks](set-of-marks.md) explains what gets numbered and when IDs change.
+- [Architecture](architecture.md) covers tool registration, browser state,
+  and element resolution.
+- [How it compares](comparison.md) describes other browser automation approaches.
