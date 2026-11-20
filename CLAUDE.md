@@ -15,7 +15,7 @@ an element's number (`click(7)`) instead of CSS selectors or XPath.
 This project uses `uv` for all dependency and task management.
 
 ```bash
-uv sync                                    # Install deps (CI uses --all-extras, which adds the `docs` extra)
+uv sync                                    # Install runtime + dev deps (add `--extra docs` for mkdocs)
 uv run playwright install chromium         # One-time: install the browser engine
 
 uv run pytest                              # Run all tests

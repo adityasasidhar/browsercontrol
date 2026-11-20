@@ -8,6 +8,7 @@
 *.py[cod]
 dist/
 .pytest_cache/
+.coverage
 
 # Virtual environments
 .venv/
@@ -27,3 +28,6 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Internal hiring documents (not published)
+/internal/
