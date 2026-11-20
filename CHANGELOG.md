@@ -8,6 +8,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Claude Code plugin and marketplace (`.claude-plugin/`): installs the MCP server and the agent skill together.
 - Issue and PR templates, DCO sign-off check, conventional-commit PR title check.
 - `Makefile`, max-lines pre-commit check, refreshed pre-commit hooks.
 - Reuse an installed Google Chrome when Playwright's Chromium is missing.
