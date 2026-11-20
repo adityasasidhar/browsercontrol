@@ -46,6 +46,20 @@ pattern, used as the primary interface rather than a fallback.
 
 ## Quick start
 
+### Claude Code plugin
+
+The plugin bundles the MCP server and the [agent skill](skills/browsercontrol/SKILL.md)
+in one install. It needs [`uv`](https://docs.astral.sh/uv/) on your `PATH`.
+
+```text
+/plugin marketplace add adityasasidhar/browsercontrol
+/plugin install browsercontrol@browsercontrol
+```
+
+Restart Claude Code (or run `/reload-plugins`) and the `browsercontrol` tools are available.
+
+### Any MCP client
+
 ```bash
 uv add browsercontrol      # or: pip install browsercontrol
 ```
@@ -73,7 +87,7 @@ Point your client at the `browsercontrol` command:
 | Client | Location |
 |---|---|
 | **Claude Desktop** | `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) · `~/.config/Claude/claude_desktop_config.json` (Linux) · `%APPDATA%\Claude\claude_desktop_config.json` (Windows) |
-| **Claude Code** | `claude mcp add browsercontrol -- browsercontrol` |
+| **Claude Code** | Use the [plugin](#claude-code-plugin), or `claude mcp add browsercontrol -- browsercontrol` |
 | **Cursor** | Settings → Model Context Protocol |
 | **Cline** | Settings → MCP Servers |
 | **Continue.dev** | `~/.continue/config.json`, under `mcpServers` |
@@ -140,7 +154,7 @@ A few behaviours that aren't obvious from the names:
 
 ## Teach your agent to use it well
 
-Connecting the server tells an agent *which* tools exist. The bundled
+The Claude Code plugin already includes this skill. For other agents: connecting the server tells an agent *which* tools exist. The bundled
 [agent skill](skills/browsercontrol/SKILL.md) tells it *how to use them well* —
 that numbers expire, that a banner will swallow a click, that a missing number
 means scroll.

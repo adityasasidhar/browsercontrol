@@ -1,0 +1,32 @@
+{
+  "name": "browsercontrol",
+  "version": "0.2.0",
+  "description": "Vision-first browser automation: every action returns a screenshot with numbered boxes over interactive elements, so Claude clicks by number instead of by selector. Bundles the BrowserControl MCP server and its usage skill.",
+  "author": {
+    "name": "Aditya Sasidhar",
+    "url": "https://github.com/adityasasidhar"
+  },
+  "homepage": "https://adityasasidhar.github.io/browsercontrol/",
+  "repository": "https://github.com/adityasasidhar/browsercontrol",
+  "license": "MIT",
+  "keywords": [
+    "browser",
+    "automation",
+    "playwright",
+    "mcp",
+    "set-of-marks",
+    "screenshots",
+    "testing"
+  ],
+  "icon": "assets/logo-main.png",
+  "mcpServers": {
+    "browsercontrol": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "${CLAUDE_PLUGIN_ROOT}",
+        "browsercontrol"
+      ]
+    }
+  }
+}
