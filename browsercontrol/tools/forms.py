@@ -91,7 +91,9 @@ def register_form_tools(mcp: FastMCP) -> None:
                     f"Available options: {available or '(none)'}"
                 )
 
+            target = await browser.codegen_target(element)
             await element.select_option(value=match["value"], timeout=ACTION_TIMEOUT_MS)
+            browser.log_action("select", target, option=match["value"])
 
             selected = await element.evaluate("el => el.value")
             image, summary = await get_screenshot_with_summary(browser)
@@ -144,6 +146,7 @@ def register_form_tools(mcp: FastMCP) -> None:
                 return await disabled_result(browser, element_id, "changed")
 
             await element.scroll_into_view_if_needed(timeout=ACTION_TIMEOUT_MS)
+            target = await browser.codegen_target(element)
             hit = await element.evaluate(CHECK_HIT_JS)
             if hit == "self":
                 # check()/uncheck() are idempotent state setters, unlike a raw click.
@@ -169,6 +172,7 @@ def register_form_tools(mcp: FastMCP) -> None:
                     f"Element {element_id} did not change: checked is still {is_checked}. "
                     "The page may be preventing the change."
                 )
+            browser.log_action("check", target, checked=check)
             image, summary = await get_screenshot_with_summary(browser)
             action = "Checked" if check else "Unchecked"
             return (
@@ -204,7 +208,9 @@ def register_form_tools(mcp: FastMCP) -> None:
 
             logger.info(f"Uploading file '{file_path}' to element {element_id}")
 
+            target = await browser.codegen_target(element)
             await element.set_input_files(str(path), timeout=ACTION_TIMEOUT_MS)
+            browser.log_action("upload", target, path=str(path))
 
             image, summary = await get_screenshot_with_summary(browser)
             return f"Uploaded '{path.name}' to element {element_id}\n\n{summary}", image

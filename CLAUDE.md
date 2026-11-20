@@ -34,6 +34,7 @@ uv run --extra docs mkdocs build --strict  # Build the docs site in docs/ (gated
 
 uv run fastmcp dev browsercontrol/server.py   # Run the server in dev mode with inspector
 browsercontrol                                # Run the installed server (also: python -m browsercontrol)
+browsercontrol --transport http --port 8000   # Streamable HTTP at /mcp (add --isolate-clients)
 ```
 
 CI (`.github/workflows/ci.yml`) gates on the lint job first, then runs tests on
@@ -48,6 +49,25 @@ annotated screenshot + element map is captured → both are returned to the agen
 **`browser.py` — the heart of the system.** Exposes a single module-global
 `browser = BrowserManager()` instance. Key behaviors to understand before
 touching anything:
+
+- **Everything page-related goes through the current session.** The manager
+  holds `Session` objects (`session.py`): `"default"` (the persistent profile, or
+  the Chrome attached over CDP) plus isolated contexts from `create_session`.
+  `browser.session` resolves the session the calling MCP client is bound to via
+  the `current_client` contextvar, which `SessionBindingMiddleware`
+  (`resources.py`) sets per tool call. `_context`, `_page`, `_console_logs`,
+  `_network_requests`, `_page_errors`, and `_request_map` are properties onto
+  that session (tests assign them directly). Code that runs outside a tool call
+  (event listeners) must capture its `Session` explicitly, never read
+  `browser.session`.
+- Launch vs attach: `start()` uses `connect_over_cdp` when `BROWSER_CDP_URL` (or
+  `connect_over_cdp()`) set a URL, else `launch_persistent_context`. In CDP mode
+  the default context is the user's own browser: `stop()` only disconnects, and
+  the agent gets a new tab instead of taking over an existing one.
+- **Tools call `await browser.settle()` after acting**, not
+  `wait_for_load_state`. It waits for DOMContentLoaded, then in-flight requests
+  (`network_quiet` over the session's `request_map`), then DOM mutations, all
+  bounded by `BROWSER_SETTLE_TIMEOUT`.
 
 - `screenshot_with_som()` is called at the end of nearly every tool. It takes a
   screenshot, runs `get_interactive_elements()`, draws the numbered boxes, and
@@ -76,20 +96,43 @@ by the iframe border for elements inside cross-origin frames.
   (`~/.browsercontrol/user_data` by default), so cookies, localStorage, and login
   state persist across server restarts. Launch args include localhost proxy
   bypass to avoid `ERR_CONNECTION_REFUSED`.
-- DevTools data (console logs, network requests, page errors) is captured by
-  event listeners attached in `_setup_page_listeners`, auto-wired to every new
-  page/popup, and stored in capped in-memory ring buffers on the manager.
+- Captured data lives on the `Session`, filled by `attach_page_listeners` in
+  `session.py` (auto-wired to every new page/popup of that session's context):
+  console, page errors, network (with headers, POST data, and the live
+  `Response` kept under `_response` so bodies are read on demand), JS dialogs
+  (answered per `session.dialog_policy`), and downloads (saved to
+  `BROWSER_DOWNLOADS_DIR`). Dialogs and downloads push `session.notices`, which
+  `get_screenshot_with_summary` drains into `Notice:` lines at the top of the
+  next tool result. Keys starting with `_` are internal and stripped before
+  serializing (resources, HAR).
+- **Codegen action log.** `export_test` (`codegen.py`) renders
+  `session.actions`. Element tools call `target = await
+  browser.codegen_target(locator)` *before* acting (it verifies role/label/text/
+  CSS candidates against the live page, which may navigate away afterwards) and
+  `browser.log_action(kind, target, ...)` *after* success. `log_action` drops
+  the text of password fields. New element actions should do the same, and
+  `codegen._step` needs a renderer for any new action kind.
+- Emulation (`emulation.py`) uses a per-page CDP session for user agent, touch,
+  timezone, and throttling, but screen size must go through
+  `page.set_viewport_size`: Playwright re-applies its own viewport on every
+  screenshot, wiping a CDP device-metrics override. Settings are stored in
+  `session.emulation` and re-applied to new tabs.
 
 **`server.py` — composition root.** Creates the `FastMCP` instance, attaches a
-`lifespan` context manager that starts/stops the browser, and calls each
-`register_*_tools(mcp)`. The server-level `instructions` string is the prompt the
+`lifespan` context manager that starts/stops the browser, adds
+`SessionBindingMiddleware`, calls each `register_*_tools(mcp)`, and registers the
+`browser://` resources (`resources.py`; they read the caller's session and never
+start the browser). `__main__.py` picks the transport (`--transport`/
+`BROWSER_TRANSPORT`) and warns when HTTP binds a non-loopback host, since there
+is no auth. The server-level `instructions` string is the prompt the
 agent sees describing available tools. It is hand-maintained; update it whenever
 you add, rename, or remove a tool or change its parameters.
 `tests/test_server.py` fails if the `- name(params)` lines drift from the
 registered tools.
 
-**`tools/` — one module per category** (navigation, interaction, forms, content,
-devtools, recording, tabs). Each exports a single `register_<category>_tools(mcp)`
+**`tools/` — one module per category** (navigation, search, interaction, batch,
+waiting, forms, content, extract, devtools, network, emulate, recording, tabs,
+sessions). Each exports a single `register_<category>_tools(mcp)`
 function that defines inner `async` functions decorated with `@mcp.tool()`.
 Conventions every tool follows:
 
@@ -97,6 +140,9 @@ Conventions every tool follows:
   annotated screenshot.
 - Starts with `await browser.ensure_started()` (lazily boots the browser if the
   lifespan hasn't, e.g. in some test paths).
+- Data-only tools (extraction, network details, listings) return `str` with no
+  screenshot. `act` (`tools/batch.py`) has its own per-step executor rather than
+  calling other tools; a new element action usually needs a step there too.
 - Ends by building the result via `get_screenshot_with_summary(browser)` from
   `tools/_summary.py`. It takes the manager as an argument on purpose: passing
   the module's own `browser` keeps the per-module test patching working.
@@ -109,14 +155,22 @@ import time, env changes require a server restart.
 ## Testing conventions
 
 Almost all tests **do not launch a real browser** — everything is mocked. The
-exception is `tests/test_som_real_browser.py` (marker `browser`), which drives a
-real headless Chromium or installed Chrome against fixture pages served on two
-local origins, and skips when no browser is available. Run it after any change to
-`elements.py`: mocks cannot tell whether an ID reaches the right element. The
-mocked pattern:
+exceptions (marker `browser`, skipped when no browser is available) drive a real
+headless Chromium or installed Chrome against local fixture pages:
+`tests/test_som_real_browser.py` (Set of Marks; run it after any change to
+`elements.py`: mocks cannot tell whether an ID reaches the right element) and
+`tests/test_features_real_browser.py` (find, act, dialogs, downloads, settling,
+network, extraction, emulation, sessions, CDP attach, HTTP transport, and a
+generated test replayed in a separate Playwright process). Run the second after
+touching `session.py`, `emulation.py`, `codegen.py`, or the tools that use them:
+two of its bugs (viewport reset on screenshot, throttling undoing offline) were
+invisible to mocks. The mocked pattern:
 
 - `tests/conftest.py` provides `mock_browser_manager` (a fully stubbed
-  `BrowserManager`), `mock_page`, `mock_context`, and `sample_element_map`.
+  `BrowserManager`), `mock_page`, `mock_context`, and `sample_element_map`. The
+  stub is a `MagicMock`, so any new **async** manager method a tool awaits (like
+  `settle`, `codegen_target`) must be added there as an `AsyncMock`, or every
+  tool test using it fails with "can't be used in 'await' expression".
 - A test registers the tools onto a throwaway `FastMCP("test")`, then patches the
   module-level `browser` symbol **in that specific tool module** (e.g.
   `patch("browsercontrol.tools.navigation.browser", mock_browser_manager)`) —
@@ -143,6 +197,9 @@ handling, following the existing per-module test files.
 - Tools must build results via the shared `get_screenshot_with_summary` helper;
   `tests/test_element_summary.py` fails if a tool module defines its own copy.
 - Keep tool docstrings actionable: FastMCP exposes them to clients.
+- Every file is capped at 800 lines (pre-commit `max-lines`). `browser.py` is close to
+  it, so put new manager-adjacent logic in its own module (as `session.py`,
+  `emulation.py`, and `codegen.py` do) rather than growing the manager.
 - Pre-commit hooks (ruff lint + format, bandit, and the standard
   whitespace/YAML/TOML/JSON file checks) run on commit;
   `git commit --no-verify` bypasses them but CI will still enforce them.

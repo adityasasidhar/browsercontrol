@@ -19,6 +19,24 @@ class Config:
     recordings_dir: Path = Path.home() / ".browsercontrol" / "recordings"
     snapshots_dir: Path = Path.home() / ".browsercontrol" / "snapshots"
 
+    downloads_dir: Path = Path.home() / ".browsercontrol" / "downloads"
+    generated_tests_dir: Path = Path.home() / ".browsercontrol" / "generated_tests"
+
+    # Attach to an already running Chrome (e.g. http://localhost:9222) instead of
+    # launching one, so the agent uses that browser's logged-in sessions.
+    cdp_url: str | None = None
+
+    # Upper bound for the post-action settle (load, network quiet, DOM quiet).
+    settle_timeout_ms: int = 3000
+
+    # Give every MCP client its own isolated browser context automatically.
+    isolate_clients: bool = False
+
+    # MCP transport: "stdio" (default), "http" (Streamable HTTP) or "sse".
+    transport: str = "stdio"
+    host: str = "127.0.0.1"
+    port: int = 8000
+
     # Chromium binary to drive. Left unset, Playwright uses its own bundled
     # build; set it when Playwright ships no build for the host platform.
     executable_path: Path | None = None
@@ -57,6 +75,17 @@ class Config:
         if executable_path:
             config.executable_path = Path(executable_path)
 
+        config.cdp_url = os.getenv("BROWSER_CDP_URL") or None
+
+        if os.getenv("BROWSER_SETTLE_TIMEOUT"):
+            config.settle_timeout_ms = int(os.getenv("BROWSER_SETTLE_TIMEOUT", "3000"))
+
+        config.isolate_clients = os.getenv("BROWSER_ISOLATE_CLIENTS", "").lower() == "true"
+        config.transport = os.getenv("BROWSER_TRANSPORT", config.transport).lower()
+        config.host = os.getenv("BROWSER_HOST", config.host)
+        if os.getenv("BROWSER_PORT"):
+            config.port = int(os.getenv("BROWSER_PORT", "8000"))
+
         # Recordings and snapshots sit beside the profile unless overridden, so
         # pointing BROWSER_USER_DATA_DIR elsewhere keeps them together.
         recordings_dir = os.getenv("BROWSER_RECORDINGS_DIR")
@@ -67,6 +96,16 @@ class Config:
         snapshots_dir = os.getenv("BROWSER_SNAPSHOTS_DIR")
         config.snapshots_dir = (
             Path(snapshots_dir) if snapshots_dir else config.user_data_dir.parent / "snapshots"
+        )
+
+        downloads_dir = os.getenv("BROWSER_DOWNLOADS_DIR")
+        config.downloads_dir = (
+            Path(downloads_dir) if downloads_dir else config.user_data_dir.parent / "downloads"
+        )
+
+        tests_dir = os.getenv("BROWSER_GENERATED_TESTS_DIR")
+        config.generated_tests_dir = (
+            Path(tests_dir) if tests_dir else config.user_data_dir.parent / "generated_tests"
         )
 
         # Logging

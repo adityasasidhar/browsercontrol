@@ -2,7 +2,7 @@
 
 > A local MCP server for browser automation. BrowserControl marks interactive elements in Chromium screenshots with numbered boxes. Agents refer to those IDs in tool calls such as `click(7)`.
 
-Written in Python 3.11+ on FastMCP + Playwright + Pillow. MIT licensed. 39 tools across seven categories: navigation, interaction, forms, content, tabs, devtools, and recording.
+Written in Python 3.11+ on FastMCP + Playwright + Pillow. MIT licensed. 69 tools across twelve categories: navigation (with whole-page `find`), interaction (with `act` batching), waiting and dialogs, forms, content, extraction, tabs, sessions (including attaching to the user's own Chrome over CDP), devtools, network control, emulation, and recording (including export to a Playwright test). Captured data is also exposed as MCP resources, and the server speaks stdio or Streamable HTTP.
 
 Two facts govern correct use and are worth reading before anything else:
 
@@ -20,13 +20,18 @@ Two facts govern correct use and are worth reading before anything else:
 ## Tool reference
 
 - [All tools](https://adityasasidhar.github.io/browsercontrol/tools/): Index of every tool with signatures and return types.
-- [Navigation](https://adityasasidhar.github.io/browsercontrol/tools/navigation/): `navigate_to`, `go_back`, `go_forward`, `refresh_page`, `scroll`.
-- [Interaction](https://adityasasidhar.github.io/browsercontrol/tools/interaction/): `click`, `click_at`, `type_text`, `press_key`, `hover`, `scroll_to_element`, `wait`.
+- [Navigation](https://adityasasidhar.github.io/browsercontrol/tools/navigation/): `navigate_to`, `go_back`, `go_forward`, `refresh_page`, `scroll`, `find`.
+- [Interaction](https://adityasasidhar.github.io/browsercontrol/tools/interaction/): `click`, `double_click`, `right_click`, `click_at`, `type_text`, `press_key`, `hover`, `drag`, `scroll_to_element`, `wait`, `act`.
+- [Waiting & dialogs](https://adityasasidhar.github.io/browsercontrol/tools/waiting/): `wait_for`, `handle_dialog`, `list_downloads`.
+- [Extraction](https://adityasasidhar.github.io/browsercontrol/tools/extraction/): `extract_table`, `extract_links`, `extract`.
+- [Network control](https://adityasasidhar.github.io/browsercontrol/tools/network/): `mock_route`, `clear_mocks`, `wait_for_response`, `export_har`.
+- [Emulation](https://adityasasidhar.github.io/browsercontrol/tools/emulation/): `list_devices`, `emulate_device`, `set_geolocation`, `set_timezone`, `set_color_scheme`, `throttle_network`, `reset_emulation`.
+- [Sessions](https://adityasasidhar.github.io/browsercontrol/tools/sessions/): `connect_to_chrome`, `disconnect_chrome`, `create_session`, `switch_session`, `list_sessions`, `close_session`.
 - [Forms](https://adityasasidhar.github.io/browsercontrol/tools/forms/): `select_option`, `check_checkbox`, `upload_file`.
 - [Content](https://adityasasidhar.github.io/browsercontrol/tools/content/): `get_page_content`, `get_text`, `get_page_info`, `run_javascript`, `screenshot`.
 - [Tabs](https://adityasasidhar.github.io/browsercontrol/tools/tabs/): `create_tab`, `switch_tab`, `close_tab`, `list_tabs`.
-- [DevTools](https://adityasasidhar.github.io/browsercontrol/tools/devtools/): `get_console_logs`, `get_network_requests`, `get_page_errors`, `run_in_console`, `inspect_element`, `get_page_performance`, cookie tools, `set_viewport`.
-- [Recording](https://adityasasidhar.github.io/browsercontrol/tools/recording/): `start_recording`, `stop_recording`, `take_snapshot`, `list_recordings`.
+- [DevTools](https://adityasasidhar.github.io/browsercontrol/tools/devtools/): `get_console_logs`, `get_network_requests`, `get_page_errors`, `run_in_console`, `inspect_element`, `get_page_performance`, `get_request_details`, cookie tools, `set_viewport`.
+- [Recording](https://adityasasidhar.github.io/browsercontrol/tools/recording/): `start_recording`, `stop_recording`, `take_snapshot`, `list_recordings`, `export_test`.
 
 ## Guides
 

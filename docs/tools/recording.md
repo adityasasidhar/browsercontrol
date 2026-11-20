@@ -111,6 +111,43 @@ Snapshots:
 
 ---
 
+## `export_test`
+
+Turn what the agent did into a replayable Playwright test.
+
+```python
+export_test(name: str = "", language: str = "python", clear: bool = False) -> str
+```
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `name` | `str` | timestamp | Test and file name. |
+| `language` | `str` | `"python"` | `python` (pytest-playwright) or `typescript` (`@playwright/test`). |
+| `clear` | `bool` | `False` | Empty the action log afterwards. |
+
+Every action is logged with locators a person would write (test id, role and
+name, label, placeholder, text, falling back to a CSS path), each checked against
+the live page to match exactly that one element before the action ran. Frames,
+dialog answers, and request mocks are reproduced. Typed passwords are never
+stored; the test reads them from `BC_SECRET_n` environment variables.
+`start_recording()` restarts the log, so a trace and a test can describe the same run.
+
+```python
+def test_checkout(page: Page) -> None:
+    page.goto("https://shop.test/")
+    page.get_by_role("textbox", name="Email", exact=True).fill("ada@example.com")
+    page.get_by_label("Password", exact=True).fill(os.environ["BC_SECRET_1"])
+    page.once("dialog", lambda dialog: dialog.accept())
+    page.get_by_role("button", name="Pay", exact=True).click()
+    expect(page.get_by_text("Order confirmed").first).to_be_visible()
+```
+
+Files land in `BROWSER_GENERATED_TESTS_DIR` (`~/.browsercontrol/generated_tests`).
+Review them before committing: an agent's exploration often includes steps a
+test does not need.
+
+---
+
 ## Custom paths
 
 Override the storage directories via env vars:

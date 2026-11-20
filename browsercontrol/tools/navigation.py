@@ -1,4 +1,3 @@
-import contextlib
 import logging
 
 from fastmcp import FastMCP
@@ -45,8 +44,8 @@ def register_navigation_tools(mcp: FastMCP) -> None:
                 else:
                     raise e
 
-            with contextlib.suppress(Exception):
-                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await browser.settle()
+            browser.log_action("navigate", url=url)
             image, summary = await get_screenshot_with_summary(browser)
             return f"Navigated to {url}\n\n{summary}", image
         except Exception as e:
@@ -63,8 +62,8 @@ def register_navigation_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             await browser.page.go_back(timeout=config.timeout_ms)
-            with contextlib.suppress(Exception):
-                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await browser.settle()
+            browser.log_action("back")
             image, summary = await get_screenshot_with_summary(browser)
             return f"Navigated back\n\n{summary}", image
         except Exception as e:
@@ -78,8 +77,8 @@ def register_navigation_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             await browser.page.go_forward(timeout=config.timeout_ms)
-            with contextlib.suppress(Exception):
-                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await browser.settle()
+            browser.log_action("forward")
             image, summary = await get_screenshot_with_summary(browser)
             return f"Navigated forward\n\n{summary}", image
         except Exception as e:
@@ -93,8 +92,8 @@ def register_navigation_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             await browser.page.reload(timeout=config.timeout_ms)
-            with contextlib.suppress(Exception):
-                await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
+            await browser.settle()
+            browser.log_action("reload")
             image, summary = await get_screenshot_with_summary(browser)
             return f"Page refreshed\n\n{summary}", image
         except Exception as e:
@@ -119,11 +118,13 @@ def register_navigation_tools(mcp: FastMCP) -> None:
 
             if amount == "top":
                 await browser.page.evaluate("window.scrollTo(0, 0)")
+                browser.log_action("scroll", dx=0, dy=-1_000_000)
                 image, summary = await get_screenshot_with_summary(browser)
                 return f"Scrolled to top\n\n{summary}", image
 
             if amount == "bottom":
                 await browser.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                browser.log_action("scroll", dx=0, dy=1_000_000)
                 image, summary = await get_screenshot_with_summary(browser)
                 return f"Scrolled to bottom\n\n{summary}", image
 
@@ -143,6 +144,9 @@ def register_navigation_tools(mcp: FastMCP) -> None:
             elif direction == "right":
                 await browser.page.evaluate(f"window.scrollBy({pixels}, 0)")
 
+            dx = {"left": -pixels, "right": pixels}.get(direction, 0)
+            dy = {"up": -pixels, "down": pixels}.get(direction, 0)
+            browser.log_action("scroll", dx=dx, dy=dy)
             image, summary = await get_screenshot_with_summary(browser)
             return f"Scrolled {direction} by {pixels}px\n\n{summary}", image
 

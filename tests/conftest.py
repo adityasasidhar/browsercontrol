@@ -126,4 +126,8 @@ def mock_browser_manager(mock_page, mock_context, mock_browser):
         mock_mgr.list_tabs = AsyncMock(return_value=[])
         mock_mgr.get_element_map = MagicMock(return_value={})
         mock_mgr.resolve_element = AsyncMock(return_value=AsyncMock())
+        mock_mgr.settle = AsyncMock()
+        mock_mgr.codegen_target = AsyncMock(return_value=None)
+        mock_mgr.log_action = MagicMock()
+        mock_mgr.drain_notices = MagicMock(return_value=[])
         yield mock_mgr

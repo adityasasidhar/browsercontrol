@@ -145,6 +145,20 @@ find the command, use the executable’s full path. See
 [Configuration](../configuration.md) for environment variables such as
 `BROWSER_HEADLESS=false`.
 
+## Share one browser over HTTP
+
+Clients that connect to a URL instead of launching a command can use
+Streamable HTTP. Start the server yourself:
+
+```bash
+uvx browsercontrol --transport http --port 8000
+```
+
+and point the client at `http://127.0.0.1:8000/mcp`. Add `--isolate-clients`
+to give each connected client its own browser session. There is no
+authentication, so keep the default `127.0.0.1` host unless the network is
+trusted. See [`BROWSER_TRANSPORT`](../configuration.md#browser_transport).
+
 ## Verify the connection
 
 Reload the MCP servers or restart your client. Use its MCP tools list to check

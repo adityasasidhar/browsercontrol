@@ -206,6 +206,7 @@ class TestBrowserLifecycle:
             with patch("browsercontrol.browser.config") as mock_config:
                 mock_config.executable_path = "/usr/bin/google-chrome"
                 mock_config.extension_path = None
+                mock_config.cdp_url = None
                 mock_config.headless = True
                 mock_config.viewport_width = 1280
                 mock_config.viewport_height = 720
@@ -232,6 +233,7 @@ class TestBrowserLifecycle:
             with patch("browsercontrol.browser.config") as mock_config:
                 mock_config.executable_path = "/usr/bin/google-chrome"
                 mock_config.extension_path = None
+                mock_config.cdp_url = None
                 mock_config.headless = True
                 mock_config.viewport_width = 1280
                 mock_config.viewport_height = 720

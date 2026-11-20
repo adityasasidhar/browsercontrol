@@ -101,6 +101,9 @@ type_text(element_id: int, text: str) -> tuple[str, Image]
 
 ## `press_key`
 
+Key combinations work too: `Control+A`, `Shift+Tab`, `ControlOrMeta+C` (copy on any OS).
+
+
 Press a single keyboard key.
 
 ```python
@@ -169,6 +172,71 @@ wait(seconds: float = 1.0) -> tuple[str, Image]
 ```text
 → wait(0.5)                                # short pause for an animation
 → wait(3.0)                                # wait for a slow fetch
+```
+
+---
+
+## `double_click`
+
+```python
+double_click(element_id: int) -> tuple[str, Image]
+```
+
+## `right_click`
+
+Opens the element's context menu.
+
+```python
+right_click(element_id: int) -> tuple[str, Image]
+```
+
+## `drag`
+
+Drag one element onto another (sortable lists, kanban boards, file drop zones
+built on HTML5 drag-and-drop).
+
+```python
+drag(source_id: int, target_id: int) -> tuple[str, Image]
+```
+
+---
+
+## `act`
+
+Run several steps in one call and get one screenshot back, saving round-trips
+on forms and multi-step flows.
+
+```python
+act(steps: list[dict], stop_on_error: bool = True) -> tuple[str, Image]
+```
+
+Each step is an object with `action` plus its fields:
+
+| `action` | Fields |
+|---|---|
+| `click`, `double_click`, `right_click`, `hover` | `element_id` |
+| `type` | `element_id`, `text` |
+| `select` | `element_id`, `option` |
+| `check` | `element_id`, `checked` (default `true`) |
+| `drag` | `element_id`, `target_id` |
+| `press` | `key` |
+| `scroll` | `direction`, `amount` |
+| `navigate` | `url` |
+| `wait` | `seconds` |
+| `wait_for` | `text` or `selector`, `timeout_seconds` |
+
+All element IDs refer to the screenshot taken **before** the call. A step whose
+element has gone (after a navigation, say) fails as stale, so put navigation last.
+At most 25 steps.
+
+```text
+→ act([{"action": "type", "element_id": 3, "text": "ada@example.com"},
+       {"action": "type", "element_id": 4, "text": "hunter2"},
+       {"action": "click", "element_id": 5}])
+Ran 3 of 3 step(s), 0 failed:
+  1. ok: typed 'ada@example.com' into [3]
+  2. ok: typed ******* into [4]
+  3. ok: clicked [5]
 ```
 
 ---

@@ -58,6 +58,8 @@ def register_devtools(mcp: FastMCP) -> None:
         """
         Get captured network requests (API calls, resources, etc.).
 
+        Each line starts with a #id; pass it to get_request_details for headers and body.
+
         Args:
             num_requests: Number of recent requests to return. Defaults to 30.
             clear: If True, clear the captured requests after returning them
@@ -86,6 +88,8 @@ def register_devtools(mcp: FastMCP) -> None:
                         url = url[:77] + "..."
 
                     line = f"{method} {url} -> {status}"
+                    if req.get("id") is not None:
+                        line = f"#{req['id']} {line}"
                     if duration:
                         line += f" ({duration}ms)"
                     request_lines.append(line)
