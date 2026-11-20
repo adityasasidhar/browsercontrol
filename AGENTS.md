@@ -40,10 +40,10 @@ uv run bandit -c pyproject.toml -r . --exclude ./tests,./.venv
 
 Cover both success and graceful-error paths. Tool tests should register against a throwaway `FastMCP` instance and patch the tool module's imported `browser`. New browser-changing tools should call `await browser.ensure_started()` and return a fresh annotated screenshot with an element summary. Element IDs are valid only for the latest screenshot.
 
-Three things the tooling will not catch for you:
+Things to know when adding or changing tools:
 
-- **Register a tool, then update the server `instructions` string.** The prompt in `browsercontrol/server.py` is hand-maintained and is the only description MCP clients receive. A tool missing from it is invisible to agents even though tests and CI pass.
-- **`_get_screenshot_with_summary()` is duplicated verbatim** in `tools/forms.py`, `tools/navigation.py`, `tools/content.py`, `tools/devtools.py`, and `tools/interaction.py` (`tools/tabs.py` imports the `content.py` copy). Changing the summary format means editing every copy, or tools will silently return differently-shaped summaries.
+- **Register a tool, then update the server `instructions` string.** The prompt in `browsercontrol/server.py` is hand-maintained and is the only description MCP clients receive. `tests/test_server.py` fails if a registered tool or its parameter names are missing from it, but the prose descriptions are still yours to keep accurate.
+- **Build results with `get_screenshot_with_summary(browser)`** from `browsercontrol/tools/_summary.py`. Pass the tool module's own `browser` so tests that patch it keep working; `tests/test_element_summary.py` fails if a module defines its own copy.
 - **`config.py` calls `Config.from_env()` at import time.** Changing a `BROWSER_*` variable has no effect on a running server; restart it.
 
 ## Commits & Pull Requests

@@ -15,7 +15,7 @@ an element's number (`click(7)`) instead of CSS selectors or XPath.
 This project uses `uv` for all dependency and task management.
 
 ```bash
-uv sync                                    # Install deps (use --all-extras in CI to include dev group)
+uv sync                                    # Install deps (CI uses --all-extras, which adds the `docs` extra)
 uv run playwright install chromium         # One-time: install the browser engine
 
 uv run pytest                              # Run all tests
@@ -29,6 +29,7 @@ uv run ruff format .                       # Format (line length 100, double quo
 uv run mypy browsercontrol/                # Type-check (strict mode)
 uv run bandit -c pyproject.toml -r . --exclude ./tests,./.venv   # Security scan
 uv run pre-commit run --all-files          # Run every hook (mirrors the CI lint job)
+uv run --extra docs mkdocs build --strict  # Build the docs site in docs/ (gated in docs.yml)
 
 uv run fastmcp dev browsercontrol/server.py   # Run the server in dev mode with inspector
 browsercontrol                                # Run the installed server (also: python -m browsercontrol)
@@ -66,7 +67,10 @@ Key behaviors to understand before touching anything:
 **`server.py` — composition root.** Creates the `FastMCP` instance, attaches a
 `lifespan` context manager that starts/stops the browser, and calls each
 `register_*_tools(mcp)`. The server-level `instructions` string is the prompt the
-agent sees describing available tools — keep it in sync when adding tools.
+agent sees describing available tools. It is hand-maintained; update it whenever
+you add, rename, or remove a tool or change its parameters.
+`tests/test_server.py` fails if the `- name(params)` lines drift from the
+registered tools.
 
 **`tools/` — one module per category** (navigation, interaction, forms, content,
 devtools, recording, tabs). Each exports a single `register_<category>_tools(mcp)`
@@ -77,9 +81,9 @@ Conventions every tool follows:
   annotated screenshot.
 - Starts with `await browser.ensure_started()` (lazily boots the browser if the
   lifespan hasn't, e.g. in some test paths).
-- Ends by building the result via a local `_get_screenshot_with_summary()`
-  helper. **This helper is duplicated verbatim in several tool modules** — if you
-  change the summary format, update every copy.
+- Ends by building the result via `get_screenshot_with_summary(browser)` from
+  `tools/_summary.py`. It takes the manager as an argument on purpose: passing
+  the module's own `browser` keeps the per-module test patching working.
 
 **`config.py`** — a `Config` dataclass loaded once at import via
 `Config.from_env()` into a global `config`. All settings come from `BROWSER_*`
