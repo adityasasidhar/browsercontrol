@@ -1,0 +1,56 @@
+name: PR checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    name: Conventional commit title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(fix|feat|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?: .+'
+          if ! [[ "$PR_TITLE" =~ $pattern ]]; then
+            echo "PR title must follow Conventional Commits, e.g. 'feat(tools): add x'."
+            echo "Got: $PR_TITLE"
+            exit 1
+          fi
+
+  dco:
+    name: DCO sign-off
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Signed-off-by trailers
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          status=0
+          for sha in $(git rev-list --no-merges "origin/${BASE_REF}..HEAD"); do
+            author_email=$(git log -1 --format='%ae' "$sha")
+            author_name=$(git log -1 --format='%an' "$sha")
+            case "$author_name" in *"[bot]") continue ;; esac
+            if ! git log -1 --format='%B' "$sha" | grep -qi '^Signed-off-by: .*<.*>'; then
+              echo "Commit $sha by $author_email is missing a Signed-off-by line."
+              status=1
+            fi
+          done
+          if [ "$status" -ne 0 ]; then
+            echo "Fix with: git rebase --signoff origin/${BASE_REF} && git push --force-with-lease"
+          fi
+          exit $status
