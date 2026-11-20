@@ -8,6 +8,7 @@
 *.py[cod]
 dist/
 .pytest_cache/
+.coverage
 
 # Virtual environments
 .venv/
