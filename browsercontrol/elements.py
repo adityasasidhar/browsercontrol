@@ -8,7 +8,10 @@ so an action reaches the element that was numbered rather than whatever happens
 to sit at its old screen position.
 """
 
+import asyncio
 import logging
+import re
+from collections.abc import Sequence
 from typing import Any
 
 from playwright.async_api import Error as PlaywrightError
@@ -21,15 +24,30 @@ ATTR = "data-bc-id"
 # A box that drifts further than this between screenshot and action counts as moved.
 MOVE_TOLERANCE_PX = 3.0
 
+# Pause before re-measuring a moved element, to tell an element that is still
+# animating (acceptable) from one that moved and settled somewhere else (stale).
+SETTLE_DELAY_S = 0.15
+
 # Upper bound for one element action, so an overlay that appears after the
 # screenshot fails fast instead of waiting out Playwright's 30s default.
 ACTION_TIMEOUT_MS = 10_000
 
 ElementMap = dict[int, dict[str, Any]]
 
+# JS expression (over ``el``) identifying what an element is, recorded at
+# collection and compared at resolution, so a node a framework recycled for
+# different content is refused. Digits are masked so counters and relative
+# timestamps ("3 min ago") do not make every element stale.
+FINGERPRINT_EXPR = """[
+    el.tagName, el.id || '', el.getAttribute('role') || '', el.getAttribute('href') || '',
+    el.getAttribute('name') || '', el.getAttribute('aria-label') || '',
+    (el.innerText || el.placeholder || '').trim().substring(0, 80)
+].join('|').replace(/[0-9]+/g, '#')"""
+
 # Runs inside one frame. Takes a ref prefix, returns that frame's viewport size
 # and the visible, unobscured interactive elements in frame-local coordinates.
-COLLECT_JS = """
+COLLECT_JS = (
+    """
 (prefix) => {
     const ATTR = 'data-bc-id';
     const SELECTOR = [
@@ -84,7 +102,20 @@ COLLECT_JS = """
         return false;
     }
 
-    function isUnobscured(el, rect) {
+    // A styled stand-in for a transparent input lives next to it; anything that
+    // covers it from further away (a modal, a cookie banner) hides it for real.
+    function isNearby(el, hit) {
+        if (Array.from(el.labels || []).some((l) => composedContains(l, hit))) return true;
+        let anc = el;
+        for (let i = 0; i < 3; i++) {
+            const up = parentOf(anc);
+            if (!up || up === document.body || up === document.documentElement) break;
+            anc = up;
+        }
+        return anc !== el && composedContains(anc, hit);
+    }
+
+    function isUnobscured(el, rect, transparentOk) {
         const root = el.getRootNode();
         const probe = typeof root.elementFromPoint === 'function' ? root : document;
         const l = Math.max(rect.left, 0), r = Math.min(rect.right, vw);
@@ -95,9 +126,14 @@ COLLECT_JS = """
         for (const [x, y] of points) {
             const hit = probe.elementFromPoint(x, y);
             if (hit && composedContains(el, hit)) return true;
+            if (hit && transparentOk && isNearby(el, hit)) return true;
         }
         return false;
     }
+
+    const fingerprint = (el) => """
+    + FINGERPRINT_EXPR
+    + """;
 
     function describe(el, rect, ref) {
         const text = (el.innerText || '').trim().substring(0, 80);
@@ -111,16 +147,21 @@ COLLECT_JS = """
             href: el.href || '',
             id: el.id || null,
             className: className || null,
-            disabled: el.matches(':disabled') || el.getAttribute('aria-disabled') === 'true'
+            disabled: el.matches(':disabled') || el.getAttribute('aria-disabled') === 'true',
+            fp: fingerprint(el)
         };
     }
 
     function consider(el) {
         if (SKIP.has(el.tagName) || !isCandidate(el)) return;
+        // Leave rich-text editors' own DOM alone: tagging nodes inside them
+        // trips their mutation observers, which re-render and drop the tag.
+        const parent = parentOf(el);
+        if (parent && parent.isContentEditable) return;
         const rect = el.getBoundingClientRect();
         const transparentOk = isTransparentOk(el);
         if (!isRendered(el, rect, transparentOk)) return;
-        if (!transparentOk && !isUnobscured(el, rect)) return;
+        if (!isUnobscured(el, rect, transparentOk)) return;
         n += 1;
         const ref = prefix + '-' + n;
         el.setAttribute(ATTR, ref);
@@ -139,15 +180,45 @@ COLLECT_JS = """
     return {vw: vw, vh: vh, elements: out};
 }
 """
+)
 
-# Runs in the parent frame on an <iframe>: border + padding before its content box.
-FRAME_INSET_JS = """
-(el) => {
-    const s = getComputedStyle(el);
-    return [el.clientLeft + parseFloat(s.paddingLeft || '0'),
-            el.clientTop + parseFloat(s.paddingTop || '0')];
+# Runs in the parent frame on an <iframe>. Takes boxes in the iframe's content
+# coordinates and maps them into the parent frame's coordinates. A box counts as
+# visible only if the parent shows the iframe itself at one of its sample points,
+# so an overlay in the parent (a modal over an embed) hides the frame's elements,
+# as does a box scrolled outside the iframe or outside the parent's viewport.
+FRAME_HIT_JS = """
+(owner, boxes) => {
+    const s = getComputedStyle(owner);
+    const r = owner.getBoundingClientRect();
+    const ox = r.left + owner.clientLeft + parseFloat(s.paddingLeft || '0');
+    const oy = r.top + owner.clientTop + parseFloat(s.paddingTop || '0');
+    const cw = owner.clientWidth - parseFloat(s.paddingLeft || '0') - parseFloat(s.paddingRight || '0');
+    const ch = owner.clientHeight - parseFloat(s.paddingTop || '0') - parseFloat(s.paddingBottom || '0');
+    const root = owner.getRootNode();
+    const probe = typeof root.elementFromPoint === 'function' ? root : document;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    return boxes.map(([x, y, w, h]) => {
+        const box = [x + ox, y + oy, w, h];
+        const l = Math.max(box[0], ox, 0), rr = Math.min(box[0] + w, ox + cw, vw);
+        const t = Math.max(box[1], oy, 0), b = Math.min(box[1] + h, oy + ch, vh);
+        if (rr - l < 1 || b - t < 1) return {box: box, visible: false};
+        const ix = Math.min(4, (rr - l) / 4), iy = Math.min(4, (b - t) / 4);
+        const points = [[(l + rr) / 2, (t + b) / 2], [l + ix, t + iy], [rr - ix, t + iy],
+                        [l + ix, b - iy], [rr - ix, b - iy]];
+        const visible = points.some(([px, py]) => probe.elementFromPoint(px, py) === owner);
+        return {box: box, visible: visible};
+    });
 }
 """
+
+# Matches the tag attribute as page.content() serializes it.
+_ATTR_RE = re.compile(r"\s" + ATTR + r'="[^"]*"')
+
+
+def strip_marks(html: str) -> str:
+    """Remove the Set of Marks tags from serialized HTML before showing or saving it."""
+    return _ATTR_RE.sub("", html)
 
 
 class ElementError(Exception):
@@ -171,33 +242,40 @@ class StaleElementError(ElementError):
         )
 
 
-async def _frame_offset(frame: Frame) -> tuple[float, float] | None:
-    """Return where a frame's content box starts in main-viewport coordinates.
+async def _to_main_viewport(
+    frame: Frame, boxes: list[list[float]]
+) -> list[tuple[list[float], bool]] | None:
+    """Map frame-local boxes into main-viewport coordinates, hit-testing every ancestor.
 
-    None means the frame is not displayed (or vanished mid-collection) and should be skipped.
+    Walks up the frame chain, measuring each <iframe> from inside its own parent
+    frame (getBoundingClientRect, not Playwright's bounding_box(), which is off by
+    the border for frames nested in cross-origin frames). Returns each box with
+    whether it is actually visible through every ancestor, or None when a frame
+    in the chain is gone.
     """
-    if frame.parent_frame is None:
-        return (0.0, 0.0)
-    try:
-        owner = await frame.frame_element()
-        box = await owner.bounding_box()
-        if box is None or box["width"] < 1 or box["height"] < 1:
+    visible = [True] * len(boxes)
+    current = frame
+    while current.parent_frame is not None and any(visible):
+        try:
+            owner = await current.frame_element()
+            hits = await owner.evaluate(FRAME_HIT_JS, boxes)
+        except PlaywrightError as e:
+            logger.debug(f"Skipping frame {frame.url}: {e}")
             return None
-        inset_x, inset_y = await owner.evaluate(FRAME_INSET_JS)
-    except PlaywrightError as e:
-        logger.debug(f"Skipping frame {frame.url}: {e}")
-        return None
-    return box["x"] + inset_x, box["y"] + inset_y
+        boxes = [hit["box"] for hit in hits]
+        visible = [v and hit["visible"] for v, hit in zip(visible, hits, strict=True)]
+        current = current.parent_frame
+    return list(zip(boxes, visible, strict=True))
 
 
-def _place(raw: dict[str, Any], offset: tuple[float, float], frame: Frame) -> dict[str, Any]:
-    """Shift a frame-local element into main-viewport coordinates and attach its frame."""
-    elem = {k: v for k, v in raw.items() if k != "ref"}
-    elem["x"] = raw["x"] + offset[0]
-    elem["y"] = raw["y"] + offset[1]
+def _place(raw: dict[str, Any], box: list[float], frame: Frame) -> dict[str, Any]:
+    """Build a map entry from a frame-local element and its main-viewport box."""
+    elem = {k: v for k, v in raw.items() if k not in ("ref", "fp")}
+    elem["x"], elem["y"] = box[0], box[1]
     elem["centerX"] = elem["x"] + raw["width"] / 2
     elem["centerY"] = elem["y"] + raw["height"] / 2
     elem["_ref"] = raw["ref"]
+    elem["_fp"] = raw.get("fp")
     elem["_frame"] = frame
     # Frame-local box, for the staleness check. Comparing in the element's own
     # frame avoids Playwright's bounding_box(), which misplaces elements inside
@@ -206,52 +284,57 @@ def _place(raw: dict[str, Any], offset: tuple[float, float], frame: Frame) -> di
     return elem
 
 
-def _on_screen(elem: dict[str, Any], viewport: tuple[float, float]) -> bool:
-    """True when any part of the element lies inside the main viewport."""
-    vw, vh = viewport
-    x, y = float(elem["x"]), float(elem["y"])
-    w, h = float(elem["width"]), float(elem["height"])
-    return x + w > 0 and y + h > 0 and x < vw and y < vh
-
-
 async def collect_elements(page: Page, generation: int) -> list[dict[str, Any]]:
-    """Collect and tag interactive elements across every frame of the page."""
+    """Collect and tag interactive elements across every frame of the page.
+
+    Elements inside iframes are kept only where the iframe itself shows through
+    every ancestor frame, so nothing hidden behind a parent-page overlay or
+    scrolled out of the main viewport gets a number.
+    """
     collected: list[dict[str, Any]] = []
-    viewport: tuple[float, float] | None = None
     for index, frame in enumerate(page.frames):
-        offset = await _frame_offset(frame)
-        if offset is None:
-            continue
         try:
             result = await frame.evaluate(COLLECT_JS, f"g{generation}f{index}")
         except PlaywrightError as e:
             logger.debug(f"Element collection failed in frame {frame.url}: {e}")
             continue
-        if frame.parent_frame is None:
-            viewport = (result["vw"], result["vh"])
-        for raw in result["elements"]:
-            elem = _place(raw, offset, frame)
-            if viewport is None or _on_screen(elem, viewport):
-                collected.append(elem)
+        raws = result["elements"]
+        if not raws:
+            continue
+        local = [[r["x"], r["y"], r["width"], r["height"]] for r in raws]
+        placed = await _to_main_viewport(frame, local)
+        if placed is None:
+            continue
+        for raw, (box, visible) in zip(raws, placed, strict=True):
+            if visible:
+                collected.append(_place(raw, box, frame))
     return collected
 
 
-# Frame-local [x, y, width, height] of an element, measured in its own frame.
-LOCAL_RECT_JS = (
-    "el => { const r = el.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }"
+# Frame-local [x, y, width, height] of an element plus its fingerprint.
+LOCATE_JS = (
+    "el => { const r = el.getBoundingClientRect(); return {rect: [r.x, r.y, r.width, r.height], "
+    "fp: " + FINGERPRINT_EXPR + "}; }"
 )
 
 
-def _moved(recorded: tuple[float, ...], live: list[float]) -> bool:
+def _moved(recorded: Sequence[float], live: Sequence[float]) -> bool:
     """True when the live frame-local box differs from the recorded one beyond the tolerance."""
     return any(abs(a - b) > MOVE_TOLERANCE_PX for a, b in zip(live, recorded, strict=True))
 
 
+async def _measure(locator: Locator) -> dict[str, Any]:
+    result: dict[str, Any] = await locator.evaluate(LOCATE_JS, timeout=ACTION_TIMEOUT_MS)
+    return result
+
+
 async def locate(element_id: int, elem_map: ElementMap) -> Locator:
-    """Resolve an element ID to a locator, verifying it is still where the screenshot showed.
+    """Resolve an element ID to a locator, verifying it is still the element the screenshot showed.
 
     Raises ElementNotFoundError for unknown IDs and StaleElementError when the
-    element was removed, hidden, or moved after the screenshot was taken.
+    element was removed, duplicated, hidden, replaced by different content, or
+    moved to a new resting place after the screenshot was taken. An element that
+    is still animating is accepted.
     """
     entry = elem_map.get(element_id)
     if entry is None:
@@ -261,16 +344,32 @@ async def locate(element_id: int, elem_map: ElementMap) -> Locator:
     if frame.is_detached():
         raise StaleElementError(element_id, "its frame was removed")
 
-    locator = frame.locator(f'[{ATTR}="{entry["_ref"]}"]').first
+    locator = frame.locator(f'[{ATTR}="{entry["_ref"]}"]')
     try:
-        if await locator.count() == 0:
+        count = await locator.count()
+        if count == 0:
             raise StaleElementError(element_id, "it is no longer on the page")
-        live = await locator.evaluate(LOCAL_RECT_JS, timeout=ACTION_TIMEOUT_MS)
+        if count > 1:
+            raise StaleElementError(element_id, "the page copied it, so the ID is ambiguous")
+        locator = locator.first
+        live = await _measure(locator)
     except PlaywrightError as e:
         raise StaleElementError(element_id, "it could not be located") from e
 
-    if live[2] < 1 or live[3] < 1:
+    rect = live["rect"]
+    if rect[2] < 1 or rect[3] < 1:
         raise StaleElementError(element_id, "it is no longer visible")
-    if _moved(entry["_local"], live):
-        raise StaleElementError(element_id, "it moved")
+    recorded_fp = entry.get("_fp")
+    if recorded_fp is not None and live["fp"] != recorded_fp:
+        raise StaleElementError(element_id, "its content changed")
+    if _moved(entry["_local"], rect):
+        await asyncio.sleep(SETTLE_DELAY_S)
+        try:
+            again = (await _measure(locator))["rect"]
+        except PlaywrightError as e:
+            raise StaleElementError(element_id, "it could not be located") from e
+        # Still in motion: an animation, not a layout change. Let the action
+        # proceed; Playwright waits for the element to be stable before acting.
+        if not _moved(rect, again) and _moved(entry["_local"], again):
+            raise StaleElementError(element_id, "it moved")
     return locator

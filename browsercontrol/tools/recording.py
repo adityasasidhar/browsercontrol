@@ -6,6 +6,7 @@ from fastmcp import FastMCP
 
 from browsercontrol.browser import browser
 from browsercontrol.config import config
+from browsercontrol.elements import strip_marks
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +108,7 @@ def register_recording_tools(mcp: FastMCP) -> None:
 
             # Save HTML
             html_path = snapshots_dir / f"{name}.html"
-            html_content = await browser.page.content()
+            html_content = strip_marks(await browser.page.content())
             html_path.write_text(html_content)
 
             # Save URL

@@ -1,6 +1,7 @@
 import logging
 import time
 from io import BytesIO
+from pathlib import Path
 from typing import Any
 
 from PIL import Image as PILImage
@@ -49,6 +50,12 @@ def _get_label_font() -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
             continue
     _cached_font = ImageFont.load_default()
     return _cached_font
+
+
+def chrome_profile_dir() -> Path:
+    """Profile directory used when falling back to the installed Google Chrome."""
+    base = config.user_data_dir
+    return base.with_name(f"{base.name}-chrome")
 
 
 class BrowserManager:
@@ -207,13 +214,17 @@ class BrowserManager:
 
         # Branded Chrome does not support loading unpacked extensions this way.
         if config.extension_path is None:
+            # Chrome gets its own profile: switching one profile between branded
+            # Chrome and Playwright's Chromium builds can downgrade or corrupt it.
+            chrome_kwargs = {**launch_kwargs, "user_data_dir": str(chrome_profile_dir())}
             try:
                 context = await chromium.launch_persistent_context(
-                    channel="chrome", **launch_kwargs
+                    channel="chrome", **chrome_kwargs
                 )
             except Exception as exc:
-                if "chromium distribution 'chrome' is not found" not in str(exc).lower():
-                    raise
+                # Any Chrome failure (not installed, profile locked, crash) falls
+                # through to installing Playwright's Chromium.
+                logger.info(f"Installed Google Chrome unavailable: {exc}")
             else:
                 logger.info("Using installed Google Chrome")
                 return context

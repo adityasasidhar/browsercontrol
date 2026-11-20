@@ -38,8 +38,9 @@ CHECKBOX_MAP_ENTRY = {
 }
 
 
-def _attach_element(manager, element):
+def _attach_element(manager, element, disabled=False):
     """Make the manager resolve every element ID to the given locator."""
+    element.is_disabled = AsyncMock(return_value=disabled)
     manager.resolve_element = AsyncMock(return_value=element)
 
 
@@ -147,7 +148,7 @@ class TestCheckCheckbox:
         checkbox_map = {**sample_element_map, 5: CHECKBOX_MAP_ENTRY}
 
         element = AsyncMock()
-        element.evaluate = AsyncMock(side_effect=["checkbox", True])
+        element.evaluate = AsyncMock(side_effect=["checkbox", "self", True])
         _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
@@ -175,7 +176,7 @@ class TestCheckCheckbox:
         checkbox_map = {**sample_element_map, 5: CHECKBOX_MAP_ENTRY}
 
         element = AsyncMock()
-        element.evaluate = AsyncMock(side_effect=["checkbox", False])
+        element.evaluate = AsyncMock(side_effect=["checkbox", "self", False])
         _attach_element(mock_browser_manager, element)
 
         with patch("browsercontrol.tools.forms.browser", mock_browser_manager):
@@ -192,6 +193,81 @@ class TestCheckCheckbox:
                 element.uncheck.assert_awaited_once()
                 element.check.assert_not_awaited()
                 assert "Unchecked element 5" in result[0]
+
+    async def _run_check(self, mcp_server, manager, mock_page, element, check=True):
+        checkbox_map = {1: CHECKBOX_MAP_ENTRY}
+        with patch("browsercontrol.tools.forms.browser", manager):
+            with patch.object(manager, "get_element_map", return_value=checkbox_map):
+                manager.page = mock_page
+                manager.screenshot_with_som.return_value = (b"screenshot", checkbox_map)
+                tool = await mcp_server.get_tool("check_checkbox")
+                return await tool.fn(element_id=1, check=check)
+
+    @pytest.mark.asyncio
+    async def test_input_hidden_under_stand_in_is_clicked_directly(
+        self, mcp_server, mock_browser_manager, mock_page
+    ):
+        """A styled stand-in would swallow a mouse click, so dispatch it on the input."""
+        register_form_tools(mcp_server)
+        element = AsyncMock()
+        # type -> hit test -> current state -> final state
+        element.evaluate = AsyncMock(side_effect=["checkbox", "standin", False, True])
+        _attach_element(mock_browser_manager, element)
+
+        result = await self._run_check(mcp_server, mock_browser_manager, mock_page, element)
+
+        element.dispatch_event.assert_awaited_once_with("click")
+        element.check.assert_not_awaited()
+        assert "Checked element 1" in result[0]
+
+    @pytest.mark.asyncio
+    async def test_stand_in_already_in_state_is_not_toggled(
+        self, mcp_server, mock_browser_manager, mock_page
+    ):
+        register_form_tools(mcp_server)
+        element = AsyncMock()
+        element.evaluate = AsyncMock(side_effect=["checkbox", "standin", True, True])
+        _attach_element(mock_browser_manager, element)
+
+        await self._run_check(mcp_server, mock_browser_manager, mock_page, element)
+
+        element.dispatch_event.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_covered_checkbox_is_refused(self, mcp_server, mock_browser_manager, mock_page):
+        """An unrelated overlay (a modal) must not be bypassed."""
+        register_form_tools(mcp_server)
+        element = AsyncMock()
+        element.evaluate = AsyncMock(side_effect=["checkbox", "covered"])
+        _attach_element(mock_browser_manager, element)
+
+        with pytest.raises(RuntimeError, match="covered by another element"):
+            await self._run_check(mcp_server, mock_browser_manager, mock_page, element)
+
+        element.check.assert_not_awaited()
+        element.dispatch_event.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_unchanged_state_is_an_error(self, mcp_server, mock_browser_manager, mock_page):
+        register_form_tools(mcp_server)
+        element = AsyncMock()
+        element.evaluate = AsyncMock(side_effect=["checkbox", "self", False])
+        _attach_element(mock_browser_manager, element)
+
+        with pytest.raises(RuntimeError, match="did not change"):
+            await self._run_check(mcp_server, mock_browser_manager, mock_page, element)
+
+    @pytest.mark.asyncio
+    async def test_disabled_checkbox_is_reported(self, mcp_server, mock_browser_manager, mock_page):
+        register_form_tools(mcp_server)
+        element = AsyncMock()
+        element.evaluate = AsyncMock(side_effect=["checkbox"])
+        _attach_element(mock_browser_manager, element, disabled=True)
+
+        result = await self._run_check(mcp_server, mock_browser_manager, mock_page, element)
+
+        assert "element 1 is disabled" in result[0]
+        element.check.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_non_checkbox_raises(

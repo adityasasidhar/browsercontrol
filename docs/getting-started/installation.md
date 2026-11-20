@@ -44,7 +44,7 @@ Installing BrowserControl also installs the Playwright Python package. BrowserCo
     ```
 
 !!! info "Browser selection at startup"
-    BrowserControl tries Playwright's cached Chromium first, then Google Chrome if installed in a standard location. If neither is available, it downloads Chromium into Playwright's browser cache and retries. A configured `BROWSER_EXECUTABLE_PATH` takes precedence. When `BROWSER_EXTENSION_PATH` is set, automatic browser selection uses Playwright's Chromium for extension support.
+    BrowserControl tries Playwright's cached Chromium first, then Google Chrome if installed in a standard location. Chrome uses its own profile, a sibling of the configured one with a `-chrome` suffix, because sharing one profile between Chrome and Chromium builds can corrupt it. If neither starts (missing, or Chrome fails to launch), it downloads Chromium into Playwright's browser cache and retries. A configured `BROWSER_EXECUTABLE_PATH` takes precedence. When `BROWSER_EXTENSION_PATH` is set, automatic browser selection uses Playwright's Chromium for extension support.
 
     To preinstall Chromium or retry a failed download, run this in the environment where BrowserControl is installed. In a uv project, prefix the command with `uv run`.
 

@@ -21,7 +21,7 @@ from playwright.sync_api import sync_playwright
 
 from browsercontrol.browser import BrowserManager
 from browsercontrol.config import config
-from browsercontrol.elements import ElementNotFoundError, StaleElementError
+from browsercontrol.elements import ElementNotFoundError, StaleElementError, strip_marks
 from browsercontrol.tools import (
     register_content_tools,
     register_devtools,
@@ -94,6 +94,48 @@ MAIN_PAGE = """<!doctype html><html><body style="margin:0;font:16px sans-serif">
 </body></html>"""
 
 
+# Review regressions: overlays over iframes, styled checkboxes, non-text targets
+# for type_text, and animated elements.
+EXTRA_PAGE = """<!doctype html><html><body style="margin:0;font:16px sans-serif">
+<div id="log"></div>
+
+<label><input id="styled" type="checkbox"
+  style="position:absolute;opacity:0;width:20px;height:20px;margin:0">
+  <span id="fake" style="display:inline-block;width:20px;height:20px;background:#09f"></span>
+  styled checkbox</label>
+
+<div style="display:inline-block;position:relative">
+  <input id="standin" type="checkbox" style="opacity:0;width:20px;height:20px;margin:0">
+  <span style="position:absolute;inset:0;background:#f90"></span>
+</div>
+
+<input id="plain" type="checkbox"> plain checkbox
+
+<button id="mover" onclick="document.getElementById('log').textContent='mover-clicked'"
+  style="position:relative;animation:slide 0.8s linear infinite alternate">moving button</button>
+<style>@keyframes slide { from { left: 0 } to { left: 120px } }</style>
+
+<div style="position:relative;width:340px;height:80px">
+  <iframe id="behind" style="width:320px;height:60px;border:0"
+          srcdoc='<button id="hidden-btn">hidden frame button</button>'></iframe>
+  <div style="position:absolute;inset:0;background:#ccc;z-index:5">modal over frame</div>
+</div>
+
+<div style="position:relative;width:200px;height:40px">
+  <input id="buried" type="checkbox" style="opacity:0;width:20px;height:20px;margin:0">
+</div>
+<div style="position:fixed;left:0;bottom:0;width:100%;height:80px;background:#fee;
+            z-index:9">cookie banner</div>
+<script>
+  // Put the buried checkbox under the fixed banner.
+  const b = document.getElementById('buried');
+  b.parentElement.style.position = 'fixed';
+  b.parentElement.style.left = '0';
+  b.parentElement.style.bottom = '20px';
+</script>
+</body></html>"""
+
+
 @pytest.fixture(scope="module")
 def server() -> Iterator[int]:
     pages: dict[str, str] = {}
@@ -112,6 +154,7 @@ def server() -> Iterator[int]:
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     port = httpd.server_address[1]
     pages["/frame"] = FRAME_PAGE
+    pages["/extra"] = EXTRA_PAGE
     pages["/"] = MAIN_PAGE.replace("__CROSS__", f"http://localhost:{port}")
     thread = threading.Thread(target=httpd.serve_forever, daemon=True)
     thread.start()
@@ -146,8 +189,8 @@ async def tools(manager: BrowserManager) -> AsyncIterator[FastMCP]:
         p.stop()
 
 
-async def _load(manager: BrowserManager, port: int) -> dict[int, dict[str, Any]]:
-    await manager.page.goto(f"http://127.0.0.1:{port}/")
+async def _load(manager: BrowserManager, port: int, path: str = "/") -> dict[int, dict[str, Any]]:
+    await manager.page.goto(f"http://127.0.0.1:{port}{path}")
     await manager.page.wait_for_load_state("load")
     _, elem_map = await manager.screenshot_with_som()
     return elem_map
@@ -298,3 +341,59 @@ async def test_inspect_element_inside_shadow_dom(manager, tools, server):
     result = await _call(tools, "inspect_element", element_id=_find(elem_map, "shadow button"))
     assert "Tag: <button>" in result
     assert "ID: #shadow-btn" in result
+
+
+def _by_id(elem_map: dict[int, dict[str, Any]], dom_id: str) -> int:
+    return next(k for k, e in elem_map.items() if e.get("id") == dom_id)
+
+
+async def test_iframe_behind_a_parent_overlay_is_not_numbered(manager, server):
+    elem_map = await _load(manager, server, "/extra")
+    assert not any("hidden frame button" in t for t in _texts(elem_map))
+
+
+async def test_transparent_checkbox_under_an_unrelated_banner_is_not_numbered(manager, server):
+    elem_map = await _load(manager, server, "/extra")
+    assert not any(e.get("id") == "buried" for e in elem_map.values())
+
+
+@pytest.mark.parametrize("dom_id", ["styled", "standin", "plain"])
+async def test_check_checkbox_sets_state_for_styled_and_plain_inputs(
+    manager, tools, server, dom_id
+):
+    elem_map = await _load(manager, server, "/extra")
+    eid = _by_id(elem_map, dom_id)
+    result = await _call(tools, "check_checkbox", element_id=eid, check=True)
+    assert "checked is now True" in result[0]
+    assert await manager.page.is_checked(f"#{dom_id}")
+    # Idempotent: checking again leaves it checked rather than toggling it off.
+    eid = _by_id(manager.get_element_map(), dom_id)
+    await _call(tools, "check_checkbox", element_id=eid, check=True)
+    assert await manager.page.is_checked(f"#{dom_id}")
+
+
+async def test_type_text_refuses_a_checkbox_without_toggling_it(manager, tools, server):
+    elem_map = await _load(manager, server, "/extra")
+    with pytest.raises(RuntimeError, match="not a text field"):
+        await _call(tools, "type_text", element_id=_by_id(elem_map, "plain"), text="yes")
+    assert not await manager.page.is_checked("#plain")
+
+
+async def test_animated_element_can_still_be_resolved(manager, server):
+    elem_map = await _load(manager, server, "/extra")
+    eid = _find(elem_map, "moving button")
+    await manager.page.wait_for_timeout(200)
+    await manager.resolve_element(eid)
+
+
+async def test_disabled_click_reports_immediately(manager, tools, server):
+    elem_map = await _load(manager, server)
+    result = await _call(tools, "click", element_id=_find(elem_map, "disabled button"))
+    assert "is disabled" in result[0]
+
+
+async def test_marks_are_stripped_from_serialized_html(manager, server):
+    await _load(manager, server)
+    html = await manager.page.content()
+    assert "data-bc-id" in html, "fixture should be tagged, or this test proves nothing"
+    assert "data-bc-id" not in strip_marks(html)

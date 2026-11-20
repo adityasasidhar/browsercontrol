@@ -16,6 +16,7 @@ def _wire(manager, elem_map):
     Returns the locator that every known ID resolves to.
     """
     locator = AsyncMock()
+    locator.is_disabled = AsyncMock(return_value=False)
 
     async def resolve(element_id):
         if element_id not in elem_map:
@@ -117,6 +118,7 @@ class TestTypeText:
         """Test typing text into an input element."""
         register_interaction_tools(mcp_server)
         locator = _wire(mock_browser_manager, sample_element_map)
+        locator.evaluate = AsyncMock(return_value="fill")
 
         with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
@@ -128,13 +130,51 @@ class TestTypeText:
         assert "Typed 'Hello World'" in result[0]
 
     @pytest.mark.asyncio
-    async def test_type_text_falls_back_to_keyboard_when_not_fillable(
+    async def test_fill_errors_are_not_swallowed(
         self, mcp_server, mock_browser_manager, mock_page, sample_element_map
     ):
-        """Custom widgets that reject fill() get focused by a click and typed into."""
+        """A failing fill() on a real field must not fall back to clicking and typing."""
         register_interaction_tools(mcp_server)
         locator = _wire(mock_browser_manager, sample_element_map)
-        locator.fill.side_effect = PlaywrightError("Element is not an <input>")
+        locator.evaluate = AsyncMock(return_value="fill")
+        locator.fill.side_effect = PlaywrightError("Element is not editable")
+
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
+            mock_browser_manager.page = mock_page
+            tool = await mcp_server.get_tool("type_text")
+            with pytest.raises(RuntimeError, match="not editable"):
+                await tool.fn(element_id=2, text="Hi")
+
+        locator.click.assert_not_awaited()
+        mock_page.keyboard.type.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_non_text_element_is_rejected_without_clicking(
+        self, mcp_server, mock_browser_manager, mock_page, sample_element_map
+    ):
+        """type_text on a checkbox or button must not click (and toggle) it."""
+        register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
+        locator.evaluate = AsyncMock(return_value="none")
+
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
+            mock_browser_manager.page = mock_page
+            tool = await mcp_server.get_tool("type_text")
+            with pytest.raises(RuntimeError, match="not a text field"):
+                await tool.fn(element_id=2, text="yes")
+
+        locator.click.assert_not_awaited()
+        locator.fill.assert_not_awaited()
+        mock_page.keyboard.type.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_custom_textbox_is_focused_cleared_and_typed_into(
+        self, mcp_server, mock_browser_manager, mock_page, sample_element_map
+    ):
+        """role=textbox widgets get a click, select-all (to replace), then typing."""
+        register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
+        locator.evaluate = AsyncMock(side_effect=["custom", True])
 
         with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
             mock_browser_manager.page = mock_page
@@ -142,7 +182,48 @@ class TestTypeText:
             await tool.fn(element_id=2, text="Hi")
 
         locator.click.assert_awaited_once()
+        mock_page.keyboard.press.assert_awaited_once_with("ControlOrMeta+a")
         mock_page.keyboard.type.assert_awaited_once_with("Hi")
+
+    @pytest.mark.asyncio
+    async def test_custom_textbox_that_takes_no_focus_types_nothing(
+        self, mcp_server, mock_browser_manager, mock_page, sample_element_map
+    ):
+        register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
+        locator.evaluate = AsyncMock(side_effect=["custom", False])
+
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
+            mock_browser_manager.page = mock_page
+            tool = await mcp_server.get_tool("type_text")
+            with pytest.raises(RuntimeError, match="did not focus"):
+                await tool.fn(element_id=2, text="Hi")
+
+        mock_page.keyboard.type.assert_not_called()
+
+
+class TestDisabled:
+    """Disabled elements get an immediate explanation instead of a 10s timeout."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("tool_name", ["click", "type_text"])
+    async def test_disabled_element_is_reported(
+        self, mcp_server, mock_browser_manager, mock_page, sample_element_map, tool_name
+    ):
+        register_interaction_tools(mcp_server)
+        locator = _wire(mock_browser_manager, sample_element_map)
+        locator.is_disabled = AsyncMock(return_value=True)
+
+        with patch("browsercontrol.tools.interaction.browser", mock_browser_manager):
+            mock_browser_manager.page = mock_page
+            tool = await mcp_server.get_tool(tool_name)
+            kwargs = {"element_id": 1} if tool_name == "click" else {"element_id": 1, "text": "x"}
+            result = await tool.fn(**kwargs)
+
+        assert "element 1 is disabled" in result[0]
+        assert "Found" in result[0], "a fresh element summary accompanies the error"
+        locator.click.assert_not_awaited()
+        locator.fill.assert_not_awaited()
 
 
 class TestKeyboard:

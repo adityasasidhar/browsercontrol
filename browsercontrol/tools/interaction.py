@@ -1,15 +1,61 @@
 import contextlib
+import json
 import logging
 
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
-from playwright.async_api import Error as PlaywrightError
 
 from browsercontrol.browser import browser
 from browsercontrol.elements import ACTION_TIMEOUT_MS, ElementError
-from browsercontrol.tools._summary import element_error_result, get_screenshot_with_summary
+from browsercontrol.tools._summary import (
+    disabled_result,
+    element_error_result,
+    get_screenshot_with_summary,
+)
 
 logger = logging.getLogger(__name__)
+
+NON_TEXT_INPUT_TYPES = (
+    "checkbox",
+    "radio",
+    "button",
+    "submit",
+    "reset",
+    "file",
+    "image",
+    "range",
+    "color",
+    "hidden",
+)
+
+# How type_text should enter text: "fill" for native fields and contenteditable,
+# "custom" for widgets that only declare a text role, "none" for everything else.
+EDIT_KIND_JS = (
+    """
+el => {
+    const NON_TEXT = """
+    + json.dumps(NON_TEXT_INPUT_TYPES)
+    + """;
+    const tag = el.tagName;
+    if (tag === 'TEXTAREA' || el.isContentEditable) return 'fill';
+    if (tag === 'INPUT') {
+        return NON_TEXT.includes((el.type || 'text').toLowerCase()) ? 'none' : 'fill';
+    }
+    const role = (el.getAttribute('role') || '').toLowerCase();
+    return ['textbox', 'searchbox', 'combobox'].includes(role) ? 'custom' : 'none';
+}
+"""
+)
+
+# True when keyboard focus (in the element's own document, through shadow roots)
+# sits in something that accepts typed text.
+FOCUS_IS_EDITABLE_JS = """
+el => {
+    let a = el.ownerDocument.activeElement;
+    while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement;
+    return !!a && (a.isContentEditable || a.tagName === 'TEXTAREA' || a.tagName === 'INPUT');
+}
+"""
 
 
 def register_interaction_tools(mcp: FastMCP) -> None:
@@ -29,6 +75,9 @@ def register_interaction_tools(mcp: FastMCP) -> None:
                 locator = await browser.resolve_element(element_id)
             except ElementError as e:
                 return await element_error_result(browser, e)
+
+            if await locator.is_disabled():
+                return await disabled_result(browser, element_id, "clicked")
 
             elem = browser.get_element_map()[element_id]
             text = (elem.get("text") or "no text")[:30]
@@ -75,7 +124,11 @@ def register_interaction_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     async def type_text(element_id: int, text: str) -> tuple[str, Image]:
         """
-        Type text into an input element by its ID number.
+        Type text into a text field by its ID number, replacing what it holds.
+
+        Works on text inputs, textareas, contenteditable regions, and widgets with
+        role=textbox/searchbox/combobox. Checkboxes, buttons, dropdowns and file
+        inputs are refused; use check_checkbox, click, select_option or upload_file.
 
         Args:
             element_id: The number label shown on the element
@@ -88,13 +141,31 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             except ElementError as e:
                 return await element_error_result(browser, e)
 
+            if await locator.is_disabled():
+                return await disabled_result(browser, element_id, "typed into")
+
             logger.info(f"Typing into element {element_id}")
-            try:
+            kind = await locator.evaluate(EDIT_KIND_JS)
+            if kind == "fill":
                 await locator.fill(text, timeout=ACTION_TIMEOUT_MS)
-            except PlaywrightError:
-                # Not fillable (e.g. a custom widget): focus it by clicking, then type.
+            elif kind == "custom":
+                # A widget that only declares a text role: focus it by clicking,
+                # then replace whatever it holds, as fill() would.
                 await locator.click(timeout=ACTION_TIMEOUT_MS)
+                if not await locator.evaluate(FOCUS_IS_EDITABLE_JS):
+                    raise ValueError(
+                        f"Clicking element {element_id} did not focus a text field, "
+                        "so nothing was typed."
+                    )
+                await browser.page.keyboard.press("ControlOrMeta+a")
                 await browser.page.keyboard.type(text)
+            else:
+                elem = browser.get_element_map().get(element_id, {})
+                raise ValueError(
+                    f"Element {element_id} ({elem.get('tag', 'element')}"
+                    f"[{elem.get('type', '')}]) is not a text field. Use click, "
+                    "check_checkbox, select_option, or upload_file for it instead."
+                )
 
             image, summary = await get_screenshot_with_summary(browser)
             return f"Typed '{text}' into element {element_id}\n\n{summary}", image

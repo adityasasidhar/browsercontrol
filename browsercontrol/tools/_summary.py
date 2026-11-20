@@ -47,3 +47,16 @@ async def element_error_result(manager: BrowserManager, error: ElementError) -> 
     """Report an unknown or stale element ID alongside a fresh screenshot to retry from."""
     image, summary = await get_screenshot_with_summary(manager)
     return f"Error: {error}\n\n{summary}", image
+
+
+async def disabled_result(
+    manager: BrowserManager, element_id: int, action: str
+) -> tuple[str, Image]:
+    """Report that an element is disabled instead of waiting out the action timeout on it."""
+    image, summary = await get_screenshot_with_summary(manager)
+    return (
+        f"Error: element {element_id} is disabled, so it cannot be {action}. "
+        "It may need other input first (for example a required form field).\n\n"
+        f"{summary}",
+        image,
+    )

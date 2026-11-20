@@ -4,7 +4,7 @@ from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
-from browsercontrol.elements import ElementError
+from browsercontrol.elements import ElementError, strip_marks
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def register_content_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             from markdownify import markdownify
 
-            html = await browser.page.content()
+            html = strip_marks(await browser.page.content())
             markdown = markdownify(html, heading_style="ATX", strip=["script", "style"])
 
             if len(markdown) > 30000:

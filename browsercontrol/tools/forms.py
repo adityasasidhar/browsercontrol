@@ -5,9 +5,43 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.elements import ACTION_TIMEOUT_MS, ElementError
-from browsercontrol.tools._summary import element_error_result, get_screenshot_with_summary
+from browsercontrol.tools._summary import (
+    disabled_result,
+    element_error_result,
+    get_screenshot_with_summary,
+)
 
 logger = logging.getLogger(__name__)
+
+# What a real click at the input's centre would hit: "self" (the input or one of
+# its labels), "standin" (a styled replacement right next to it), or "covered"
+# (something unrelated, such as a modal, sits on top).
+CHECK_HIT_JS = """
+el => {
+    const parentOf = (n) =>
+        n.parentElement || (n.parentNode instanceof ShadowRoot ? n.parentNode.host : null);
+    const contains = (a, n) => {
+        for (let c = n; c; c = c instanceof ShadowRoot ? c.host : (c.assignedSlot || c.parentNode)) {
+            if (c === a) return true;
+        }
+        return false;
+    };
+    const r = el.getBoundingClientRect();
+    const root = el.getRootNode();
+    const probe = typeof root.elementFromPoint === 'function' ? root : document;
+    const hit = probe.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if (!hit) return 'covered';
+    if (contains(el, hit)) return 'self';
+    if (Array.from(el.labels || []).some((l) => contains(l, hit))) return 'self';
+    let anc = el;
+    for (let i = 0; i < 3; i++) {
+        const up = parentOf(anc);
+        if (!up || up === document.body || up === document.documentElement) break;
+        anc = up;
+    }
+    return anc !== el && contains(anc, hit) ? 'standin' : 'covered';
+}
+"""
 
 
 def register_form_tools(mcp: FastMCP) -> None:
@@ -28,6 +62,9 @@ def register_form_tools(mcp: FastMCP) -> None:
                 element = await browser.resolve_element(element_id)
             except ElementError as e:
                 return await element_error_result(browser, e)
+
+            if await element.is_disabled():
+                return await disabled_result(browser, element_id, "changed")
 
             logger.info(f"Selecting option '{option}' from element {element_id}")
 
@@ -71,7 +108,10 @@ def register_form_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     async def check_checkbox(element_id: int, check: bool = True) -> tuple[str, Image]:
         """
-        Check or uncheck a checkbox by element ID.
+        Check or uncheck a checkbox (or select a radio button) by element ID.
+
+        Idempotent: it sets the state rather than toggling. Works on inputs hidden
+        under a styled replacement, but refuses one covered by a dialog or banner.
 
         Args:
             element_id: The number label of the checkbox
@@ -100,15 +140,35 @@ def register_form_tools(mcp: FastMCP) -> None:
                     "Select a different radio in the group instead."
                 )
 
-            # check()/uncheck() are idempotent state setters, unlike a raw click.
-            # force skips the hit-test, since sites often hide the real input under
-            # a styled stand-in that would otherwise "intercept" the click.
-            if check:
-                await element.check(timeout=ACTION_TIMEOUT_MS, force=True)
+            if await element.is_disabled():
+                return await disabled_result(browser, element_id, "changed")
+
+            await element.scroll_into_view_if_needed(timeout=ACTION_TIMEOUT_MS)
+            hit = await element.evaluate(CHECK_HIT_JS)
+            if hit == "self":
+                # check()/uncheck() are idempotent state setters, unlike a raw click.
+                if check:
+                    await element.check(timeout=ACTION_TIMEOUT_MS)
+                else:
+                    await element.uncheck(timeout=ACTION_TIMEOUT_MS)
+            elif hit == "standin":
+                # The real input is hidden under a styled replacement, so a mouse
+                # click would land on the replacement. Click the input directly,
+                # only when its state needs to change, so it stays idempotent.
+                if await element.evaluate("el => el.checked") != check:
+                    await element.dispatch_event("click")
             else:
-                await element.uncheck(timeout=ACTION_TIMEOUT_MS, force=True)
+                raise ValueError(
+                    f"Element {element_id} is covered by another element (for example a "
+                    "dialog or banner). Close or dismiss it first."
+                )
 
             is_checked = await element.evaluate("el => el.checked")
+            if is_checked != check:
+                raise ValueError(
+                    f"Element {element_id} did not change: checked is still {is_checked}. "
+                    "The page may be preventing the change."
+                )
             image, summary = await get_screenshot_with_summary(browser)
             action = "Checked" if check else "Unchecked"
             return (

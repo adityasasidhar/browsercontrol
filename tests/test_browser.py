@@ -118,6 +118,36 @@ class TestBrowserLifecycle:
             )
 
     @pytest.mark.asyncio
+    async def test_chrome_launch_failure_falls_back_to_chromium_install(
+        self, mock_playwright, mock_context, mock_page, tmp_path
+    ):
+        """A Chrome that is installed but cannot start (profile lock, crash) must not block
+        the Chromium install path, and Chrome gets its own profile directory."""
+        launch = mock_playwright.chromium.launch_persistent_context
+        launch.side_effect = [
+            Exception("Executable doesn't exist at /path/to/chromium"),
+            Exception("Target page, context or browser has been closed: profile in use"),
+            mock_context,
+        ]
+        mock_context.pages = [mock_page]
+        profile = tmp_path / "user_data"
+
+        with (
+            patch("browsercontrol.browser.async_playwright") as pw_patch,
+            patch("browsercontrol.browser.config.extension_path", None),
+            patch("browsercontrol.browser.config.user_data_dir", profile),
+        ):
+            pw_patch.return_value.start = AsyncMock(return_value=mock_playwright)
+            browser_mgr = BrowserManager()
+            browser_mgr._install_chromium = AsyncMock()
+            await browser_mgr.start()
+
+        browser_mgr._install_chromium.assert_awaited_once()
+        assert browser_mgr.is_started
+        dirs = [call.kwargs["user_data_dir"] for call in launch.await_args_list]
+        assert dirs == [str(profile), str(tmp_path / "user_data-chrome"), str(profile)]
+
+    @pytest.mark.asyncio
     async def test_browser_raises_if_still_missing_after_install(
         self, mock_playwright, mock_context, mock_page
     ):
