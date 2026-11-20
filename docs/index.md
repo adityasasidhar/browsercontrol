@@ -399,7 +399,7 @@ hide:
       <div class="bc-head">
         <p class="bc-eyebrow">Quickstart</p>
         <h2 class="bc-h2">Installed and wired up in about a minute.</h2>
-        <p class="bc-lede">Chromium installs itself on first run, so there is no system browser binary to manage and nothing to keep in sync.</p>
+        <p class="bc-lede">BrowserControl reuses cached Chromium or installed Google Chrome. It downloads Chromium at startup when needed.</p>
       </div>
       <div class="bc-quick">
         <div>

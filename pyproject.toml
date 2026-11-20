@@ -81,6 +81,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
 addopts = ["-v", "--strict-markers", "--tb=short"]
+markers = ["browser: drives a real headless Chromium (skipped when it is not installed)"]
 
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]

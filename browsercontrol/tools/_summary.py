@@ -5,6 +5,7 @@ from typing import Any
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import BrowserManager
+from browsercontrol.elements import ElementError
 
 MAX_SUMMARY_ELEMENTS = 30
 
@@ -21,6 +22,8 @@ def format_element_summary(elem_map: dict[int, dict[str, Any]]) -> str:
         # Collapse whitespace so multi-line text (e.g. a <select>'s options)
         # cannot break the one-line-per-element format.
         text = " ".join((elem.get("text") or "").split())[:40]
+        if elem.get("disabled"):
+            label += " (disabled)"
         summary_lines.append(f"  [{eid}] {label} - {text}" if text else f"  [{eid}] {label}")
 
     if len(elem_map) > MAX_SUMMARY_ELEMENTS:
@@ -38,3 +41,9 @@ async def get_screenshot_with_summary(manager: BrowserManager) -> tuple[Image, s
     screenshot_bytes, elem_map = await manager.screenshot_with_som()
     image = Image(data=screenshot_bytes, format="png")
     return image, format_element_summary(elem_map)
+
+
+async def element_error_result(manager: BrowserManager, error: ElementError) -> tuple[str, Image]:
+    """Report an unknown or stale element ID alongside a fresh screenshot to retry from."""
+    image, summary = await get_screenshot_with_summary(manager)
+    return f"Error: {error}\n\n{summary}", image

@@ -49,6 +49,13 @@ def test_redundant_type_is_omitted() -> None:
     assert "[7] a - Products" in format_element_summary(ELEMENT_MAP)
 
 
+def test_disabled_elements_are_marked() -> None:
+    summary = format_element_summary(
+        {1: {"tag": "button", "type": "submit", "text": "Pay", "disabled": True}}
+    )
+    assert "[1] button[submit] (disabled) - Pay" in summary
+
+
 def test_long_maps_are_truncated() -> None:
     elem_map = {i: {"tag": "button", "text": f"b{i}"} for i in range(1, 46)}
     lines = format_element_summary(elem_map).splitlines()

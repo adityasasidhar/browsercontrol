@@ -3,9 +3,11 @@ import logging
 
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
+from playwright.async_api import Error as PlaywrightError
 
-from browsercontrol.browser import browser, get_element_map
-from browsercontrol.tools._summary import get_screenshot_with_summary
+from browsercontrol.browser import browser
+from browsercontrol.elements import ACTION_TIMEOUT_MS, ElementError
+from browsercontrol.tools._summary import element_error_result, get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
 
@@ -23,34 +25,21 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         """
         try:
             await browser.ensure_started()
-            elem_map = get_element_map()
+            try:
+                locator = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return await element_error_result(browser, e)
 
-            if element_id not in elem_map:
-                image, summary = await get_screenshot_with_summary(browser)
-                return (
-                    f"Error: Element {element_id} not found. Valid IDs: {list(elem_map.keys())[:20]}\n\n{summary}",
-                    image,
-                )
-
-            elem = elem_map[element_id]
-            logger.info(
-                f"Clicking element {element_id}: {elem['tag']} - {elem.get('text', '')[:30]}"
-            )
-            handle = await browser.page.evaluate_handle(
-                f"document.elementFromPoint({elem['centerX']}, {elem['centerY']})"
-            )
-            element = handle.as_element()
-            if element:
-                await element.scroll_into_view_if_needed()
-                await element.click()
-            else:
-                await browser.page.mouse.click(elem["centerX"], elem["centerY"])  # fallback
+            elem = browser.get_element_map()[element_id]
+            text = (elem.get("text") or "no text")[:30]
+            logger.info(f"Clicking element {element_id}: {elem['tag']} - {text}")
+            await locator.click(timeout=ACTION_TIMEOUT_MS)
             with contextlib.suppress(Exception):
                 await browser.page.wait_for_load_state("domcontentloaded", timeout=3000)
 
             image, summary = await get_screenshot_with_summary(browser)
             return (
-                f"Clicked element {element_id} ({elem['tag']}: {elem['text'][:30] if elem['text'] else 'no text'})\n\n{summary}",
+                f"Clicked element {element_id} ({elem['tag']}: {text})\n\n{summary}",
                 image,
             )
 
@@ -94,24 +83,17 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         """
         try:
             await browser.ensure_started()
-            elem_map = get_element_map()
+            try:
+                locator = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return await element_error_result(browser, e)
 
-            if element_id not in elem_map:
-                image, summary = await get_screenshot_with_summary(browser)
-                return f"Error: Element {element_id} not found.\n\n{summary}", image
-
-            elem = elem_map[element_id]
             logger.info(f"Typing into element {element_id}")
-            handle = await browser.page.evaluate_handle(
-                f"document.elementFromPoint({elem['centerX']}, {elem['centerY']})"
-            )
-            element = handle.as_element()
-            if element:
-                await element.scroll_into_view_if_needed()
-                await element.fill(text)
-            else:
-                # fallback: mouse-click + keyboard.type
-                await browser.page.mouse.click(elem["centerX"], elem["centerY"])
+            try:
+                await locator.fill(text, timeout=ACTION_TIMEOUT_MS)
+            except PlaywrightError:
+                # Not fillable (e.g. a custom widget): focus it by clicking, then type.
+                await locator.click(timeout=ACTION_TIMEOUT_MS)
                 await browser.page.keyboard.type(text)
 
             image, summary = await get_screenshot_with_summary(browser)
@@ -151,15 +133,13 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         """
         try:
             await browser.ensure_started()
-            elem_map = get_element_map()
+            try:
+                locator = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return await element_error_result(browser, e)
 
-            if element_id not in elem_map:
-                image, summary = await get_screenshot_with_summary(browser)
-                return f"Error: Element {element_id} not found.\n\n{summary}", image
-
-            elem = elem_map[element_id]
             logger.info(f"Hovering over element {element_id}")
-            await browser.page.mouse.move(elem["centerX"], elem["centerY"])
+            await locator.hover(timeout=ACTION_TIMEOUT_MS)
             await browser.page.wait_for_timeout(300)
 
             image, summary = await get_screenshot_with_summary(browser)
@@ -179,15 +159,12 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         """
         try:
             await browser.ensure_started()
-            elem_map = get_element_map()
+            try:
+                locator = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return await element_error_result(browser, e)
 
-            if element_id not in elem_map:
-                image, summary = await get_screenshot_with_summary(browser)
-                return f"Error: Element {element_id} not found.\n\n{summary}", image
-
-            elem = elem_map[element_id]
-            # elem['y'] is viewport-relative, so we use scrollBy or calculate absolute Y
-            await browser.page.evaluate(f"window.scrollBy(0, {elem['y']} - 100)")
+            await locator.evaluate("el => el.scrollIntoView({block: 'center', inline: 'nearest'})")
             await browser.page.wait_for_timeout(300)
 
             image, summary = await get_screenshot_with_summary(browser)

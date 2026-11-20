@@ -140,8 +140,10 @@ BROWSER_EXTENSION_PATH=/path/to/unpacked/extension browsercontrol
 
 ### `BROWSER_EXECUTABLE_PATH`
 
-Which Chromium binary to drive. Left unset, Playwright uses the build it manages
-itself — which is what you want almost always.
+Which Chrome or Chromium binary to drive. Left unset, BrowserControl tries
+Playwright's cached Chromium first, then Google Chrome in its standard install
+location, and downloads Chromium if both are missing. If `BROWSER_EXTENSION_PATH`
+is set, automatic browser selection uses Playwright's Chromium.
 
 Set it when `playwright install chromium` has no build for your platform and
 refuses to install (newer Linux releases hit this), pointing it at a Chrome or

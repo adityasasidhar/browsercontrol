@@ -3,10 +3,21 @@ import logging
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
-from browsercontrol.browser import browser, get_element_map
+from browsercontrol.browser import browser
+from browsercontrol.elements import ElementError
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
+
+MAX_TEXT_CHARS = 10_000
+
+# Form fields report their value; everything else its rendered text.
+READ_TEXT_JS = """
+(el) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return String(el.value ?? '');
+    return (el.innerText || el.textContent || '').trim();
+}
+"""
 
 
 def register_content_tools(mcp: FastMCP) -> None:
@@ -35,21 +46,24 @@ def register_content_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     async def get_text(element_id: int) -> str:
         """
-        Get the text content of an element by its ID.
+        Get the full, current text of an element by its ID.
+
+        Reads the live page, so it returns the whole text (not the truncated
+        label from the summary). Form fields return their current value.
 
         Args:
             element_id: The number label of the element
         """
         try:
             await browser.ensure_started()
-            elem_map = get_element_map()
+            try:
+                locator = await browser.resolve_element(element_id)
+            except ElementError as e:
+                return f"Error: {e}"
 
-            if element_id not in elem_map:
-                return f"Error: Element {element_id} not found."
-
-            elem = elem_map[element_id]
-            text = elem.get("text", "")
-
+            text = await locator.evaluate(READ_TEXT_JS)
+            if len(text) > MAX_TEXT_CHARS:
+                text = text[:MAX_TEXT_CHARS] + "\n... [text truncated]"
             return f"Element {element_id} text: {text}"
 
         except Exception as e:

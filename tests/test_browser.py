@@ -56,19 +56,53 @@ class TestBrowserLifecycle:
         browser_mgr.start.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_browser_installs_chromium_if_missing(
+    async def test_installed_chrome_avoids_chromium_download(
         self, mock_playwright, mock_context, mock_page
     ):
-        """Test install-on-failure: Chromium is installed then launch is retried."""
-        missing_exc = Exception("Executable doesn't exist at /path/to/chromium")
-        # First launch raises a missing-executable error; second succeeds.
-        mock_playwright.chromium.launch_persistent_context.side_effect = [
-            missing_exc,
-            mock_context,
-        ]
+        """Use the installed Chrome channel when the Playwright build is missing."""
+        launch = mock_playwright.chromium.launch_persistent_context
+
+        async def launch_available_browser(**kwargs):
+            if kwargs.get("channel") == "chrome":
+                return mock_context
+            raise Exception("Executable doesn't exist at /path/to/chromium")
+
+        launch.side_effect = launch_available_browser
         mock_context.pages = [mock_page]
 
         with patch("browsercontrol.browser.async_playwright") as pw_patch:
+            pw_patch.return_value.start = AsyncMock(return_value=mock_playwright)
+
+            browser_mgr = BrowserManager()
+            browser_mgr._install_chromium = AsyncMock()
+            await browser_mgr.start()
+
+            assert browser_mgr.page is mock_page
+            browser_mgr._install_chromium.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("load_extension", [False, True])
+    async def test_browser_installs_chromium_if_missing(
+        self, mock_playwright, mock_context, mock_page, tmp_path, load_extension
+    ):
+        """Install Chromium when Chrome is missing or an extension requires Chromium."""
+        missing_exc = Exception("Executable doesn't exist at /path/to/chromium")
+        launch = mock_playwright.chromium.launch_persistent_context
+        if load_extension:
+            launch.side_effect = [missing_exc, mock_context]
+        else:
+            launch.side_effect = [
+                missing_exc,
+                Exception("Chromium distribution 'chrome' is not found at /path/to/chrome"),
+                mock_context,
+            ]
+        mock_context.pages = [mock_page]
+        extension_path = tmp_path if load_extension else None
+
+        with (
+            patch("browsercontrol.browser.async_playwright") as pw_patch,
+            patch("browsercontrol.browser.config.extension_path", extension_path),
+        ):
             mock_playwright_instance = AsyncMock()
             mock_playwright_instance.start = AsyncMock(return_value=mock_playwright)
             pw_patch.return_value = mock_playwright_instance
@@ -79,7 +113,9 @@ class TestBrowserLifecycle:
 
             browser_mgr._install_chromium.assert_called_once()
             assert browser_mgr.is_started
-            assert mock_playwright.chromium.launch_persistent_context.call_count == 2
+            assert [call.kwargs.get("channel") for call in launch.await_args_list] == (
+                [None, None] if load_extension else [None, "chrome", None]
+            )
 
     @pytest.mark.asyncio
     async def test_browser_raises_if_still_missing_after_install(
@@ -89,6 +125,7 @@ class TestBrowserLifecycle:
         missing_exc = Exception("Executable doesn't exist at /path/to/chromium")
         mock_playwright.chromium.launch_persistent_context.side_effect = [
             missing_exc,
+            Exception("Chromium distribution 'chrome' is not found at /path/to/chrome"),
             missing_exc,
         ]
 
@@ -362,59 +399,92 @@ class TestDevToolsCapture:
 
 
 class TestElementMapping:
-    """Test Set of Marks (SoM) element detection."""
+    """Test Set of Marks (SoM) element detection and per-tab element maps."""
+
+    @staticmethod
+    def _manager(page):
+        mgr = BrowserManager()
+        mgr._started = True
+        mgr._context = AsyncMock()
+        mgr._context.pages = [page]
+        mgr._page = page
+        return mgr
 
     @pytest.mark.asyncio
-    async def test_get_interactive_elements(self, mock_page):
-        """Test detecting interactive elements on page."""
-        mock_page.evaluate.return_value = [
-            {
-                "tag": "button",
-                "text": "Click me",
-                "x": 100,
-                "y": 200,
-                "width": 80,
-                "height": 40,
-                "centerX": 140,
-                "centerY": 220,
-            }
-        ]
+    async def test_get_interactive_elements_uses_a_fresh_generation(self, mock_page):
+        """Each collection gets a new generation so data-bc-id values never repeat."""
+        mgr = self._manager(mock_page)
+        collect = AsyncMock(return_value=[{"tag": "button"}])
+        with patch("browsercontrol.browser.collect_elements", collect):
+            assert await mgr.get_interactive_elements() == [{"tag": "button"}]
+            await mgr.get_interactive_elements()
 
-        browser_mgr = BrowserManager()
-        browser_mgr._started = True
-        browser_mgr._context = AsyncMock()
-        browser_mgr._context.pages = [mock_page]
-        browser_mgr._page = mock_page
-
-        elements = await browser_mgr.get_interactive_elements()
-
-        assert len(elements) == 1
-        assert elements[0]["tag"] == "button"
-        assert elements[0]["centerX"] == 140
-        assert elements[0]["centerY"] == 220
+        assert [c.args for c in collect.await_args_list] == [(mock_page, 1), (mock_page, 2)]
 
     @pytest.mark.asyncio
     async def test_screenshot_with_som(self, mock_page):
         """Test screenshot with SoM annotations."""
         mock_page.screenshot.return_value = b"fake_image_data"
-        mock_page.evaluate.return_value = []
+        mgr = self._manager(mock_page)
 
-        browser_mgr = BrowserManager()
-        browser_mgr._started = True
-        browser_mgr._context = AsyncMock()
-        browser_mgr._context.pages = [mock_page]
-        browser_mgr._page = mock_page
-
-        with patch("browsercontrol.browser.PILImage") as mock_pil:
+        with (
+            patch("browsercontrol.browser.collect_elements", AsyncMock(return_value=[])),
+            patch("browsercontrol.browser.PILImage") as mock_pil,
+        ):
             mock_img = MagicMock()
             mock_pil.open.return_value = mock_img
-            # Needs size attribute for ImageDraw
             mock_img.size = (800, 600)
             mock_img_bytes = MagicMock()
             mock_img_bytes.getvalue.return_value = b"annotated_image"
 
             with patch("browsercontrol.browser.BytesIO", return_value=mock_img_bytes):
-                screenshot_bytes, elem_map = await browser_mgr.screenshot_with_som()
+                screenshot_bytes, elem_map = await mgr.screenshot_with_som()
 
-                assert screenshot_bytes == b"annotated_image"
-                assert isinstance(elem_map, dict)
+        assert screenshot_bytes == b"annotated_image"
+        assert elem_map == {}
+
+    @pytest.mark.asyncio
+    async def test_element_maps_are_kept_per_tab(self, mock_page):
+        """IDs from one tab's screenshot must not resolve against another tab."""
+        other = AsyncMock()
+        other.is_closed = MagicMock(return_value=False)
+        mock_page.is_closed = MagicMock(return_value=False)
+        mgr = self._manager(mock_page)
+        elements = [
+            {"tag": "button", "x": 1, "y": 1, "width": 10, "height": 10},
+            {"tag": "a", "x": 20, "y": 1, "width": 10, "height": 10},
+        ]
+
+        with (
+            patch("browsercontrol.browser.collect_elements", AsyncMock(return_value=elements)),
+            patch("browsercontrol.browser.PILImage"),
+            patch("browsercontrol.browser.ImageDraw"),
+            patch("browsercontrol.browser._draw_mark"),
+        ):
+            await mgr.screenshot_with_som()
+
+        assert list(mgr.get_element_map()) == [1, 2]
+        mgr._page = other
+        assert mgr.get_element_map() == {}
+        mgr._page = mock_page
+        assert mgr.get_element_map()[1]["tag"] == "button"
+
+    def test_element_map_is_empty_before_start(self):
+        assert BrowserManager().get_element_map() == {}
+
+    @pytest.mark.asyncio
+    async def test_resolve_element_uses_active_tab_map(self, mock_page):
+        mgr = self._manager(mock_page)
+        mgr._element_maps[mock_page] = {1: {"tag": "button"}}
+        sentinel = object()
+        locate = AsyncMock(return_value=sentinel)
+        with patch("browsercontrol.browser.locate", locate):
+            assert await mgr.resolve_element(1) is sentinel
+        locate.assert_awaited_once_with(1, {1: {"tag": "button"}})
+
+    @pytest.mark.asyncio
+    async def test_stop_clears_element_maps(self, mock_page):
+        mgr = self._manager(mock_page)
+        mgr._element_maps[mock_page] = {1: {}}
+        await mgr.stop()
+        assert mgr._element_maps == {}

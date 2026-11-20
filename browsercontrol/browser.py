@@ -1,13 +1,15 @@
 import logging
 import time
 from io import BytesIO
-from typing import Any, cast
+from typing import Any
 
 from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
 from playwright.async_api import (
     Browser,
     BrowserContext,
+    BrowserType,
+    Locator,
     Page,
     Playwright,
     Request,
@@ -15,11 +17,9 @@ from playwright.async_api import (
 )
 
 from browsercontrol.config import config
+from browsercontrol.elements import ElementMap, collect_elements, locate
 
 logger = logging.getLogger(__name__)
-
-# Store element mapping for click-by-ID
-element_map: dict[int, dict[str, Any]] = {}
 
 # Module-level cached font (loaded once, reused across screenshots)
 _cached_font: ImageFont.FreeTypeFont | ImageFont.ImageFont | None = None
@@ -67,6 +67,11 @@ class BrowserManager:
         self._page_errors: list[dict[str, Any]] = []
         # Keyed by Request object identity to avoid URL-collision mis-pairings
         self._request_map: dict[Any, dict[str, Any]] = {}
+
+        # Set of Marks state: one element map per tab, and a counter that makes
+        # each screenshot's data-bc-id values unique.
+        self._element_maps: dict[Page, ElementMap] = {}
+        self._som_generation = 0
 
     @property
     def is_started(self) -> bool:
@@ -187,6 +192,36 @@ class BrowserManager:
         page.on("response", on_response)
         page.on("requestfailed", on_request_failed)
 
+    async def _launch_context(
+        self, chromium: BrowserType, launch_kwargs: dict[str, Any]
+    ) -> BrowserContext:
+        """Reuse an available browser before downloading Playwright's Chromium."""
+        missing_hints = ("executable doesn't exist", "playwright install", "looks like playwright")
+        try:
+            return await chromium.launch_persistent_context(**launch_kwargs)
+        except Exception as exc:
+            if "executable_path" in launch_kwargs or not any(
+                hint in str(exc).lower() for hint in missing_hints
+            ):
+                raise
+
+        # Branded Chrome does not support loading unpacked extensions this way.
+        if config.extension_path is None:
+            try:
+                context = await chromium.launch_persistent_context(
+                    channel="chrome", **launch_kwargs
+                )
+            except Exception as exc:
+                if "chromium distribution 'chrome' is not found" not in str(exc).lower():
+                    raise
+            else:
+                logger.info("Using installed Google Chrome")
+                return context
+
+        logger.info("Chromium executable not found, installing automatically...")
+        await self._install_chromium()
+        return await chromium.launch_persistent_context(**launch_kwargs)
+
     async def start(self) -> None:
         """Start the browser with persistent context."""
         if self._started:
@@ -215,9 +250,6 @@ class BrowserManager:
             )
             logger.info(f"Loading extension from: {config.extension_path}")
 
-        # Substrings that indicate the Chromium executable is missing
-        missing_hints = ("executable doesn't exist", "playwright install", "looks like playwright")
-
         launch_kwargs: dict[str, Any] = {
             "user_data_dir": str(config.user_data_dir),
             "headless": config.headless,
@@ -229,24 +261,7 @@ class BrowserManager:
             logger.info(f"Using Chromium executable: {config.executable_path}")
 
         try:
-            try:
-                self._context = await self._playwright.chromium.launch_persistent_context(
-                    **launch_kwargs
-                )
-            except Exception as launch_exc:
-                # Only retry after installing if the error is a missing-executable error.
-                # A caller-supplied executable is theirs to fix, so don't install over it.
-                if config.executable_path is None and any(
-                    hint in str(launch_exc).lower() for hint in missing_hints
-                ):
-                    logger.info("Chromium executable not found, installing automatically...")
-                    await self._install_chromium()
-                    # Retry the launch exactly once after install
-                    self._context = await self._playwright.chromium.launch_persistent_context(
-                        **launch_kwargs
-                    )
-                else:
-                    raise
+            self._context = await self._launch_context(self._playwright.chromium, launch_kwargs)
 
             # Auto-attach listeners to new pages (including popups)
             self._context.on("page", self._setup_page_listeners)
@@ -289,6 +304,7 @@ class BrowserManager:
             self._playwright = None
 
         self._page = None
+        self._element_maps.clear()
 
         # Clear dev tools data
         self._console_logs.clear()
@@ -396,155 +412,85 @@ class BrowserManager:
         """Clear captured page errors."""
         self._page_errors.clear()
 
+    def get_element_map(self) -> ElementMap:
+        """Return the element map from the active tab's most recent screenshot."""
+        if not self.is_started:
+            return {}
+        return self._element_maps.get(self.page, {})
+
+    async def resolve_element(self, element_id: int) -> Locator:
+        """Resolve an element ID from the active tab's map to a verified, live locator.
+
+        Raises ElementNotFoundError or StaleElementError (both ElementError).
+        """
+        return await locate(element_id, self.get_element_map())
+
     async def get_interactive_elements(self) -> list[dict[str, Any]]:
-        """Get all interactive elements with their bounding boxes.
+        """Collect visible, unobscured interactive elements across all frames.
 
-        Recurses into open shadow roots and same-origin iframes so that
-        elements hidden behind a shadow boundary or a same-origin frame are
-        included alongside top-document elements.
+        Covers open shadow roots and every frame (cross-origin included), and
+        tags each element so it can be resolved later by ID.
         """
-        js_code = """
-        () => {
-            const interactiveSelectors = [
-                'a[href]',
-                'button',
-                'input:not([type="hidden"])',
-                'select',
-                'textarea',
-                '[role="button"]',
-                '[role="link"]',
-                '[role="menuitem"]',
-                '[role="tab"]',
-                '[onclick]',
-                '[tabindex]:not([tabindex="-1"])',
-                'label[for]',
-                '[contenteditable="true"]'
-            ];
+        self._som_generation += 1
+        return await collect_elements(self.page, self._som_generation)
 
-            const elements = [];
-            const seen = new Set();
-
-            function collect(root, offsetX, offsetY) {
-                let nodes = [];
-                for (const selector of interactiveSelectors) {
-                    try {
-                        nodes = nodes.concat(Array.from(root.querySelectorAll(selector)));
-                    } catch (e) {}
-                }
-                for (const el of nodes) {
-                    if (seen.has(el)) continue;
-                    seen.add(el);
-
-                    const rect = el.getBoundingClientRect();
-                    if (rect.width === 0 || rect.height === 0) continue;
-
-                    const x = rect.x + offsetX;
-                    const y = rect.y + offsetY;
-
-                    if (y + rect.height < 0 || y > window.innerHeight) continue;
-                    if (x + rect.width < 0 || x > window.innerWidth) continue;
-
-                    let text = el.innerText?.trim()?.substring(0, 50) || '';
-                    let placeholder = el.placeholder || '';
-                    let ariaLabel = el.getAttribute('aria-label') || '';
-                    let title = el.title || '';
-                    let type = el.type || el.tagName.toLowerCase();
-                    let href = el.href || '';
-
-                    elements.push({
-                        x: x,
-                        y: y,
-                        width: rect.width,
-                        height: rect.height,
-                        centerX: x + rect.width / 2,
-                        centerY: y + rect.height / 2,
-                        tag: el.tagName.toLowerCase(),
-                        type: type,
-                        text: text || placeholder || ariaLabel || title,
-                        href: href,
-                        id: el.id || null,
-                        className: el.className || null
-                    });
-                }
-
-                // Open shadow roots report coordinates in the same viewport space
-                try {
-                    for (const el of root.querySelectorAll('*')) {
-                        if (el.shadowRoot) collect(el.shadowRoot, offsetX, offsetY);
-                    }
-                } catch (e) {}
-
-                // Same-origin iframes: add the iframe's on-screen position as an offset
-                try {
-                    for (const frame of root.querySelectorAll('iframe')) {
-                        try {
-                            const doc = frame.contentDocument;
-                            if (doc) {
-                                const frect = frame.getBoundingClientRect();
-                                collect(doc, offsetX + frect.x, offsetY + frect.y);
-                            }
-                        } catch (e) { /* cross-origin frame — skip */ }
-                    }
-                } catch (e) {}
-            }
-
-            collect(document, 0, 0);
-            return elements;
-        }
-        """
-        return cast("list[dict[str, Any]]", await self.page.evaluate(js_code))
-
-    async def screenshot_with_som(self) -> tuple[bytes, dict[int, dict[str, Any]]]:
+    async def screenshot_with_som(self) -> tuple[bytes, ElementMap]:
         """
         Take a screenshot and overlay Set of Marks (numbered bounding boxes).
-        Returns the annotated image bytes and the element mapping.
+        Returns the annotated image bytes and the active tab's new element map.
         """
-        global element_map
-
-        screenshot_bytes = await self.page.screenshot(type="png")
+        page = self.page
+        screenshot_bytes = await page.screenshot(type="png")
         elements = await self.get_interactive_elements()
 
         img = PILImage.open(BytesIO(screenshot_bytes))
         draw = ImageDraw.Draw(img, "RGBA")
-
         font = _get_label_font()
 
-        element_map = {}
-
+        new_map: ElementMap = {}
         for idx, elem in enumerate(elements):
             element_id = idx + 1
-            element_map[element_id] = elem
+            new_map[element_id] = elem
+            _draw_mark(draw, font, element_id, elem)
 
-            x, y = elem["x"], elem["y"]
-            w, h = elem["width"], elem["height"]
-
-            # Draw semi-transparent box
-            box_color = (255, 0, 0, 60)
-            draw.rectangle([x, y, x + w, y + h], outline="red", width=2, fill=box_color)
-
-            # Draw label
-            label = str(element_id)
-            label_bbox = draw.textbbox((0, 0), label, font=font)
-            label_w = label_bbox[2] - label_bbox[0] + 6
-            label_h = label_bbox[3] - label_bbox[1] + 4
-
-            label_x = max(0, x)
-            label_y = max(0, y - label_h - 2)
-
-            draw.rectangle([label_x, label_y, label_x + label_w, label_y + label_h], fill="red")
-            draw.text((label_x + 3, label_y + 2), label, fill="white", font=font)
+        # Maps are per tab, so IDs from one tab never resolve against another.
+        self._element_maps = {p: m for p, m in self._element_maps.items() if not p.is_closed()}
+        self._element_maps[page] = new_map
 
         output = BytesIO()
         img.save(output, format="PNG")
 
-        logger.debug(f"Captured screenshot with {len(element_map)} elements")
-        return output.getvalue(), element_map
+        logger.debug(f"Captured screenshot with {len(new_map)} elements")
+        return output.getvalue(), new_map
+
+
+def _draw_mark(
+    draw: ImageDraw.ImageDraw,
+    font: ImageFont.FreeTypeFont | ImageFont.ImageFont,
+    element_id: int,
+    elem: dict[str, Any],
+) -> None:
+    """Draw one numbered box. Disabled elements are drawn grey instead of red."""
+    x, y = max(0.0, elem["x"]), max(0.0, elem["y"])
+    x2, y2 = elem["x"] + elem["width"], elem["y"] + elem["height"]
+    color = (128, 128, 128) if elem.get("disabled") else (255, 0, 0)
+
+    draw.rectangle([x, y, x2, y2], outline=color, width=2, fill=(*color, 60))
+
+    label = str(element_id)
+    label_bbox = draw.textbbox((0, 0), label, font=font)
+    label_w = label_bbox[2] - label_bbox[0] + 6
+    label_h = label_bbox[3] - label_bbox[1] + 4
+    label_y = max(0.0, y - label_h - 2)
+
+    draw.rectangle([x, label_y, x + label_w, label_y + label_h], fill=color)
+    draw.text((x + 3, label_y + 2), label, fill="white", font=font)
 
 
 # Global browser manager instance
 browser = BrowserManager()
 
 
-def get_element_map() -> dict[int, dict[str, Any]]:
-    """Get the current element map."""
-    return element_map
+def get_element_map() -> ElementMap:
+    """Get the active tab's current element map."""
+    return browser.get_element_map()

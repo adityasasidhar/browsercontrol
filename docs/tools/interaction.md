@@ -23,8 +23,8 @@ click(element_id: int) -> tuple[str, Image]
 
 **Behavior**
 
-- Resolves the actual DOM element at the recorded coordinates via `document.elementFromPoint(x, y)`. This is what lets it click through sticky headers, modals, and overlays that would otherwise fool a coordinate-only clicker.
-- Falls back to a raw `page.mouse.click(x, y)` if the lookup fails.
+- Finds the numbered element itself (by its `data-bc-id` tag, in the right frame and through shadow DOM), not whatever sits at its old coordinates.
+- Refuses stale IDs: if the element was removed or moved since the screenshot, returns `Element N is stale (...)` with a fresh screenshot instead of clicking.
 - Scrolls the element into view first.
 - Returns a fresh annotated screenshot.
 

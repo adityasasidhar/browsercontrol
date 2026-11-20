@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastmcp import FastMCP
 
+from browsercontrol.elements import StaleElementError
 from browsercontrol.tools.devtools import register_devtools
 
 
@@ -227,3 +228,46 @@ class TestPerformance:
 
             assert isinstance(result, str)
             assert "1234" in result
+
+
+class TestInspectElement:
+    """inspect_element evaluates on the resolved element, not at a screen point."""
+
+    @pytest.mark.asyncio
+    async def test_inspect_resolved_element(self, mcp_server, mock_browser_manager):
+        register_devtools(mcp_server)
+        locator = AsyncMock()
+        locator.evaluate = AsyncMock(
+            return_value={
+                "tag": "button",
+                "id": "go",
+                "classes": ["primary"],
+                "dimensions": {"width": 80, "height": 30, "top": 5, "left": 6},
+                "styles": {"color": "red", "fontFamily": "sans-serif"},
+            }
+        )
+        mock_browser_manager.resolve_element = AsyncMock(return_value=locator)
+
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            tool = await mcp_server.get_tool("inspect_element")
+            result = await tool.fn(element_id=4)
+
+        mock_browser_manager.resolve_element.assert_awaited_once_with(4)
+        script = locator.evaluate.await_args.args[0]
+        assert "elementFromPoint" not in script
+        assert "data-bc-id" in script, "the internal tag is filtered from attributes"
+        assert "Tag: <button>" in result
+        assert "ID: #go" in result
+
+    @pytest.mark.asyncio
+    async def test_inspect_stale_element(self, mcp_server, mock_browser_manager):
+        register_devtools(mcp_server)
+        mock_browser_manager.resolve_element = AsyncMock(
+            side_effect=StaleElementError(4, "it moved")
+        )
+
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            tool = await mcp_server.get_tool("inspect_element")
+            result = await tool.fn(element_id=4)
+
+        assert result.startswith("Error: Element 4 is stale (it moved)")

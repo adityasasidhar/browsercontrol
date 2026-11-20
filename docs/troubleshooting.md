@@ -6,7 +6,7 @@ Solutions to common issues, in roughly the order you'll hit them.
 
 ### "Chromium executable doesn't exist"
 
-BrowserControl auto-installs Chromium on first run. If that fails:
+BrowserControl downloads Chromium at startup if a compatible browser binary is missing. If the download fails, try the manual install:
 
 ```bash
 python -m playwright install chromium
@@ -130,10 +130,12 @@ Make sure your file matches the allowed types.
 If `click(id)` says the element isn't there, or clicks the wrong thing:
 
 1. **Re-screenshot** — `screenshot(annotate=True)` to get fresh IDs.
-2. **Inspect** — `inspect_element(id)` to see what's actually at those coordinates.
+2. **Inspect** — `inspect_element(id)` to see the element's tag, attributes and styles.
 3. **Try `click_at`** — if you have specific coordinates from vision reasoning.
 
-The element lookup uses `document.elementFromPoint(x, y)`, which can return a different element than what you expect if there are overlays or sticky headers.
+`Element N is stale (...)` means the page changed after the screenshot (the element was removed, hidden, or moved). Use the IDs from the fresh screenshot returned with the error.
+
+If something you can see has no number, another element is probably covering it (a cookie banner, modal, or sticky header). Dismiss the overlay and re-screenshot.
 
 ### No console logs after a `clear=True`
 

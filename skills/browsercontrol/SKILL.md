@@ -76,17 +76,21 @@ Use `screenshot()` to re-render if you need the rest in view.
 - **`type_text` replaces, not appends.** It uses `fill()`, so the field is
   cleared first. To append, read the current value with `get_text(id)` and type
   the concatenation.
-- **Clicks land on whatever is topmost at that point.** Targeting is by
-  coordinate (`elementFromPoint` at the box centre). A cookie banner, modal, or
-  sticky header overlapping your target means you click the overlay instead.
-  **Dismiss overlays first**, then re-screenshot.
+- **Actions reach the numbered element itself, not a screen position.** Each
+  number is tied to its DOM element. Elements covered by a cookie banner, modal,
+  or sticky header get **no number** at all: dismiss the overlay, re-screenshot,
+  and the target appears.
+- **Stale IDs are refused.** If the element was removed or moved since the
+  screenshot, you get `Element N is stale (...)` plus a fresh screenshot. Pick
+  the new ID from it; don't retry the old one.
+- **Grey boxes are disabled controls** (also `(disabled)` in the element list).
+  Fill in whatever the form still needs before clicking them.
 - **`select_option` handles native and custom dropdowns.** It clicks the control,
   then clicks the option by visible text; if that fails it types the text and
   presses Enter. Pass the text the user sees.
-- **Shadow DOM and same-origin iframes are marked.** Open shadow roots and
-  same-origin frames are traversed automatically. **Cross-origin iframes are
-  not** — embedded payment fields, third-party widgets, and CAPTCHAs will have
-  no numbers. That is a hard limit, not a bug to work around.
+- **Shadow DOM and iframes are marked.** Open shadow roots and every iframe,
+  cross-origin ones included (embedded payment fields, third-party widgets), are
+  traversed automatically. Closed shadow roots are the exception.
 - **`screenshot(annotate=True, full_page=True)` silently drops annotation.**
   Full-page capture cannot be marked; you get a clean image. Use it for
   reviewing layout, not for finding click targets.
@@ -169,8 +173,8 @@ stop_recording()         # → ~/.browsercontrol/recordings/<name>.zip (Playwrig
 |---|---|
 | `Element N not found` | Read the fresh element list in the same response; pick the ID from there |
 | Target has no number | `scroll` and re-screenshot — it's off-screen |
-| Click did nothing | An overlay caught it. Dismiss the banner/modal, re-screenshot, retry |
-| Element never appears | Cross-origin iframe. Say so; don't keep scrolling |
+| `Element N is stale` | The page changed. Use the IDs in the fresh screenshot returned with the error |
+| Target has no number but is on screen | Something covers it. Dismiss the banner/modal, re-screenshot |
 | Page still loading | `wait(2)` then `screenshot()` |
 | Numbers look stale | `screenshot()` regenerates the map without changing the page |
 

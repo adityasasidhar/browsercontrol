@@ -16,7 +16,7 @@ Welcome to **BrowserControl** — the vision-first browser automation MCP server
 - **No API key, no cloud account, no telemetry.** BrowserControl runs 100% on your machine.
 
 !!! tip "Already have a Python project?"
-    If you're using `uv`, BrowserControl drops in as a normal dependency. No browser binary to manage — Chromium auto-installs on first run.
+    If you're using `uv`, BrowserControl drops in as a normal dependency. At startup it reuses a browser if available and downloads Chromium when needed.
 
 ## Quick taste
 
