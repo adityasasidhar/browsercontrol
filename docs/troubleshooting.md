@@ -6,7 +6,7 @@ Solutions to common issues, in roughly the order you'll hit them.
 
 ### "Chromium executable doesn't exist"
 
-BrowserControl auto-installs Chromium on first run. If that fails:
+BrowserControl downloads Chromium at startup if a compatible browser binary is missing. If the download fails, try the manual install:
 
 ```bash
 python -m playwright install chromium

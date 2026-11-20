@@ -10,6 +10,7 @@ All notable changes to this project are documented here. The format follows
 
 - Issue and PR templates, DCO sign-off check, conventional-commit PR title check.
 - `Makefile`, max-lines pre-commit check, refreshed pre-commit hooks.
+- Reuse an installed Google Chrome when Playwright's Chromium is missing.
 
 ## [0.2.0]
 

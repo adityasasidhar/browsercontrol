@@ -49,8 +49,10 @@ Sin selectores que adivinar, ninguno que se rompa en el próximo rediseño. Este
 uv add browsercontrol      # o: pip install browsercontrol
 ```
 
-Chromium se instala automáticamente en la primera ejecución. Si falla, ejecuta
-`python -m playwright install chromium` una vez.
+Al arrancar, BrowserControl reutiliza el Chromium de Playwright si ya está en
+caché o usa Google Chrome si está instalado. Si no encuentra ninguno, descarga
+Chromium de forma automática. Para descargarlo con antelación, ejecuta
+`uv run python -m playwright install chromium`.
 
 Apunta tu cliente al comando `browsercontrol`:
 

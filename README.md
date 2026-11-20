@@ -50,8 +50,9 @@ pattern, used as the primary interface rather than a fallback.
 uv add browsercontrol      # or: pip install browsercontrol
 ```
 
-Chromium installs itself on first run. If that fails, run
-`python -m playwright install chromium` once.
+On startup, BrowserControl reuses Playwright's cached Chromium or an installed
+Google Chrome. If neither is available, it downloads Chromium automatically. To
+download it ahead of time, run `uv run python -m playwright install chromium`.
 
 Point your client at the `browsercontrol` command:
 

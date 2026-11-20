@@ -8,6 +8,7 @@ from PIL import ImageDraw, ImageFont
 from playwright.async_api import (
     Browser,
     BrowserContext,
+    BrowserType,
     Page,
     Playwright,
     Request,
@@ -187,6 +188,36 @@ class BrowserManager:
         page.on("response", on_response)
         page.on("requestfailed", on_request_failed)
 
+    async def _launch_context(
+        self, chromium: BrowserType, launch_kwargs: dict[str, Any]
+    ) -> BrowserContext:
+        """Reuse an available browser before downloading Playwright's Chromium."""
+        missing_hints = ("executable doesn't exist", "playwright install", "looks like playwright")
+        try:
+            return await chromium.launch_persistent_context(**launch_kwargs)
+        except Exception as exc:
+            if "executable_path" in launch_kwargs or not any(
+                hint in str(exc).lower() for hint in missing_hints
+            ):
+                raise
+
+        # Branded Chrome does not support loading unpacked extensions this way.
+        if config.extension_path is None:
+            try:
+                context = await chromium.launch_persistent_context(
+                    channel="chrome", **launch_kwargs
+                )
+            except Exception as exc:
+                if "chromium distribution 'chrome' is not found" not in str(exc).lower():
+                    raise
+            else:
+                logger.info("Using installed Google Chrome")
+                return context
+
+        logger.info("Chromium executable not found, installing automatically...")
+        await self._install_chromium()
+        return await chromium.launch_persistent_context(**launch_kwargs)
+
     async def start(self) -> None:
         """Start the browser with persistent context."""
         if self._started:
@@ -215,9 +246,6 @@ class BrowserManager:
             )
             logger.info(f"Loading extension from: {config.extension_path}")
 
-        # Substrings that indicate the Chromium executable is missing
-        missing_hints = ("executable doesn't exist", "playwright install", "looks like playwright")
-
         launch_kwargs: dict[str, Any] = {
             "user_data_dir": str(config.user_data_dir),
             "headless": config.headless,
@@ -229,24 +257,7 @@ class BrowserManager:
             logger.info(f"Using Chromium executable: {config.executable_path}")
 
         try:
-            try:
-                self._context = await self._playwright.chromium.launch_persistent_context(
-                    **launch_kwargs
-                )
-            except Exception as launch_exc:
-                # Only retry after installing if the error is a missing-executable error.
-                # A caller-supplied executable is theirs to fix, so don't install over it.
-                if config.executable_path is None and any(
-                    hint in str(launch_exc).lower() for hint in missing_hints
-                ):
-                    logger.info("Chromium executable not found, installing automatically...")
-                    await self._install_chromium()
-                    # Retry the launch exactly once after install
-                    self._context = await self._playwright.chromium.launch_persistent_context(
-                        **launch_kwargs
-                    )
-                else:
-                    raise
+            self._context = await self._launch_context(self._playwright.chromium, launch_kwargs)
 
             # Auto-attach listeners to new pages (including popups)
             self._context.on("page", self._setup_page_listeners)
