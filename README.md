@@ -15,6 +15,21 @@ agent can click, type, or read the page.
 
 ## Quick start
 
+### Claude Code plugin
+
+With [uv](https://docs.astral.sh/uv/getting-started/installation/) on your
+`PATH`, run these commands in Claude Code to install the MCP server and the
+[agent skill](skills/browsercontrol/SKILL.md) together:
+
+```text
+/plugin marketplace add adityasasidhar/browsercontrol
+/plugin install browsercontrol@browsercontrol
+```
+
+Restart Claude Code or run `/reload-plugins` to load the tools.
+
+### Manual MCP setup
+
 With [uv](https://docs.astral.sh/uv/getting-started/installation/) installed,
 configure your client to launch `uvx browsercontrol`. For clients that use
 `mcpServers` JSON, merge in this entry:
@@ -30,7 +45,7 @@ configure your client to launch `uvx browsercontrol`. For clients that use
 }
 ```
 
-For Claude Code, run:
+For a manual setup in Claude Code, run:
 
 ```bash
 claude mcp add --transport stdio browsercontrol -- uvx browsercontrol

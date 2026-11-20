@@ -8,12 +8,28 @@ as the command and omit the arguments.
 
 ## Claude Code
 
-Run this from your project directory, then run `/mcp` in Claude Code
-to check the connection. [Claude Code MCP docs](https://code.claude.com/docs/en/mcp)
+=== "Plugin"
 
-```bash
-claude mcp add --transport stdio browsercontrol -- uvx browsercontrol
-```
+    With `uv` on your `PATH`, use the plugin to install the MCP server and the
+    [agent skill](agent-skill.md) together. Run these commands in Claude Code:
+
+    ```text
+    /plugin marketplace add adityasasidhar/browsercontrol
+    /plugin install browsercontrol@browsercontrol
+    ```
+
+    Restart Claude Code or run `/reload-plugins`, then use `/mcp` to check the
+    connection.
+
+=== "Manual"
+
+    Run this from your project directory:
+
+    ```bash
+    claude mcp add --transport stdio browsercontrol -- uvx browsercontrol
+    ```
+
+    Run `/mcp` in Claude Code to check the connection. [Claude Code MCP docs](https://code.claude.com/docs/en/mcp)
 
 ## Clients that use `mcpServers`
 

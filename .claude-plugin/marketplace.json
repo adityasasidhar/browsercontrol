@@ -1,0 +1,21 @@
+{
+  "name": "browsercontrol",
+  "owner": {
+    "name": "Aditya Sasidhar",
+    "url": "https://github.com/adityasasidhar"
+  },
+  "metadata": {
+    "description": "BrowserControl: vision-first browser automation for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "browsercontrol",
+      "source": "./",
+      "description": "Vision-first browser automation: every action returns a screenshot with numbered boxes over interactive elements, so Claude clicks by number instead of by selector. Bundles the BrowserControl MCP server and its usage skill.",
+      "version": "0.2.0",
+      "category": "development",
+      "homepage": "https://adityasasidhar.github.io/browsercontrol/",
+      "license": "MIT"
+    }
+  ]
+}
