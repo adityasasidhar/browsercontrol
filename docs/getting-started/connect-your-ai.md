@@ -132,9 +132,7 @@ async def main() -> None:
         async with ClientSession(read, write) as session:
             await session.initialize()
             tools = await session.list_tools()
-            result = await session.call_tool(
-                "navigate_to", {"url": "https://news.ycombinator.com"}
-            )
+            result = await session.call_tool("navigate_to", {"url": "https://news.ycombinator.com"})
 
 
 asyncio.run(main())

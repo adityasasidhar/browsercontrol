@@ -1,7 +1,9 @@
+fail_fast: true
+
 repos:
   # Ruff - Fast Python linter and formatter
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
+    rev: v0.17.6
     hooks:
       # Run the linter
       - id: ruff
@@ -11,7 +13,7 @@ repos:
 
   # General file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -28,12 +30,29 @@ repos:
 
   # Python security checks
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.0
+    rev: 1.9.4
     hooks:
       - id: bandit
         args: [-c, pyproject.toml]
         additional_dependencies: ["bandit[toml]"]
         exclude: ^tests/
+
+  # Keep uv.lock in sync with pyproject.toml
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.9
+    hooks:
+      - id: uv-lock
+
+  # Local checks
+  - repo: local
+    hooks:
+      - id: max-lines
+        name: Check max lines per file
+        entry: python3 scripts/checks/check_max_lines.py
+        args: [--max-lines=800]
+        language: system
+        files: '\.(py|md|yml|yaml|toml)$'
+        exclude: '^(uv\.lock|docs/llms\.txt)$'
 
 # CI configuration
 ci:
