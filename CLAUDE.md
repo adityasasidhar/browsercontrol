@@ -116,6 +116,10 @@ handling, following the existing per-module test files.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`). PRs explain the
   user-visible change, link related issues, include tests and docs when interfaces change, and
   attach screenshots for visual or docs-site changes.
+- Do not commit credentials; use the documented `BROWSER_*` environment variables for local
+  configuration.
+- Tools must build results via the shared `get_screenshot_with_summary` helper;
+  `tests/test_element_summary.py` fails if a tool module defines its own copy.
 - Keep tool docstrings actionable: FastMCP exposes them to clients.
 - Pre-commit hooks (ruff lint + format, bandit, and the standard
   whitespace/YAML/TOML/JSON file checks) run on commit;

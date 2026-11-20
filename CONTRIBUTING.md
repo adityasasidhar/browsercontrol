@@ -69,12 +69,9 @@ uv run ruff format .
 
 # Run all pre-commit hooks
 uv run pre-commit run --all-files
-```
 
 # Run specific test file
-
 uv run pytest tests/test_navigation.py
-
 ```
 
 If you add a new tool or feature, please add a corresponding test case covering:
