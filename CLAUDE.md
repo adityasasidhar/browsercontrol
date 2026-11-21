@@ -38,8 +38,9 @@ browsercontrol                                # Run the installed server (also: 
 browsercontrol --transport http --port 8000   # Streamable HTTP at /mcp (add --isolate-clients)
 ```
 
-CI (`.github/workflows/ci.yml`) gates on the lint job first, then runs tests on
-Linux/Windows/macOS plus bandit and mypy. Run `ruff check`, `ruff format`, and
+CI (`.github/workflows/ci.yml`) gates on the lint job first, then runs tests
+(Python 3.11 and 3.14 on Linux/Windows/macOS, 3.12 and 3.13 on Linux) plus
+bandit and mypy. Keep that matrix in step with `requires-python`. Run `ruff check`, `ruff format`, and
 `pytest` locally before pushing.
 
 ## Architecture
@@ -204,6 +205,13 @@ handling, following the existing per-module test files.
 - Every file is capped at 800 lines (pre-commit `max-lines`). `browser.py` is close to
   it, so put new manager-adjacent logic in its own module (as `session.py`,
   `emulation.py`, and `codegen.py` do) rather than growing the manager.
-- Pre-commit hooks (ruff lint + format, bandit, and the standard
-  whitespace/YAML/TOML/JSON file checks) run on commit;
+- Pre-commit hooks run on commit: ruff lint + format, bandit, actionlint on the
+  workflows, `uv-lock`, `max-lines`, the standard whitespace/YAML/TOML/JSON file
+  checks, and **Tach** import boundaries (`tach.toml`): the core modules
+  (`browser`, `codegen`, `config`, `elements`, `emulation`, `session`) must not
+  import `tools` or `server`, and `tools` must not import `server`.
   `git commit --no-verify` bypasses them but CI will still enforce them.
+- The version is set in `pyproject.toml`; `__version__` and the HAR creator read
+  it from package metadata. A release must also bump `plugin.json`,
+  `package.json`, and both files in `.claude-plugin/` (`tests/test_version.py`
+  checks). The steps are in `docs/project/contributing.md#release`.

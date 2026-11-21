@@ -5,6 +5,7 @@ import json
 import logging
 import time
 from datetime import UTC, datetime
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlsplit
@@ -340,7 +341,7 @@ def register_network_tools(mcp: FastMCP) -> None:
             har = {
                 "log": {
                     "version": "1.2",
-                    "creator": {"name": "BrowserControl", "version": "0.3.0"},
+                    "creator": {"name": "BrowserControl", "version": version("browsercontrol")},
                     "pages": [],
                     "entries": entries,
                 }

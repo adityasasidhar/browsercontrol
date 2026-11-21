@@ -1,115 +1,55 @@
 # Contributing to BrowserControl
 
-We love your input! We want to make contributing to BrowserControl as easy and transparent as possible, whether it's:
+Bug reports, fixes, docs, and new tools are all welcome. This file covers the rules a
+contribution has to follow. Setup, every check, how to add a tool, how to work on the docs
+site, and how releases are cut are in the
+[contributing guide](https://adityasasidhar.github.io/browsercontrol/project/contributing)
+(source: [`docs/project/contributing.md`](docs/project/contributing.md)).
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing new features
-- Becoming a maintainer
-
-## 🚀 Quick Start for Contributors
-
-1. **Fork the repo** and clone it locally
-2. **Install `uv`** (our package manager):
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
-3. **Install dependencies**:
-   ```bash
-   uv sync
-   ```
-4. **Install Playwright browsers**:
-   ```bash
-   uv run playwright install chromium
-   ```
-5. **Install pre-commit hooks**:
-   ```bash
-   uv run pre-commit install
-   ```
-6. **Run the server in dev mode**:
-   ```bash
-   uv run fastmcp dev browsercontrol/server.py
-   ```
-
-## 🛠️ Development Workflow
-
-We use [uv](https://github.com/astral-sh/uv) for dependency management and packaging. It's fast and reliable.
-
-### Project Structure
-
-- `browsercontrol/server.py`: Main MCP server definition
-- `browsercontrol/browser.py`: Core logic (Playwright + Set of Marks)
-- `browsercontrol/tools/`: Tool implementations split by category
-
-### Making Changes
-
-1. Create a branch for your feature: `git checkout -b feature/amazing-feature`
-2. Implement your changes
-3. Run tests (see below)
-4. Commit your changes. We like [Conventional Commits](https://www.conventionalcommits.org/).
-   - `feat: add new scrolling tool`
-   - `fix: handle localhost connection refused`
-   - `docs: update troubleshooting guide`
-5. Sign off every commit with `git commit -s`. This certifies the
-   [Developer Certificate of Origin](https://developercertificate.org/). CI rejects commits
-   without a `Signed-off-by` line. To fix existing commits:
-   `git rebase --signoff origin/main && git push --force-with-lease`.
-6. Your PR title must also follow Conventional Commits (`type(scope)!: description`, where type is
-   one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
-   `revert`). CI checks it.
-
-## 🧪 Testing
-
-We use `pytest` for testing and `ruff` for code quality. Please ensure all checks pass before submitting a PR.
-
-`make help` lists shortcuts for everything below; `make check` runs lint, type-check and tests.
+## Quick start
 
 ```bash
-# Run all tests
-uv run pytest
-
-# Run tests with coverage
-uv run pytest --cov=browsercontrol
-
-# Check code formatting and linting
-uv run ruff check .
-uv run ruff format .
-
-# Run all pre-commit hooks
-uv run pre-commit run --all-files
-
-# Run specific test file
-uv run pytest tests/test_navigation.py
+git clone https://github.com/<you>/browsercontrol && cd browsercontrol
+uv sync                              # runtime and dev dependencies
+uv run playwright install chromium   # the browser engine
+uv run pre-commit install            # lint and format on commit
+make check                           # lint, type-check, and tests
 ```
 
-Pre-commit also runs actionlint on GitHub Actions workflows and Tach on Python
-imports. Keep the browser core independent of the MCP tools and server, and
-register tools from the server.
+You need [uv](https://docs.astral.sh/uv/getting-started/installation/). `make help` lists
+every shortcut.
 
-If you add a new tool or feature, please add a corresponding test case covering:
+## Making a change
 
-- Happy path (it works)
-- Error handling (it fails gracefully)
+1. Branch from `main`, named after the change type: `feat/…`, `fix/…`, `docs/…`, `chore/…`.
+2. Make the change, with tests for the happy path and the error path. If you add or change a
+   tool, update its page in `docs/reference/` and regenerate the catalog with
+   `uv run python scripts/gen_tools_json.py`; tests fail otherwise.
+3. Add a line under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) for anything users will
+   notice.
+4. Run `make check` and `uv run pre-commit run --all-files`.
 
-## 📝 Pull Request Process
+## Commits and pull requests
 
-1. Update the README.md with details of changes to the interface, this includes new environment variables, exposed ports, useful file locations and container parameters.
-2. Increase the version numbers in any examples files and the README.md to the new version that this Pull Request would represent.
-3. You may merge the Pull Request in once you have the sign-off of two other developers, or if you do not have permission to do that, you may request the second reviewer to merge it for you.
+- **Conventional Commits** for every commit and for the PR title:
+  `type(scope)!: description`, where `type` is one of `feat`, `fix`, `docs`, `style`,
+  `refactor`, `perf`, `test`, `build`, `ci`, `chore`, or `revert`. CI checks the PR title.
+- **Sign off every commit** with `git commit -s`. This certifies the
+  [Developer Certificate of Origin](https://developercertificate.org/), and CI rejects
+  commits without a `Signed-off-by` line. To sign off commits you already made:
+  `git rebase --signoff origin/main && git push --force-with-lease`.
+- **In the PR description**, explain the user-visible change, link related issues, and
+  attach screenshots for visual or docs-site changes. The PR template lists the rest.
+- The maintainer reviews and merges. CI must be green first.
 
-## 🐛 Reporting Bugs
+## Reporting bugs
 
-Bugs are tracked as GitHub issues. When filing an issue, please explain the problem and include additional details to help maintainers reproduce the problem:
+Open a [GitHub issue](https://github.com/adityasasidhar/browsercontrol/issues/new/choose)
+using the bug report template. Include the exact steps to reproduce, what you expected,
+what happened instead, your OS, client, and BrowserControl version, and any logs
+(`LOG_LEVEL=DEBUG`) or screenshots.
 
-- Use a clear and descriptive title
-- Describe the exact steps which reproduce the problem
-- Provide specific examples to demonstrate the steps
-- Describe the behavior you observed after following the steps
-- Explain which behavior you expected to see instead and why
-- Include screenshots/logs if possible
+## License
 
-## 📄 License
-
-By contributing, you agree that your contributions will be licensed under its MIT License.
-```
+By contributing, you agree that your contributions are licensed under the project's
+[MIT License](LICENSE).
