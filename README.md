@@ -22,6 +22,7 @@
   <a href="https://adityasasidhar.github.io/browsercontrol/guide/quickstart">Quickstart</a> ·
   <a href="https://adityasasidhar.github.io/browsercontrol/reference/">All 69 tools</a> ·
   <a href="https://adityasasidhar.github.io/browsercontrol/recipes/">Recipes</a> ·
+  <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.adityasasidhar/browsercontrol">MCP Registry</a> ·
   <a href="https://github.com/adityasasidhar/browsercontrol/blob/main/README.es-ES.md">Español</a>
 </p>
 
