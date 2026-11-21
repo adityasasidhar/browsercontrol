@@ -1,14 +1,18 @@
 [project]
 name = "browsercontrol"
 version = "0.3.0"
-description = "Give your agent eyes"
+description = "MCP server that gives AI agents a real browser: screenshots with numbered elements, so the agent clicks by number"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [
     { name = "Aditya Sasidhar" }
 ]
-keywords = ["mcp", "browser", "automation", "playwright", "ai", "agent", "llm"]
+keywords = [
+    "mcp", "mcp-server", "model-context-protocol", "browser", "browser-automation",
+    "playwright", "set-of-marks", "computer-use", "web-agent", "ai", "agent", "llm",
+    "claude", "codex",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -31,6 +35,8 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/adityasasidhar/browsercontrol"
 Repository = "https://github.com/adityasasidhar/browsercontrol"
+Documentation = "https://adityasasidhar.github.io/browsercontrol/"
+Changelog = "https://github.com/adityasasidhar/browsercontrol/blob/main/CHANGELOG.md"
 
 [project.scripts]
 browsercontrol = "browsercontrol.__main__:main"
