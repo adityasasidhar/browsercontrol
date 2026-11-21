@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-21
+
 ### Added
 
 - Python 3.14 support on Linux, macOS, and Windows.
@@ -23,6 +25,8 @@ All notable changes to this project are documented here. The format follows
 - MCP resources for console logs, network traffic, errors, tabs, downloads, sessions, and the action log (`browser://...`).
 - Streamable HTTP transport: `browsercontrol --transport http` (also `BROWSER_TRANSPORT`, `BROWSER_HOST`, `BROWSER_PORT`).
 - Claude Code plugin and marketplace (`.claude-plugin/`): installs the MCP server and the agent skill together.
+- Codex and OpenCode plugin packaging.
+- Documentation site rebuilt with VitePress; README rewritten.
 - Issue and PR templates, DCO sign-off check, conventional-commit PR title check.
 - `Makefile`, max-lines pre-commit check, refreshed pre-commit hooks.
 - Reuse an installed Google Chrome when Playwright's Chromium is missing.
@@ -41,6 +45,8 @@ All notable changes to this project are documented here. The format follows
 - Hidden, transparent, and covered elements are no longer numbered.
 - `get_text` reads the live element (full text, or a field's current value) instead
   of the cached 50-character label.
+- An element animating back and forth is no longer refused as stale when two
+  samples happen to straddle the point where it reverses.
 
 ## [0.2.0]
 

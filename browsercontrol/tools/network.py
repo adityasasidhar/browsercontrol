@@ -340,7 +340,7 @@ def register_network_tools(mcp: FastMCP) -> None:
             har = {
                 "log": {
                     "version": "1.2",
-                    "creator": {"name": "BrowserControl", "version": "0.2.0"},
+                    "creator": {"name": "BrowserControl", "version": "0.3.0"},
                     "pages": [],
                     "entries": entries,
                 }

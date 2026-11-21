@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "browsercontrol",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Drive a browser from annotated screenshots with numbered buttons, links, and fields. Includes the BrowserControl MCP server and usage skill.",
   "author": {
     "name": "Aditya Sasidhar",
