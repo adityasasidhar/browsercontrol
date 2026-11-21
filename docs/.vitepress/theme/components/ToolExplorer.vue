@@ -102,7 +102,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
           <div class="row-body">
             <pre class="row-sig"><code>{{ t.signature }}</code></pre>
             <p v-if="t.details" class="row-details">{{ t.details }}</p>
-            <div v-if="t.params.length" class="row-params-scroll">
+            <div
+              v-if="t.params.length"
+              class="row-params-scroll"
+              tabindex="0"
+              role="region"
+              :aria-label="`${t.name} parameters`"
+            >
               <table class="row-params">
                 <thead>
                   <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>

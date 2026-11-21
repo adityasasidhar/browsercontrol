@@ -60,8 +60,7 @@ watch(active, () => nextTick(place))
 const uid = useId()
 
 function onTabKey(e: KeyboardEvent) {
-  const i = options.findIndex((o) => o.id === active.value)
-  const next = tabKeyTarget(e, i, options.length)
+  const next = tabKeyTarget(e)
   if (next !== null) active.value = options[next].id
 }
 
