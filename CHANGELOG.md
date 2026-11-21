@@ -8,6 +8,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Python 3.14 support on Linux, macOS, and Windows.
 - Attach to the user's own Chrome over CDP (`connect_to_chrome`, `BROWSER_CDP_URL`); detaching never closes it.
 - `find(query, role, nth)`: search the whole page, off-screen content, iframes, and shadow DOM included, scroll to a match, and return its element ID.
 - `act(steps)`: run several steps in one call and return one screenshot.

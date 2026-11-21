@@ -83,6 +83,10 @@ uv run pre-commit run --all-files
 uv run pytest tests/test_navigation.py
 ```
 
+Pre-commit also runs actionlint on GitHub Actions workflows and Tach on Python
+imports. Keep the browser core independent of the MCP tools and server, and
+register tools from the server.
+
 If you add a new tool or feature, please add a corresponding test case covering:
 
 - Happy path (it works)

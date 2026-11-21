@@ -37,6 +37,12 @@ repos:
         additional_dependencies: ["bandit[toml]"]
         exclude: ^tests/
 
+  # GitHub Actions workflow checks
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+
   # Keep uv.lock in sync with pyproject.toml
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.13.9
@@ -46,6 +52,14 @@ repos:
   # Local checks
   - repo: local
     hooks:
+      - id: tach
+        name: Check Python import boundaries
+        entry: tach check
+        language: python
+        additional_dependencies: ["tach==0.35.3"]
+        files: '^(browsercontrol/.*\.py|tach\.toml)$'
+        pass_filenames: false
+
       - id: max-lines
         name: Check max lines per file
         entry: python3 scripts/checks/check_max_lines.py
