@@ -1,6 +1,6 @@
 ---
 title: Connect a client
-description: MCP configuration for Codex, Claude Code, Claude Desktop, Cursor, VS Code, Gemini CLI, Cline, Zed, Continue, OpenCode, and the Python SDK.
+description: MCP configuration for Codex, Claude Code, Claude Desktop, Cursor, VS Code, Gemini CLI, Cline, Zed, Continue, OpenCode, Hermes, OpenClaw, and the Python SDK.
 ---
 
 # Connect a client
@@ -99,6 +99,22 @@ For manual setup, add the server to your project's `opencode.json` or your OpenC
 ```
 
 :::
+
+## Hermes
+
+```bash
+hermes mcp add browsercontrol --command uvx --args browsercontrol
+```
+
+This adds the server to your Hermes configuration. Start a new session so Hermes picks it up. It installs the server only, not the [agent skill](/guide/agent-skill).
+
+## OpenClaw
+
+```bash
+openclaw mcp add browsercontrol --command uvx --arg browsercontrol
+```
+
+This registers the server with OpenClaw and probes it before saving. Restart the gateway or start a new session to load it. It installs the server only, not the [agent skill](/guide/agent-skill).
 
 ## Other formats
 
