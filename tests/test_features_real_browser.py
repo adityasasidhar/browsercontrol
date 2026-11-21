@@ -18,7 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from io import BytesIO
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastmcp import FastMCP
@@ -199,10 +199,16 @@ async def test_agent_pointer_tracks_clicks_without_intercepting_them(
     # against the same browser so this test also works on CI without a display.
     monkeypatch.setattr("browsercontrol.config.config.headless", False)
     page = manager.page
+    await page.clock.install(time="2026-01-01T00:00:00Z")
+    await page.emulate_media(reduced_motion="reduce")
     await page.set_content(
         '<button style="position:absolute;left:90px;top:90px" '
         "onclick=\"this.textContent = 'clicked'\">Click me</button>"
     )
+    # Pause the idle timer while we inspect the live browser and the tool image.
+    # The generic DOM settle also uses page timers, so bypass it in this test.
+    await page.clock.pause_at("2026-01-01T01:00:00Z")
+    monkeypatch.setattr(manager, "settle", AsyncMock())
     await call(tools, "click_at", x=100, y=100)
     assert await page.get_by_role("button").inner_text() == "clicked"
 
@@ -218,7 +224,8 @@ async def test_agent_pointer_tracks_clicks_without_intercepting_them(
     patch_box = (198, 128, 225, 157)
     assert ImageChops.difference(live.crop(patch_box), captured.crop(patch_box)).getbbox()
     assert captured.crop(patch_box).getcolors() == [(783, (255, 255, 255))]
-    await pointer.wait_for(state="detached")
+    await page.clock.fast_forward(2000)
+    assert await pointer.count() == 0
 
 
 async def test_find_scrolls_to_offscreen_match_and_maps_it_to_an_id(
