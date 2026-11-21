@@ -28,6 +28,12 @@ MOVE_TOLERANCE_PX = 3.0
 # animating (acceptable) from one that moved and settled somewhere else (stale).
 SETTLE_DELAY_S = 0.15
 
+# A second, different pause before confirming an element has settled. A
+# back-and-forth animation sits at the same spot just before and just after it
+# reverses, so two samples can match while it is still moving; a third sample
+# at a different spacing tells them apart.
+CONFIRM_DELAY_S = 0.1
+
 # Upper bound for one element action, so an overlay that appears after the
 # screenshot fails fast instead of waiting out Playwright's 30s default.
 ACTION_TIMEOUT_MS = 10_000
@@ -366,13 +372,17 @@ async def locate(element_id: int, elem_map: ElementMap) -> Locator:
     if recorded_fp is not None and live["fp"] != recorded_fp:
         raise StaleElementError(element_id, "its content changed")
     if _moved(entry["_local"], rect):
-        await asyncio.sleep(SETTLE_DELAY_S)
-        try:
-            again = (await _measure(locator))["rect"]
-        except PlaywrightError as e:
-            raise StaleElementError(element_id, "it could not be located") from e
         # Still in motion: an animation, not a layout change. Let the action
         # proceed; Playwright waits for the element to be stable before acting.
-        if not _moved(rect, again) and _moved(entry["_local"], again):
-            raise StaleElementError(element_id, "it moved")
+        last = rect
+        for delay in (SETTLE_DELAY_S, CONFIRM_DELAY_S):
+            await asyncio.sleep(delay)
+            try:
+                again = (await _measure(locator))["rect"]
+            except PlaywrightError as e:
+                raise StaleElementError(element_id, "it could not be located") from e
+            if _moved(last, again) or not _moved(entry["_local"], again):
+                return locator
+            last = again
+        raise StaleElementError(element_id, "it moved")
     return locator
