@@ -26,6 +26,33 @@ const options: Option[] = [
     note: 'Adds the MCP server only. Needs uv on your PATH.',
   },
   {
+    id: 'codex',
+    label: 'Codex',
+    lines: [
+      'codex plugin marketplace add adityasasidhar/browsercontrol',
+      'codex plugin add browsercontrol@browsercontrol',
+    ],
+    note: 'Installs the MCP server and the agent skill together. Needs uv on your PATH.',
+  },
+  {
+    id: 'opencode',
+    label: 'OpenCode',
+    lines: ['opencode plugin add github:adityasasidhar/browsercontrol'],
+    note: 'Needs OpenCode 2.3.2 or later. Loads the MCP server and the agent skill.',
+  },
+  {
+    id: 'hermes',
+    label: 'Hermes',
+    lines: ['hermes mcp add browsercontrol --command uvx --args browsercontrol'],
+    note: 'Adds the MCP server only. Needs uv on your PATH.',
+  },
+  {
+    id: 'openclaw',
+    label: 'OpenClaw',
+    lines: ['openclaw mcp add browsercontrol --command uvx --arg browsercontrol'],
+    note: 'Adds the MCP server only. Needs uv on your PATH.',
+  },
+  {
     id: 'uvx',
     label: 'Any client',
     lines: ['uvx browsercontrol'],
@@ -43,11 +70,16 @@ const active = ref(options[0].id)
 const copied = ref(false)
 const current = computed(() => options.find((o) => o.id === active.value)!)
 const tabsEl = ref<HTMLElement>()
-const indicator = ref({ left: 0, width: 0 })
+const indicator = ref({ left: 0, top: 0, width: 0, height: 0 })
 
 function place() {
   const el = tabsEl.value?.querySelector<HTMLElement>(`[data-id="${active.value}"]`)
-  if (el) indicator.value = { left: el.offsetLeft, width: el.offsetWidth }
+  if (el) indicator.value = {
+    left: el.offsetLeft,
+    top: el.offsetTop,
+    width: el.offsetWidth,
+    height: el.offsetHeight,
+  }
 }
 
 onMounted(() => {
@@ -74,7 +106,7 @@ async function copy() {
 <template>
   <div class="install vp-raw">
     <div ref="tabsEl" class="install-tabs" role="tablist" aria-label="Install method">
-      <span class="install-indicator" :style="{ transform: `translateX(${indicator.left}px)`, width: `${indicator.width}px` }" />
+      <span class="install-indicator" :style="{ transform: `translate(${indicator.left}px, ${indicator.top}px)`, width: `${indicator.width}px`, height: `${indicator.height}px` }" />
       <button
         v-for="o in options"
         :key="o.id"
@@ -117,12 +149,11 @@ async function copy() {
 .install-tabs {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   gap: 2px;
   padding: 6px;
   border-bottom: 1px solid var(--bc-line);
   background: var(--vp-c-bg-alt);
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 .install-tabs button {
   position: relative;
@@ -141,8 +172,7 @@ async function copy() {
 }
 .install-indicator {
   position: absolute;
-  top: 6px;
-  bottom: 6px;
+  top: 0;
   left: 0;
   border-radius: 7px;
   background: var(--vp-c-bg);
