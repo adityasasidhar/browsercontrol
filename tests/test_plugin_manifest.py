@@ -1,4 +1,4 @@
-"""Keep the Claude Code plugin manifests in step with the Python package."""
+"""Keep the plugin manifests in step with the Python package."""
 
 import json
 import tomllib
@@ -19,6 +19,9 @@ def test_plugin_version_matches_pyproject() -> None:
     entry = next(p for p in _load("marketplace.json")["plugins"] if p["name"] == plugin["name"])
     assert plugin["version"] == project["version"]
     assert entry["version"] == project["version"]
+    codex = json.loads((ROOT / "plugin.json").read_text())
+    assert codex["name"] == entry["name"]
+    assert codex["version"] == project["version"]
 
 
 def test_plugin_runs_bundled_source() -> None:

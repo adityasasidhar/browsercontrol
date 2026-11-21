@@ -1,11 +1,22 @@
 ---
 title: Connect a client
-description: MCP configuration for Claude Code, Claude Desktop, Cursor, VS Code, Gemini CLI, Cline, Zed, Continue, OpenCode, and the Python SDK.
+description: MCP configuration for Codex, Claude Code, Claude Desktop, Cursor, VS Code, Gemini CLI, Cline, Zed, Continue, OpenCode, and the Python SDK.
 ---
 
 # Connect a client
 
 Your MCP client launches BrowserControl as a local server over stdio. Every example below uses `uvx browsercontrol`, which needs [uv](https://docs.astral.sh/uv/getting-started/installation/). If you [installed](/guide/installation) the `browsercontrol` command yourself, use that as the command and drop the arguments.
+
+## Codex
+
+```bash
+codex plugin marketplace add adityasasidhar/browsercontrol
+codex plugin add browsercontrol@browsercontrol
+```
+
+The plugin installs the local MCP server and the [agent skill](/guide/agent-skill) together. Make sure `uv` is on the PATH that Codex uses, then start a new session and ask Codex to use BrowserControl.
+
+The plugin keeps its browser profile and downloads in its Codex plugin data directory.
 
 ## Claude Code
 

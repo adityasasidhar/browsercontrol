@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "browsercontrol",
+  "version": "0.2.0",
+  "description": "Drive a browser from annotated screenshots with numbered buttons, links, and fields. Includes the BrowserControl MCP server and usage skill.",
+  "author": {
+    "name": "Aditya Sasidhar",
+    "url": "https://github.com/adityasasidhar"
+  },
+  "homepage": "https://adityasasidhar.github.io/browsercontrol/",
+  "repository": "https://github.com/adityasasidhar/browsercontrol",
+  "license": "MIT",
+  "keywords": ["browser", "automation", "playwright", "mcp", "set-of-marks"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "BrowserControl",
+        "shortDescription": "Control a browser using numbered screenshots",
+        "longDescription": "Navigate pages, fill forms, and test web apps. BrowserControl returns annotated screenshots so Codex can identify and act on visible elements by number.",
+        "developerName": "Aditya Sasidhar",
+        "category": "Developer Tools",
+        "websiteURL": "https://adityasasidhar.github.io/browsercontrol/",
+        "logo": "./assets/logo-main.png"
+      }
+    }
+  }
+}

@@ -40,6 +40,13 @@ After every action, the agent gets back a screenshot with a **numbered box on ev
 
 You need [uv](https://docs.astral.sh/uv/getting-started/installation/). Everything else, including the browser, is set up on first run.
 
+**Codex** (installs the local MCP server and the BrowserControl skill):
+
+```bash
+codex plugin marketplace add adityasasidhar/browsercontrol
+codex plugin add browsercontrol@browsercontrol
+```
+
 **Claude Code** (installs the server and a skill that teaches Claude to use it):
 
 ```text

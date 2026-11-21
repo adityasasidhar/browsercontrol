@@ -40,6 +40,13 @@ Después de cada acción, el agente recibe una captura de pantalla con **un recu
 
 Necesitas [uv](https://docs.astral.sh/uv/getting-started/installation/). Todo lo demás, incluido el navegador, se prepara en el primer arranque.
 
+**Codex** (instala el servidor MCP local y la skill de BrowserControl):
+
+```bash
+codex plugin marketplace add adityasasidhar/browsercontrol
+codex plugin add browsercontrol@browsercontrol
+```
+
 **Claude Code** (instala el servidor y una skill que le enseña a Claude a usarlo):
 
 ```text

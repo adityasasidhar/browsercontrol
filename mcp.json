@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "browsercontrol": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--project", "${PLUGIN_ROOT}", "--locked", "--no-dev", "browsercontrol"],
+      "env": {
+        "BROWSER_USER_DATA_DIR": "${PLUGIN_DATA}/user_data",
+        "UV_PROJECT_ENVIRONMENT": "${PLUGIN_DATA}/.venv"
+      }
+    }
+  }
+}
