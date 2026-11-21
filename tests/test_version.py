@@ -20,9 +20,7 @@ def test_package_version_matches_pyproject() -> None:
     assert browsercontrol.__version__ == _project_version()
 
 
-@pytest.mark.parametrize(
-    "manifest", ["plugin.json", "package.json", ".claude-plugin/plugin.json"]
-)
+@pytest.mark.parametrize("manifest", ["plugin.json", "package.json", ".claude-plugin/plugin.json"])
 def test_plugin_manifest_version_matches_pyproject(manifest: str) -> None:
     data = json.loads((ROOT / manifest).read_text(encoding="utf-8"))
     assert data["version"] == _project_version(), f"bump the version in {manifest}"
