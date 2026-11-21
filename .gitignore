@@ -15,8 +15,10 @@ dist/
 .ruff_cache/
 .pytest_cache/
 
-# MkDocs build output
-/site/
+# Docs site (VitePress)
+docs/node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
 
 # Locally captured screenshots (not referenced by the docs site)
 /assets/live/

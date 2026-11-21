@@ -52,13 +52,6 @@ dev = [
     "pytest-cov>=5.0.0",
 ]
 
-[project.optional-dependencies]
-docs = [
-    "mkdocs>=1.6.0",
-    "mkdocs-material>=9.5.0",
-    "pymdown-extensions>=10.7.0",
-]
-
 [tool.ruff]
 target-version = "py311"
 line-length = 100
@@ -84,7 +77,7 @@ addopts = ["-v", "--strict-markers", "--tb=short"]
 markers = ["browser: drives a real headless Chromium (skipped when it is not installed)"]
 
 [tool.bandit]
-exclude_dirs = ["tests", ".venv"]
+exclude_dirs = ["tests", ".venv", "docs/node_modules"]
 skips = ["B404", "B603"]  # Allow subprocess usage for Playwright installation
 
 [tool.ruff.lint.mccabe]

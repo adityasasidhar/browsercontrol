@@ -9,9 +9,6 @@ on:
 
 permissions:
   contents: read
-  deployments: write
-  id-token: write
-  pages: write
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -19,67 +16,56 @@ concurrency:
 
 jobs:
   build:
-    name: Build & deploy docs
+    name: Build docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # full history for "last updated" dates
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
-        with:
-          version: "latest"
 
-      - name: Set up Python
-        run: uv python install 3.13
+      - name: Check the tool catalog is current
+        run: uv run --frozen python scripts/gen_tools_json.py --check
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
 
       - name: Install docs dependencies
-        run: |
-          uv venv
-          uv pip install mkdocs mkdocs-material pymdown-extensions
+        working-directory: docs
+        run: npm ci
 
-      - name: Build site (strict)
-        run: .venv/bin/mkdocs build --strict
+      - name: Build site
+        working-directory: docs
+        run: npm run build
 
-      - name: Check for broken links
-        if: always()
-        run: |
-          # The strict build above already fails on missing internal anchors
-          # and broken nav entries. This step is a no-op safety net.
-          echo "mkdocs build --strict passed"
+      - name: Check internal links and anchors
+        working-directory: docs
+        run: npm run check:links
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist
 
   deploy:
     name: Deploy to GitHub Pages
     needs: build
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install 3.13
-
-      - name: Install docs dependencies
-        run: |
-          uv venv
-          uv pip install mkdocs mkdocs-material pymdown-extensions
-
-      - name: Build site
-        run: .venv/bin/mkdocs build
-
       - name: Detect whether GitHub Pages is enabled
         id: pages-status
         env:
@@ -87,10 +73,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_API: ${{ github.api_url }}
         run: |
-          # actions/configure-pages fails the workflow with "Not Found" when Pages
-          # has not been turned on in repo settings. Probe the dedicated /pages
-          # endpoint first (HTTP 200 == configured, 404 == disabled) and skip the
-          # deploy steps cleanly when Pages is not configured.
+          # actions/configure-pages fails with "Not Found" when Pages is off in
+          # the repo settings, so probe /pages first and skip cleanly if needed.
           status=$(curl -sS -o /dev/null -w "%{http_code}" \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
@@ -98,28 +82,16 @@ jobs:
             "${GH_API}/repos/${GH_REPO}/pages")
           if [ "${status}" = "200" ]; then
             echo "enabled=true" >> "${GITHUB_OUTPUT}"
-            echo "GitHub Pages is enabled for ${GH_REPO}; proceeding with deploy."
           else
             echo "enabled=false" >> "${GITHUB_OUTPUT}"
-            echo "::warning::GitHub Pages is not enabled for ${GH_REPO} (HTTP ${status} on /pages). Enable it under Settings -> Pages -> Build and deployment: GitHub Actions, then re-run this workflow."
+            echo "::warning::GitHub Pages is not enabled for ${GH_REPO} (HTTP ${status}). Enable it under Settings -> Pages -> Build and deployment: GitHub Actions."
           fi
 
       - name: Setup Pages
         if: steps.pages-status.outputs.enabled == 'true'
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact
-        if: steps.pages-status.outputs.enabled == 'true'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy to GitHub Pages
+      - name: Deploy
         if: steps.pages-status.outputs.enabled == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Skip deploy summary
-        if: steps.pages-status.outputs.enabled != 'true'
-        run: |
-          echo "Deploy steps were skipped because GitHub Pages is not configured for this repository."

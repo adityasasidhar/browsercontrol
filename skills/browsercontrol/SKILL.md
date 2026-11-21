@@ -159,4 +159,4 @@ variables. Show the user the file: exploratory steps may need pruning.
 
 Server settings (headless mode, viewport, profile directory, CDP URL, settle
 timeout) are environment variables documented at
-<https://adityasasidhar.github.io/browsercontrol/configuration/>.
+<https://adityasasidhar.github.io/browsercontrol/reference/configuration>.

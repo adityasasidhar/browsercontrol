@@ -1,0 +1,1463 @@
+{
+  "name": "BrowserControl",
+  "description": "MCP tools exposed by the BrowserControl server.",
+  "count": 69,
+  "tools": [
+    {
+      "name": "find",
+      "category": "Navigation",
+      "page": "navigation",
+      "url": "/reference/navigation#find",
+      "signature": "find(query: str, role: str | None = None, nth: int = 1)",
+      "returns": "text + screenshot",
+      "summary": "Search the whole page, including content scrolled out of view, and scroll to a match.",
+      "details": "Matches visible text and aria-label/placeholder/title/alt/value. With role (e.g. \"button\", \"link\", \"textbox\", \"heading\", \"checkbox\"), only elements of that role match, and query filters them by name (may be empty). Returns every match with the element ID it maps to in the new screenshot.",
+      "params": [
+        {
+          "name": "query",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "Text to look for (case-insensitive substring)"
+        },
+        {
+          "name": "role",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Optional ARIA role to restrict matches to"
+        },
+        {
+          "name": "nth",
+          "type": "int",
+          "required": false,
+          "default": 1,
+          "description": "Which match to scroll to, 1-based (default 1)"
+        }
+      ]
+    },
+    {
+      "name": "go_back",
+      "category": "Navigation",
+      "page": "navigation",
+      "url": "/reference/navigation#go_back",
+      "signature": "go_back()",
+      "returns": "text + screenshot",
+      "summary": "Navigate back to the previous page.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "go_forward",
+      "category": "Navigation",
+      "page": "navigation",
+      "url": "/reference/navigation#go_forward",
+      "signature": "go_forward()",
+      "returns": "text + screenshot",
+      "summary": "Navigate forward to the next page.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "navigate_to",
+      "category": "Navigation",
+      "page": "navigation",
+      "url": "/reference/navigation#navigate_to",
+      "signature": "navigate_to(url: str)",
+      "returns": "text + screenshot",
+      "summary": "Navigate to a URL. Returns an annotated screenshot with numbered interactive elements.",
+      "details": "",
+      "params": [
+        {
+          "name": "url",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "The URL to navigate to"
+        }
+      ]
+    },
+    {
+      "name": "refresh_page",
+      "category": "Navigation",
+      "page": "navigation",
+      "url": "/reference/navigation#refresh_page",
+      "signature": "refresh_page()",
+      "returns": "text + screenshot",
+      "summary": "Refresh the current page.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "scroll",
+      "category": "Navigation",
+      "page": "navigation",
+      "url": "/reference/navigation#scroll",
+      "signature": "scroll(direction: str = 'down', amount: str = 'medium')",
+      "returns": "text + screenshot",
+      "summary": "Scroll the page.",
+      "details": "",
+      "params": [
+        {
+          "name": "direction",
+          "type": "str",
+          "required": false,
+          "default": "down",
+          "description": "\"up\", \"down\", \"left\", or \"right\""
+        },
+        {
+          "name": "amount",
+          "type": "str",
+          "required": false,
+          "default": "medium",
+          "description": "\"small\" (100px), \"medium\" (400px), \"large\" (800px),\n    \"page\" (full viewport), \"top\", \"bottom\", or pixels like \"500\""
+        }
+      ]
+    },
+    {
+      "name": "act",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#act",
+      "signature": "act(steps: list[dict[str, Any]], stop_on_error: bool = True)",
+      "returns": "text + screenshot",
+      "summary": "Run several steps in one call and return one screenshot at the end.",
+      "details": "Element IDs all refer to the screenshot taken BEFORE this call. A step whose element was removed or replaced (e.g. after navigation) fails as stale, so batch steps on the current page and navigate last.\n\nEach step is an object with \"action\" plus its fields: {\"action\": \"click\"|\"double_click\"|\"right_click\"|\"hover\", \"element_id\": 3} {\"action\": \"type\", \"element_id\": 4, \"text\": \"hello\"} {\"action\": \"select\", \"element_id\": 5, \"option\": \"Canada\"} {\"action\": \"check\", \"element_id\": 6, \"checked\": true} {\"action\": \"drag\", \"element_id\": 7, \"target_id\": 8} {\"action\": \"press\", \"key\": \"Enter\"} {\"action\": \"scroll\", \"direction\": \"down\", \"amount\": \"medium\"} {\"action\": \"navigate\", \"url\": \"https://example.com\"} {\"action\": \"wait\", \"seconds\": 1} {\"action\": \"wait_for\", \"text\": \"Saved\"} (or \"selector\")",
+      "params": [
+        {
+          "name": "steps",
+          "type": "list[dict[str, Any]]",
+          "required": true,
+          "default": null,
+          "description": "The steps to run in order (at most 25)"
+        },
+        {
+          "name": "stop_on_error",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "Stop at the first failing step (default True)"
+        }
+      ]
+    },
+    {
+      "name": "click",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#click",
+      "signature": "click(element_id: int)",
+      "returns": "text + screenshot",
+      "summary": "Click on an element by its ID number shown in the screenshot.",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label shown on the element in the screenshot"
+        }
+      ]
+    },
+    {
+      "name": "click_at",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#click_at",
+      "signature": "click_at(x: int, y: int)",
+      "returns": "text + screenshot",
+      "summary": "Click at specific x,y coordinates.",
+      "details": "",
+      "params": [
+        {
+          "name": "x",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "X coordinate"
+        },
+        {
+          "name": "y",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "Y coordinate"
+        }
+      ]
+    },
+    {
+      "name": "double_click",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#double_click",
+      "signature": "double_click(element_id: int)",
+      "returns": "text + screenshot",
+      "summary": "Double-click an element by its ID number (e.g. to open an item or select a word).",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label shown on the element in the screenshot"
+        }
+      ]
+    },
+    {
+      "name": "drag",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#drag",
+      "signature": "drag(source_id: int, target_id: int)",
+      "returns": "text + screenshot",
+      "summary": "Drag one element and drop it onto another (sortable lists, kanban cards, sliders).",
+      "details": "Both IDs come from the same, latest screenshot.",
+      "params": [
+        {
+          "name": "source_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label of the element to drag"
+        },
+        {
+          "name": "target_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label of the element to drop onto"
+        }
+      ]
+    },
+    {
+      "name": "hover",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#hover",
+      "signature": "hover(element_id: int)",
+      "returns": "text + screenshot",
+      "summary": "Hover over an element by its ID number.",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label shown on the element"
+        }
+      ]
+    },
+    {
+      "name": "press_key",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#press_key",
+      "signature": "press_key(key: str)",
+      "returns": "text + screenshot",
+      "summary": "Press a keyboard key or key combination on the focused element.",
+      "details": "",
+      "params": [
+        {
+          "name": "key",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "Key to press (e.g., \"Enter\", \"Tab\", \"Escape\", \"ArrowDown\", \"Backspace\"),\n or a combination joined with \"+\" (e.g., \"Control+A\", \"Shift+Tab\",\n \"ControlOrMeta+C\" for copy on any OS, \"Control+Shift+T\")"
+        }
+      ]
+    },
+    {
+      "name": "right_click",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#right_click",
+      "signature": "right_click(element_id: int)",
+      "returns": "text + screenshot",
+      "summary": "Right-click an element by its ID number to open its context menu.",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label shown on the element in the screenshot"
+        }
+      ]
+    },
+    {
+      "name": "scroll_to_element",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#scroll_to_element",
+      "signature": "scroll_to_element(element_id: int)",
+      "returns": "text + screenshot",
+      "summary": "Scroll to bring an element into view.",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label shown on the element"
+        }
+      ]
+    },
+    {
+      "name": "type_text",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#type_text",
+      "signature": "type_text(element_id: int, text: str)",
+      "returns": "text + screenshot",
+      "summary": "Type text into a text field by its ID number, replacing what it holds.",
+      "details": "Works on text inputs, textareas, contenteditable regions, and widgets with role=textbox/searchbox/combobox. Checkboxes, buttons, dropdowns and file inputs are refused; use check_checkbox, click, select_option or upload_file.",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label shown on the element"
+        },
+        {
+          "name": "text",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "Text to type"
+        }
+      ]
+    },
+    {
+      "name": "wait",
+      "category": "Interaction",
+      "page": "interaction",
+      "url": "/reference/interaction#wait",
+      "signature": "wait(seconds: float = 1.0)",
+      "returns": "text + screenshot",
+      "summary": "Wait for a specified time (useful for pages with animations or loading).",
+      "details": "",
+      "params": [
+        {
+          "name": "seconds",
+          "type": "float",
+          "required": false,
+          "default": 1.0,
+          "description": "Time to wait in seconds (default: 1.0)"
+        }
+      ]
+    },
+    {
+      "name": "handle_dialog",
+      "category": "Waiting & dialogs",
+      "page": "waiting",
+      "url": "/reference/waiting#handle_dialog",
+      "signature": "handle_dialog(accept: bool = True, prompt_text: str | None = None)",
+      "returns": "text",
+      "summary": "Choose how to answer the next JS dialog (alert, confirm, prompt, beforeunload).",
+      "details": "Call it before the action that opens the dialog. Without it, confirms and prompts are dismissed and alerts acknowledged; either way the next screenshot's text reports the dialog and how it was answered.",
+      "params": [
+        {
+          "name": "accept",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "True to press OK, False to press Cancel"
+        },
+        {
+          "name": "prompt_text",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Text to enter into a prompt() dialog (only used when accepting)"
+        }
+      ]
+    },
+    {
+      "name": "list_downloads",
+      "category": "Waiting & dialogs",
+      "page": "waiting",
+      "url": "/reference/waiting#list_downloads",
+      "signature": "list_downloads()",
+      "returns": "text",
+      "summary": "List files downloaded in this session, with where they were saved.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "wait_for",
+      "category": "Waiting & dialogs",
+      "page": "waiting",
+      "url": "/reference/waiting#wait_for",
+      "signature": "wait_for(text: str | None = None, selector: str | None = None, state: str = 'visible', network_idle: bool = False, timeout_seconds: float = 10.0)",
+      "returns": "text + screenshot",
+      "summary": "Wait until a condition holds instead of sleeping a fixed time.",
+      "details": "Give text, a CSS selector, and/or network_idle. With none, it waits for the page to settle (load, network quiet, DOM quiet). Returns the screenshot either way and says whether the wait timed out.",
+      "params": [
+        {
+          "name": "text",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Wait for an element containing this text"
+        },
+        {
+          "name": "selector",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Wait for an element matching this CSS selector"
+        },
+        {
+          "name": "state",
+          "type": "str",
+          "required": false,
+          "default": "visible",
+          "description": "\"visible\" (default), \"hidden\", \"attached\", or \"detached\""
+        },
+        {
+          "name": "network_idle",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Also wait until no request has been in flight for 500ms"
+        },
+        {
+          "name": "timeout_seconds",
+          "type": "float",
+          "required": false,
+          "default": 10.0,
+          "description": "Give up after this long (default 10)"
+        }
+      ]
+    },
+    {
+      "name": "check_checkbox",
+      "category": "Forms",
+      "page": "forms",
+      "url": "/reference/forms#check_checkbox",
+      "signature": "check_checkbox(element_id: int, check: bool = True)",
+      "returns": "text + screenshot",
+      "summary": "Check or uncheck a checkbox (or select a radio button) by element ID.",
+      "details": "Idempotent: it sets the state rather than toggling. Works on inputs hidden under a styled replacement, but refuses one covered by a dialog or banner.",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label of the checkbox"
+        },
+        {
+          "name": "check",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "True to check, False to uncheck"
+        }
+      ]
+    },
+    {
+      "name": "select_option",
+      "category": "Forms",
+      "page": "forms",
+      "url": "/reference/forms#select_option",
+      "signature": "select_option(element_id: int, option: str)",
+      "returns": "text + screenshot",
+      "summary": "Select an option from a dropdown by element ID.",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label of the select element"
+        },
+        {
+          "name": "option",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "The value or visible text of the option to select"
+        }
+      ]
+    },
+    {
+      "name": "upload_file",
+      "category": "Forms",
+      "page": "forms",
+      "url": "/reference/forms#upload_file",
+      "signature": "upload_file(element_id: int, file_path: str)",
+      "returns": "text + screenshot",
+      "summary": "Upload a file to a file input element.",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label of the file input"
+        },
+        {
+          "name": "file_path",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "The absolute path to the file to upload"
+        }
+      ]
+    },
+    {
+      "name": "get_page_content",
+      "category": "Content",
+      "page": "content",
+      "url": "/reference/content#get_page_content",
+      "signature": "get_page_content()",
+      "returns": "text + screenshot",
+      "summary": "Get the page content as markdown text.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "get_page_info",
+      "category": "Content",
+      "page": "content",
+      "url": "/reference/content#get_page_info",
+      "signature": "get_page_info()",
+      "returns": "text",
+      "summary": "Get current page URL and title.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "get_text",
+      "category": "Content",
+      "page": "content",
+      "url": "/reference/content#get_text",
+      "signature": "get_text(element_id: int)",
+      "returns": "text",
+      "summary": "Get the full, current text of an element by its ID.",
+      "details": "Reads the live page, so it returns the whole text (not the truncated label from the summary). Form fields return their current value.",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label of the element"
+        }
+      ]
+    },
+    {
+      "name": "run_javascript",
+      "category": "Content",
+      "page": "content",
+      "url": "/reference/content#run_javascript",
+      "signature": "run_javascript(script: str)",
+      "returns": "text + screenshot",
+      "summary": "Execute JavaScript and return the result.",
+      "details": "",
+      "params": [
+        {
+          "name": "script",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "JavaScript code to execute"
+        }
+      ]
+    },
+    {
+      "name": "screenshot",
+      "category": "Content",
+      "page": "content",
+      "url": "/reference/content#screenshot",
+      "signature": "screenshot(annotate: bool = True, full_page: bool = False)",
+      "returns": "text + screenshot",
+      "summary": "Take a screenshot of the page.",
+      "details": "",
+      "params": [
+        {
+          "name": "annotate",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "If True, overlay numbered element markers (default). If False, clean screenshot."
+        },
+        {
+          "name": "full_page",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "If True, capture the full scrollable page."
+        }
+      ]
+    },
+    {
+      "name": "extract",
+      "category": "Extraction",
+      "page": "extraction",
+      "url": "/reference/extraction#extract",
+      "signature": "extract(schema: dict[str, Any])",
+      "returns": "text",
+      "summary": "Extract structured JSON from the page with a selector schema.",
+      "details": "Each value is a CSS selector, optionally with \"@attr\" to read an attribute (\"a@href\", \"img@src\"; href/src come back absolute). Without @attr you get the text (or a form field's value). A one-item list returns every match, and an object with \"_selector\" scopes its fields to that element. Example:\n\n{\"title\": \"h1\", \"products\": [{\"_selector\": \".product\", \"name\": \"h3\", \"price\": \".price\", \"url\": \"a@href\"}], \"tags\": [\".tag\"]}\n\nSelectors use the main document (not iframes or shadow DOM).",
+      "params": [
+        {
+          "name": "schema",
+          "type": "dict[str, Any]",
+          "required": true,
+          "default": null,
+          "description": "The fields to extract, as described above"
+        }
+      ]
+    },
+    {
+      "name": "extract_links",
+      "category": "Extraction",
+      "page": "extraction",
+      "url": "/reference/extraction#extract_links",
+      "signature": "extract_links(contains: str = '', limit: int = 100)",
+      "returns": "text",
+      "summary": "List the page's links as JSON: text, absolute href, and whether each is visible.",
+      "details": "",
+      "params": [
+        {
+          "name": "contains",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "description": "Only links whose text or URL contains this (case-insensitive)"
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "required": false,
+          "default": 100,
+          "description": "Maximum number of links to return (default 100)"
+        }
+      ]
+    },
+    {
+      "name": "extract_table",
+      "category": "Extraction",
+      "page": "extraction",
+      "url": "/reference/extraction#extract_table",
+      "signature": "extract_table(element_id: int | None = None, index: int = 1, output_format: str = 'json')",
+      "returns": "text",
+      "summary": "Extract a table (HTML <table> or ARIA table/grid) as structured data.",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "description": "An element inside (or containing) the table; omit to pick by index"
+        },
+        {
+          "name": "index",
+          "type": "int",
+          "required": false,
+          "default": 1,
+          "description": "Which table on the page, 1-based, when element_id is omitted"
+        },
+        {
+          "name": "output_format",
+          "type": "str",
+          "required": false,
+          "default": "json",
+          "description": "\"json\" (rows keyed by header), \"markdown\", or \"csv\""
+        }
+      ]
+    },
+    {
+      "name": "close_tab",
+      "category": "Tabs",
+      "page": "tabs",
+      "url": "/reference/tabs#close_tab",
+      "signature": "close_tab(index: int)",
+      "returns": "text + screenshot",
+      "summary": "Close a specific tab by its index.",
+      "details": "",
+      "params": [
+        {
+          "name": "index",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The 0-based index of the tab to close."
+        }
+      ]
+    },
+    {
+      "name": "create_tab",
+      "category": "Tabs",
+      "page": "tabs",
+      "url": "/reference/tabs#create_tab",
+      "signature": "create_tab(url: str | None = None)",
+      "returns": "text + screenshot",
+      "summary": "Create a new tab and switch to it.",
+      "details": "",
+      "params": [
+        {
+          "name": "url",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Optional URL to open in the new tab."
+        }
+      ]
+    },
+    {
+      "name": "list_tabs",
+      "category": "Tabs",
+      "page": "tabs",
+      "url": "/reference/tabs#list_tabs",
+      "signature": "list_tabs()",
+      "returns": "text",
+      "summary": "List all open tabs with their indices, titles, and URLs.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "switch_tab",
+      "category": "Tabs",
+      "page": "tabs",
+      "url": "/reference/tabs#switch_tab",
+      "signature": "switch_tab(index: int)",
+      "returns": "text + screenshot",
+      "summary": "Switch to a specific tab by its index.",
+      "details": "",
+      "params": [
+        {
+          "name": "index",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The 0-based index of the tab to switch to."
+        }
+      ]
+    },
+    {
+      "name": "close_session",
+      "category": "Sessions",
+      "page": "sessions",
+      "url": "/reference/sessions#close_session",
+      "signature": "close_session(name: str)",
+      "returns": "text",
+      "summary": "Close an isolated session and discard its cookies and tabs.",
+      "details": "",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "The session to close (the default session cannot be closed)"
+        }
+      ]
+    },
+    {
+      "name": "connect_to_chrome",
+      "category": "Sessions",
+      "page": "sessions",
+      "url": "/reference/sessions#connect_to_chrome",
+      "signature": "connect_to_chrome(cdp_url: str = 'http://localhost:9222')",
+      "returns": "text + screenshot",
+      "summary": "Attach to your own running Chrome so the agent uses its logged-in sessions.",
+      "details": "The agent works in a new tab of that Chrome; list_tabs/switch_tab reach the others. Disconnecting never closes your Chrome. Isolated sessions created afterwards open as incognito-like contexts in it.",
+      "params": [
+        {
+          "name": "cdp_url",
+          "type": "str",
+          "required": false,
+          "default": "http://localhost:9222",
+          "description": "Chrome's remote debugging endpoint (default http://localhost:9222)"
+        }
+      ]
+    },
+    {
+      "name": "create_session",
+      "category": "Sessions",
+      "page": "sessions",
+      "url": "/reference/sessions#create_session",
+      "signature": "create_session(name: str, device: str | None = None, url: str | None = None)",
+      "returns": "text + screenshot",
+      "summary": "Open an isolated browser session (its own cookies, storage, tabs) and switch to it.",
+      "details": "Use it to log in as a second user, test signed-out flows, or keep agents apart. The session is in memory only and is lost when closed.",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "A name for the session, used by switch_session and close_session"
+        },
+        {
+          "name": "device",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Optional device to emulate for the whole session (see list_devices)"
+        },
+        {
+          "name": "url",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Optional URL to open in the session"
+        }
+      ]
+    },
+    {
+      "name": "disconnect_chrome",
+      "category": "Sessions",
+      "page": "sessions",
+      "url": "/reference/sessions#disconnect_chrome",
+      "signature": "disconnect_chrome()",
+      "returns": "text + screenshot",
+      "summary": "Detach from an attached Chrome (leaving it open) and go back to the managed browser.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "list_sessions",
+      "category": "Sessions",
+      "page": "sessions",
+      "url": "/reference/sessions#list_sessions",
+      "signature": "list_sessions()",
+      "returns": "text",
+      "summary": "List browser sessions, their tabs, and which one you are using.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "switch_session",
+      "category": "Sessions",
+      "page": "sessions",
+      "url": "/reference/sessions#switch_session",
+      "signature": "switch_session(name: str)",
+      "returns": "text + screenshot",
+      "summary": "Switch to another session. \"default\" is the persistent, logged-in profile.",
+      "details": "",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "The session name (see list_sessions)"
+        }
+      ]
+    },
+    {
+      "name": "clear_cookies",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#clear_cookies",
+      "signature": "clear_cookies()",
+      "returns": "text",
+      "summary": "Clear all cookies.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "delete_cookie",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#delete_cookie",
+      "signature": "delete_cookie(name: str)",
+      "returns": "text",
+      "summary": "Delete a cookie by name. Note: This deletes all cookies with this name across all domains in context.",
+      "details": "",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "name": "get_console_logs",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#get_console_logs",
+      "signature": "get_console_logs(clear: bool = False)",
+      "returns": "text",
+      "summary": "Get browser console logs (errors, warnings, info, log messages).",
+      "details": "",
+      "params": [
+        {
+          "name": "clear",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "If True, clear the captured logs after returning them"
+        }
+      ]
+    },
+    {
+      "name": "get_cookies",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#get_cookies",
+      "signature": "get_cookies()",
+      "returns": "text",
+      "summary": "Get all cookies for the current context.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "get_network_requests",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#get_network_requests",
+      "signature": "get_network_requests(num_requests: int | None = None, clear: bool = False)",
+      "returns": "text",
+      "summary": "Get captured network requests (API calls, resources, etc.).",
+      "details": "Each line starts with a #id; pass it to get_request_details for headers and body.",
+      "params": [
+        {
+          "name": "num_requests",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "description": "Number of recent requests to return. Defaults to 30."
+        },
+        {
+          "name": "clear",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "If True, clear the captured requests after returning them"
+        }
+      ]
+    },
+    {
+      "name": "get_page_errors",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#get_page_errors",
+      "signature": "get_page_errors()",
+      "returns": "text",
+      "summary": "Get JavaScript errors that occurred on the page.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "get_page_performance",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#get_page_performance",
+      "signature": "get_page_performance()",
+      "returns": "text",
+      "summary": "Get page performance metrics (load time, Core Web Vitals).",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "inspect_element",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#inspect_element",
+      "signature": "inspect_element(element_id: int)",
+      "returns": "text",
+      "summary": "Inspect an element to get its computed styles, dimensions, and properties.",
+      "details": "",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The number label of the element to inspect"
+        }
+      ]
+    },
+    {
+      "name": "run_in_console",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#run_in_console",
+      "signature": "run_in_console(code: str)",
+      "returns": "text + screenshot",
+      "summary": "Execute JavaScript code in the browser console and return the result. Useful for debugging, inspecting variables, or manipulating the page.",
+      "details": "",
+      "params": [
+        {
+          "name": "code",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "JavaScript code to execute in the console"
+        }
+      ]
+    },
+    {
+      "name": "set_cookie",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#set_cookie",
+      "signature": "set_cookie(name: str, value: str, domain: str | None = None, path: str = '/')",
+      "returns": "text",
+      "summary": "Set a cookie.",
+      "details": "",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "Cookie name"
+        },
+        {
+          "name": "value",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "Cookie value"
+        },
+        {
+          "name": "domain",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Cookie domain (optional, defaults to current page domain)"
+        },
+        {
+          "name": "path",
+          "type": "str",
+          "required": false,
+          "default": "/",
+          "description": "Cookie path (default: \"/\")"
+        }
+      ]
+    },
+    {
+      "name": "set_viewport",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#set_viewport",
+      "signature": "set_viewport(width: int, height: int)",
+      "returns": "text + screenshot",
+      "summary": "Set the browser viewport size.",
+      "details": "",
+      "params": [
+        {
+          "name": "width",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "Width in pixels"
+        },
+        {
+          "name": "height",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "Height in pixels"
+        }
+      ]
+    },
+    {
+      "name": "clear_mocks",
+      "category": "Network",
+      "page": "network",
+      "url": "/reference/network#clear_mocks",
+      "signature": "clear_mocks(url_pattern: str | None = None)",
+      "returns": "text",
+      "summary": "Remove request mocks so requests reach the network again.",
+      "details": "",
+      "params": [
+        {
+          "name": "url_pattern",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "The pattern given to mock_route; omit to remove every mock"
+        }
+      ]
+    },
+    {
+      "name": "export_har",
+      "category": "Network",
+      "page": "network",
+      "url": "/reference/network#export_har",
+      "signature": "export_har(name: str = '', include_bodies: bool = False)",
+      "returns": "text",
+      "summary": "Save the captured network traffic (last 100 requests) as a HAR file.",
+      "details": "Open it in Chrome DevTools (Network > Import) or any HAR viewer.",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "description": "File name without extension (default: timestamp)"
+        },
+        {
+          "name": "include_bodies",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Also save response bodies (up to 1MB each)"
+        }
+      ]
+    },
+    {
+      "name": "get_request_details",
+      "category": "Network",
+      "page": "network",
+      "url": "/reference/network#get_request_details",
+      "signature": "get_request_details(request_id: int, include_body: bool = True)",
+      "returns": "text",
+      "summary": "Show one captured request in full: headers, POST data, response headers and body.",
+      "details": "",
+      "params": [
+        {
+          "name": "request_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The #id shown by get_network_requests or wait_for_response"
+        },
+        {
+          "name": "include_body",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "Include the response body (text, truncated; binary as base64)"
+        }
+      ]
+    },
+    {
+      "name": "mock_route",
+      "category": "Network",
+      "page": "network",
+      "url": "/reference/network#mock_route",
+      "signature": "mock_route(url_pattern: str, status: int = 200, body: str = '', content_type: str = 'application/json', headers: dict[str, str] | None = None, abort: bool = False)",
+      "returns": "text",
+      "summary": "Answer matching requests with a canned response, or block them, in every tab.",
+      "details": "Use it to test error states (status=500), stub an API, or block trackers (abort=True). Replaces any earlier mock with the same pattern.",
+      "params": [
+        {
+          "name": "url_pattern",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "Substring of the URL, a glob like \"**/api/users*\", or \"re:<regex>\""
+        },
+        {
+          "name": "status",
+          "type": "int",
+          "required": false,
+          "default": 200,
+          "description": "HTTP status to return (default 200)"
+        },
+        {
+          "name": "body",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "description": "Response body (e.g. a JSON string)"
+        },
+        {
+          "name": "content_type",
+          "type": "str",
+          "required": false,
+          "default": "application/json",
+          "description": "Content-Type of the body (default application/json)"
+        },
+        {
+          "name": "headers",
+          "type": "dict[str, str] | None",
+          "required": false,
+          "default": null,
+          "description": "Extra response headers"
+        },
+        {
+          "name": "abort",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Fail matching requests with a network error instead of responding"
+        }
+      ]
+    },
+    {
+      "name": "wait_for_response",
+      "category": "Network",
+      "page": "network",
+      "url": "/reference/network#wait_for_response",
+      "signature": "wait_for_response(url_pattern: str, status: int | None = None, timeout_seconds: float = 10.0)",
+      "returns": "text + screenshot",
+      "summary": "Wait for a network response whose URL matches, e.g. the API call a click triggered.",
+      "details": "Responses that arrived during the previous tool call count, so call this right after the action that sends the request.",
+      "params": [
+        {
+          "name": "url_pattern",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "Substring of the URL, a glob like \"**/api/save*\", or \"re:<regex>\""
+        },
+        {
+          "name": "status",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "description": "Only accept this HTTP status"
+        },
+        {
+          "name": "timeout_seconds",
+          "type": "float",
+          "required": false,
+          "default": 10.0,
+          "description": "Give up after this long (default 10)"
+        }
+      ]
+    },
+    {
+      "name": "emulate_device",
+      "category": "Emulation",
+      "page": "emulation",
+      "url": "/reference/emulation#emulate_device",
+      "signature": "emulate_device(name: str)",
+      "returns": "text + screenshot",
+      "summary": "Emulate a phone or tablet's screen size, user agent, and touch input.",
+      "details": "Pass \"none\" to go back to the desktop viewport. Pixel ratio and the mobile layout viewport need a new context: use create_session(name, device) for a fully faithful device.",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "A device from list_devices(), e.g. \"iPhone 13\" or \"Pixel 7\""
+        }
+      ]
+    },
+    {
+      "name": "list_devices",
+      "category": "Emulation",
+      "page": "emulation",
+      "url": "/reference/emulation#list_devices",
+      "signature": "list_devices(contains: str = '')",
+      "returns": "text",
+      "summary": "List device names accepted by emulate_device and create_session.",
+      "details": "",
+      "params": [
+        {
+          "name": "contains",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "description": "Only names containing this (case-insensitive), e.g. \"iphone\""
+        }
+      ]
+    },
+    {
+      "name": "reset_emulation",
+      "category": "Emulation",
+      "page": "emulation",
+      "url": "/reference/emulation#reset_emulation",
+      "signature": "reset_emulation()",
+      "returns": "text + screenshot",
+      "summary": "Undo all emulation: device, geolocation, timezone, color scheme, and throttling.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "set_color_scheme",
+      "category": "Emulation",
+      "page": "emulation",
+      "url": "/reference/emulation#set_color_scheme",
+      "signature": "set_color_scheme(scheme: str = 'dark')",
+      "returns": "text + screenshot",
+      "summary": "Emulate prefers-color-scheme to check dark or light mode.",
+      "details": "",
+      "params": [
+        {
+          "name": "scheme",
+          "type": "str",
+          "required": false,
+          "default": "dark",
+          "description": "\"dark\", \"light\", or \"no-preference\""
+        }
+      ]
+    },
+    {
+      "name": "set_geolocation",
+      "category": "Emulation",
+      "page": "emulation",
+      "url": "/reference/emulation#set_geolocation",
+      "signature": "set_geolocation(latitude: float, longitude: float, accuracy: float = 10.0)",
+      "returns": "text",
+      "summary": "Report a fake location to sites, and grant them the geolocation permission.",
+      "details": "",
+      "params": [
+        {
+          "name": "latitude",
+          "type": "float",
+          "required": true,
+          "default": null,
+          "description": "Latitude in degrees, e.g. 51.5074"
+        },
+        {
+          "name": "longitude",
+          "type": "float",
+          "required": true,
+          "default": null,
+          "description": "Longitude in degrees, e.g. -0.1278"
+        },
+        {
+          "name": "accuracy",
+          "type": "float",
+          "required": false,
+          "default": 10.0,
+          "description": "Accuracy radius in meters (default 10)"
+        }
+      ]
+    },
+    {
+      "name": "set_timezone",
+      "category": "Emulation",
+      "page": "emulation",
+      "url": "/reference/emulation#set_timezone",
+      "signature": "set_timezone(timezone_id: str)",
+      "returns": "text",
+      "summary": "Make pages see a different timezone (Date, Intl).",
+      "details": "",
+      "params": [
+        {
+          "name": "timezone_id",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "IANA name such as \"America/New_York\" or \"Asia/Tokyo\"; \"\" resets"
+        }
+      ]
+    },
+    {
+      "name": "throttle_network",
+      "category": "Emulation",
+      "page": "emulation",
+      "url": "/reference/emulation#throttle_network",
+      "signature": "throttle_network(profile: str = 'slow-3g')",
+      "returns": "text",
+      "summary": "Slow the network down or take it offline, to test loading and offline states.",
+      "details": "",
+      "params": [
+        {
+          "name": "profile",
+          "type": "str",
+          "required": false,
+          "default": "slow-3g",
+          "description": "\"slow-3g\", \"fast-3g\", \"4g\", \"offline\", or \"none\" to remove throttling"
+        }
+      ]
+    },
+    {
+      "name": "export_test",
+      "category": "Recording",
+      "page": "recording",
+      "url": "/reference/recording#export_test",
+      "signature": "export_test(name: str = '', language: str = 'python', clear: bool = False)",
+      "returns": "text",
+      "summary": "Turn the actions taken so far into a replayable Playwright test file.",
+      "details": "Covers navigation, clicks, typing, keys, selects, checkboxes, uploads, drags, scrolls, waits for text, dialog answers, and request mocks, since the session started or since start_recording(). Elements are located by test id, role and name, label, placeholder, text, or CSS, never by SoM IDs. Typed passwords become environment variables. Review before committing.",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "description": "Test name and file name (default: timestamp)"
+        },
+        {
+          "name": "language",
+          "type": "str",
+          "required": false,
+          "default": "python",
+          "description": "\"python\" (pytest-playwright) or \"typescript\" (@playwright/test)"
+        },
+        {
+          "name": "clear",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Empty the action log afterwards, to start the next test fresh"
+        }
+      ]
+    },
+    {
+      "name": "list_recordings",
+      "category": "Recording",
+      "page": "recording",
+      "url": "/reference/recording#list_recordings",
+      "signature": "list_recordings()",
+      "returns": "text",
+      "summary": "List all saved recordings and snapshots.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "start_recording",
+      "category": "Recording",
+      "page": "recording",
+      "url": "/reference/recording#start_recording",
+      "signature": "start_recording(name: str = '')",
+      "returns": "text",
+      "summary": "Start recording the browser session as a Playwright trace. The trace will be saved when stop_recording is called. Also restarts the action log, so export_test() afterwards covers exactly this recording.",
+      "details": "",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "description": "Optional name for the recording (default: timestamp)"
+        }
+      ]
+    },
+    {
+      "name": "stop_recording",
+      "category": "Recording",
+      "page": "recording",
+      "url": "/reference/recording#stop_recording",
+      "signature": "stop_recording()",
+      "returns": "text",
+      "summary": "Stop recording and save the session trace.",
+      "details": "",
+      "params": []
+    },
+    {
+      "name": "take_snapshot",
+      "category": "Recording",
+      "page": "recording",
+      "url": "/reference/recording#take_snapshot",
+      "signature": "take_snapshot(name: str = '')",
+      "returns": "text",
+      "summary": "Take a named snapshot (screenshot + HTML) for later reference.",
+      "details": "",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "description": "Optional name for the snapshot (default: timestamp)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+/*
+ * Design tokens layered on top of Catppuccin (Latte light, Mocha dark, red accent).
+ * Catppuccin supplies --vp-c-* and the --ctp-<flavor>-<color> palette.
+ */
+:root {
+  --vp-font-family-base: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --vp-font-family-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Semantic palette (Latte) */
+  --bc-red: var(--ctp-latte-red);
+  --bc-peach: var(--ctp-latte-peach);
+  --bc-green: var(--ctp-latte-green);
+  --bc-teal: var(--ctp-latte-teal);
+  --bc-blue: var(--ctp-latte-blue);
+  --bc-mauve: var(--ctp-latte-mauve);
+  --bc-lavender: var(--ctp-latte-lavender);
+  --bc-yellow: var(--ctp-latte-yellow);
+  --bc-sky: var(--ctp-latte-sky);
+
+  --bc-ink: color-mix(in srgb, var(--vp-c-text-1) 72%, #11111b);
+  --bc-mark: var(--bc-red);
+  --bc-mark-soft: color-mix(in srgb, var(--bc-mark) 12%, transparent);
+  --bc-surface: color-mix(in srgb, var(--vp-c-bg-alt) 70%, var(--vp-c-bg));
+  --bc-line: color-mix(in srgb, var(--vp-c-text-1) 12%, transparent);
+  --bc-line-strong: color-mix(in srgb, var(--vp-c-text-1) 22%, transparent);
+  --bc-grid: color-mix(in srgb, var(--vp-c-text-1) 5%, transparent);
+  --bc-radius: 12px;
+  --bc-radius-sm: 8px;
+  --bc-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --bc-shadow: 0 1px 0 color-mix(in srgb, var(--vp-c-text-1) 4%, transparent),
+    0 12px 32px -16px color-mix(in srgb, var(--vp-c-text-1) 18%, transparent);
+
+  --vp-layout-max-width: 1400px;
+  --vp-nav-height: 60px;
+  --vp-code-font-size: 0.875em;
+  --vp-code-line-height: 1.65;
+
+  --vp-home-hero-name-color: var(--vp-c-text-1);
+  --vp-button-brand-bg: var(--vp-c-text-1);
+  --vp-button-brand-text: var(--vp-c-bg);
+  --vp-button-brand-border: var(--vp-c-text-1);
+  --vp-button-brand-hover-bg: color-mix(in srgb, var(--vp-c-text-1) 85%, var(--vp-c-bg));
+  --vp-button-brand-hover-text: var(--vp-c-bg);
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-active-bg: var(--vp-c-text-1);
+  --vp-button-brand-active-text: var(--vp-c-bg);
+}
+
+.dark {
+  --bc-red: var(--ctp-mocha-red);
+  --bc-peach: var(--ctp-mocha-peach);
+  --bc-green: var(--ctp-mocha-green);
+  --bc-teal: var(--ctp-mocha-teal);
+  --bc-blue: var(--ctp-mocha-blue);
+  --bc-mauve: var(--ctp-mocha-mauve);
+  --bc-lavender: var(--ctp-mocha-lavender);
+  --bc-yellow: var(--ctp-mocha-yellow);
+  --bc-sky: var(--ctp-mocha-sky);
+  --bc-ink: var(--vp-c-text-1);
+  --bc-mark-soft: color-mix(in srgb, var(--bc-mark) 16%, transparent);
+  --bc-shadow: 0 1px 0 color-mix(in srgb, white 4%, transparent),
+    0 18px 40px -20px rgb(0 0 0 / 0.7);
+}

@@ -137,9 +137,13 @@ Consulta la [documentación][docs] de BrowserControl para la instalación, los
 conceptos, la [referencia completa de herramientas][tools], la
 [configuración][configuration] y la [solución de problemas][troubleshooting].
 
-## Guías
+Los agentes también pueden leer la documentación: [`llms.txt`][llms] indexa todas
+las páginas, [`llms-full.txt`][llms-full] la reúne en un solo archivo y
+[`tools.json`][tools-json] lista cada herramienta con sus parámetros.
 
-Ponte manos a la obra con las [guías][guides]: [investigación web][guide-research],
+## Recetas
+
+Ponte manos a la obra con las [recetas][guides]: [investigación web][guide-research],
 [llenar formularios][guide-forms], [subir archivos][guide-upload],
 [flujos con varias pestañas][guide-tabs],
 [pruebas móviles y responsivas][guide-mobile],
@@ -156,7 +160,7 @@ Ponte manos a la obra con las [guías][guides]: [investigación web][guide-resea
 uv sync
 uv run playwright install chromium
 uv run pytest
-uv run --extra docs mkdocs serve
+cd docs && npm install && npm run dev
 ```
 
 Lee la [guía de desarrollo][development] y las
@@ -167,25 +171,28 @@ Lee la [guía de desarrollo][development] y las
 BrowserControl se publica bajo la [licencia MIT](LICENSE).
 
 [docs]: https://adityasasidhar.github.io/browsercontrol/
-[som]: https://adityasasidhar.github.io/browsercontrol/concepts/set-of-marks/
-[interaction]: https://adityasasidhar.github.io/browsercontrol/tools/interaction/
-[sessions]: https://adityasasidhar.github.io/browsercontrol/tools/sessions/
-[forms]: https://adityasasidhar.github.io/browsercontrol/tools/forms/
-[content]: https://adityasasidhar.github.io/browsercontrol/tools/content/
-[extraction]: https://adityasasidhar.github.io/browsercontrol/tools/extraction/
-[network]: https://adityasasidhar.github.io/browsercontrol/tools/network/
-[recording]: https://adityasasidhar.github.io/browsercontrol/tools/recording/
-[debug]: https://adityasasidhar.github.io/browsercontrol/guides/debug-web-app/
-[tools]: https://adityasasidhar.github.io/browsercontrol/tools/
-[configuration]: https://adityasasidhar.github.io/browsercontrol/configuration/
-[troubleshooting]: https://adityasasidhar.github.io/browsercontrol/troubleshooting/
-[connect]: https://adityasasidhar.github.io/browsercontrol/getting-started/connect-your-ai/
-[installation]: https://adityasasidhar.github.io/browsercontrol/getting-started/installation/
-[development]: https://adityasasidhar.github.io/browsercontrol/development/
-[guides]: https://adityasasidhar.github.io/browsercontrol/guides/
-[guide-research]: https://adityasasidhar.github.io/browsercontrol/guides/web-research/
-[guide-forms]: https://adityasasidhar.github.io/browsercontrol/guides/fill-forms/
-[guide-upload]: https://adityasasidhar.github.io/browsercontrol/guides/upload-files/
-[guide-tabs]: https://adityasasidhar.github.io/browsercontrol/guides/multi-tab/
-[guide-mobile]: https://adityasasidhar.github.io/browsercontrol/guides/mobile-responsive/
-[guide-record]: https://adityasasidhar.github.io/browsercontrol/guides/record-tests/
+[som]: https://adityasasidhar.github.io/browsercontrol/concepts/set-of-marks
+[interaction]: https://adityasasidhar.github.io/browsercontrol/reference/interaction
+[sessions]: https://adityasasidhar.github.io/browsercontrol/recipes/your-chrome
+[forms]: https://adityasasidhar.github.io/browsercontrol/recipes/fill-a-form
+[content]: https://adityasasidhar.github.io/browsercontrol/reference/content
+[extraction]: https://adityasasidhar.github.io/browsercontrol/recipes/extract-data
+[network]: https://adityasasidhar.github.io/browsercontrol/recipes/edge-states
+[recording]: https://adityasasidhar.github.io/browsercontrol/recipes/record-tests
+[debug]: https://adityasasidhar.github.io/browsercontrol/recipes/debug
+[tools]: https://adityasasidhar.github.io/browsercontrol/reference/
+[configuration]: https://adityasasidhar.github.io/browsercontrol/reference/configuration
+[troubleshooting]: https://adityasasidhar.github.io/browsercontrol/help/troubleshooting
+[connect]: https://adityasasidhar.github.io/browsercontrol/guide/clients
+[installation]: https://adityasasidhar.github.io/browsercontrol/guide/installation
+[development]: https://adityasasidhar.github.io/browsercontrol/project/contributing
+[guides]: https://adityasasidhar.github.io/browsercontrol/recipes/
+[llms]: https://adityasasidhar.github.io/browsercontrol/llms.txt
+[llms-full]: https://adityasasidhar.github.io/browsercontrol/llms-full.txt
+[tools-json]: https://adityasasidhar.github.io/browsercontrol/tools.json
+[guide-research]: https://adityasasidhar.github.io/browsercontrol/recipes/research
+[guide-forms]: https://adityasasidhar.github.io/browsercontrol/recipes/fill-a-form
+[guide-upload]: https://adityasasidhar.github.io/browsercontrol/recipes/upload-a-file
+[guide-tabs]: https://adityasasidhar.github.io/browsercontrol/recipes/tabs
+[guide-mobile]: https://adityasasidhar.github.io/browsercontrol/recipes/responsive
+[guide-record]: https://adityasasidhar.github.io/browsercontrol/recipes/record-tests

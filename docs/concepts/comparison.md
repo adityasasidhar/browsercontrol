@@ -1,75 +1,55 @@
-# How BrowserControl compares
+---
+title: How it compares
+description: How BrowserControl's numbered-screenshot approach differs from accessibility-tree servers, LLM-driven browser frameworks, and pixel-level computer use.
+---
 
-Honest comparisons with the other browser-automation options in the MCP / agent ecosystem.
+# How it compares
 
-## TL;DR
+There are several good ways to give an agent a browser. They differ mostly in **what the model sees** and **who decides the next step**.
 
-| Capability | **BrowserControl** | Playwright MCP | Stagehand / Browser-Use | AgentQL |
-|---|:-:|:-:|:-:|:-:|
-| **Set of Marks** (numbered boxes) | ✅ | ❌ text-tree only | ❌ | ❌ |
-| **Shadow DOM traversal** | ✅ recursive | ⚠️ partial | ⚠️ varies | ⚠️ varies |
-| **Iframe support** (incl. cross-origin) | ✅ every frame | ⚠️ basic | ⚠️ varies | ❌ |
-| **Native `set_input_files` upload** | ✅ | ⚠️ manual | ❌ | ❌ |
-| **Built-in devtools** (console/network/errors/perf) | ✅ 11 tools | ⚠️ partial | ❌ | ❌ |
-| **Multi-tab control** | ✅ | ⚠️ implicit | ⚠️ varies | ❌ |
-| **True persistent profile** | ✅ `launch_persistent_context` | ⚠️ | ❌ | ❌ |
-| **No external LLM API required** | ✅ | ✅ | ❌ needs API key | ❌ cloud |
-| **Runs 100% locally / offline** | ✅ | ✅ | ❌ | ❌ |
-| **Cost per 1k actions** | **$0** | $0 | API spend | API spend |
+## Four approaches
 
-## Playwright MCP
+| Approach | The model sees | The model acts by | Examples |
+| --- | --- | --- | --- |
+| **Numbered screenshots** | A screenshot with numbered boxes, plus the same list as text | Naming a number: `click(7)` | BrowserControl |
+| **Accessibility snapshots** | A text tree of the page's roles and names, with references | Naming a reference from the tree | Playwright MCP |
+| **Framework with its own LLM** | Whatever the framework shows its internal model | Natural-language instructions the framework turns into actions | Browser Use, Stagehand |
+| **Pixels and coordinates** | A plain screenshot | Clicking at `x, y` | Computer-use style agents |
 
-[Playwright's own MCP server](https://github.com/microsoft/playwright-mcp) is excellent if you're fine with the accessibility-tree approach. It exposes the page's accessibility tree as a textual representation, and the model picks elements from that.
+## Numbered screenshots
 
-**Trade-offs:**
+**Strengths**
 
-- ✅ Battle-tested, Microsoft-backed.
-- ✅ Stable selectors when the page has good a11y.
-- ❌ No vision — text-only.
-- ❌ Selectors drift when the page changes.
-- ❌ No built-in devtools.
+- The model gets a picture *and* precise targets. Layout, color, and state are visible; icon-only buttons and input types are named in the list.
+- It can't invent a target, since it can only pick a number that exists. Out-of-date numbers are refused rather than applied to whatever moved in.
+- Works the same on pages with poor accessibility markup, inside iframes, and in shadow DOM.
 
-**When to pick Playwright MCP:** your pages have good accessibility markup and you want a Microsoft-supported tool.
+**Trade-offs**
 
-## Stagehand / Browser-Use
+- Each step returns an image, which costs more tokens than a short text snapshot. The text list helps a text-only model, but the approach is designed for vision models.
+- Only what's on screen is numbered, so long pages need `find` or scrolling.
 
-[Stagehand](https://stagehand.dev) and [Browser-Use](https://browser-use.com) put an LLM in the loop with browser automation. The LLM decides what to do at each step, often using vision.
+## Accessibility snapshots
 
-**Trade-offs:**
+Servers like [Playwright MCP](https://github.com/microsoft/playwright-mcp) describe the page as a tree of roles and names. On well-built, accessible sites this is precise and compact, and it works with models that can't see images. Its quality depends on the page's accessibility markup, and the model gets no picture of layout or visual state.
 
-- ✅ State-of-the-art performance on benchmarks.
-- ✅ Self-healing when pages change.
-- ❌ Requires an LLM API key (cost + privacy).
-- ❌ Adds latency (extra LLM call per step).
-- ❌ Not great for production automation (latency + cost).
+**Pick it when** your pages have good accessibility markup, or your model is text-only.
 
-**When to pick Stagehand / Browser-Use:** you want the highest benchmark scores and don't care about per-action cost.
+## Frameworks with their own LLM
 
-## AgentQL
+Libraries such as [Browser Use](https://browser-use.com) and [Stagehand](https://stagehand.dev) put a model inside the automation layer: you describe a goal or step in words, and the framework decides what to click. That's convenient, but every step calls a model behind the scenes, which brings its own API key, latency, and cost.
 
-[AgentQL](https://agentql.com) is a query language for the web — you write a query that describes the data you want, and AgentQL extracts it.
+**Pick it when** you're building an automation in code and want the framework to plan the steps.
 
-**Trade-offs:**
+## Pixels and coordinates
 
-- ✅ Structured extraction is its strength.
-- ❌ Cloud-only — sends your browsing to their servers.
-- ❌ Per-query pricing.
-- ❌ Not a general browser automation tool.
+Computer-use agents click at coordinates on a plain screenshot. It works on anything, including canvases and native apps, but the model must locate targets precisely by itself, which is where most mistakes happen. BrowserControl keeps [`click_at(x, y)`](/reference/interaction#click_at) for the cases where nothing has a number.
 
-**When to pick AgentQL:** you want to extract structured data from many pages and don't mind sending them to a cloud service.
+## Where BrowserControl fits
 
-## BrowserControl's niche
+Choose it when you want:
 
-BrowserControl is for the case where you want:
-
-1. **Vision + text together.** The model picks the cheaper representation per step.
-2. **Zero external dependencies.** No API keys, no cloud, no per-action costs.
-3. **Full devtools built-in.** Console, network, errors, performance — no second tool.
-4. **Modern web app support.** Shadow DOM, iframes, persistent profiles.
-
-It's the right choice if you're running an MCP server in a privacy-sensitive context (your data stays on your machine), or if you're integrating browser automation into an agent and don't want to manage another cloud bill.
-
-## See also
-
-- **[Set of Marks](set-of-marks.md)** — the technique that powers BrowserControl
-- **[Architecture](architecture.md)** — how the components fit together
+- **Vision and text together**, with targets the model can't get wrong by guessing.
+- **Everything local.** BrowserControl calls no model and needs no API key. The browser, its profile, and its captured traffic stay on your machine.
+- **A full toolbox** in one server: debugging, network mocking, emulation, recording, and test export, alongside the clicks.
+- **Real-world pages**: iframes, shadow DOM, logged-in sessions, your own Chrome.

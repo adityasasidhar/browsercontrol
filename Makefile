@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install browsers lint format typecheck security test cov docs check pre-commit
+.PHONY: help install browsers lint format typecheck security test cov docs docs-dev check pre-commit
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -30,8 +30,12 @@ test: ## Run the test suite
 cov: ## Run tests with coverage
 	uv run pytest --cov=browsercontrol
 
-docs: ## Build the docs site (strict)
-	uv run --extra docs mkdocs build --strict
+docs: ## Regenerate the tool catalog and build the docs site
+	uv run python scripts/gen_tools_json.py
+	cd docs && npm ci && npm run build && npm run check:links
+
+docs-dev: ## Preview the docs site with live reload
+	cd docs && npm install && npm run dev
 
 check: lint typecheck test ## Lint, type-check and test
 
