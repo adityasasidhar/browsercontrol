@@ -1,85 +1,55 @@
 <p align="center">
-  <a href="https://github.com/adityasasidhar/browsercontrol">
-    <img loading="lazy" alt="BrowserControl" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/logo-main.png" width="140"/>
-  </a>
+  <img alt="BrowserControl" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/logo-main.png" width="120"/>
 </p>
 
-# BrowserControl
-
-[![Docs](https://img.shields.io/badge/docs-live-brightgreen)][docs]
-[![PyPI version](https://img.shields.io/pypi/v/browsercontrol)](https://pypi.org/project/browsercontrol/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/browsercontrol)](https://pypi.org/project/browsercontrol/)
-[![CI](https://github.com/adityasasidhar/browsercontrol/actions/workflows/ci.yml/badge.svg)](https://github.com/adityasasidhar/browsercontrol/actions/workflows/ci.yml)
-[![MCP](https://img.shields.io/badge/MCP-server-6A5ACD)](https://modelcontextprotocol.io)
-[![Playwright](https://img.shields.io/badge/Playwright-Chromium-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/python/)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Checked with mypy](https://img.shields.io/badge/mypy-strict-blue)](https://mypy-lang.org/)
-[![License MIT](https://img.shields.io/github/license/adityasasidhar/browsercontrol)](LICENSE)
-[![PyPI Downloads](https://static.pepy.tech/badge/browsercontrol/month)](https://pepy.tech/projects/browsercontrol)
-
-[Español](README.es-ES.md)
-
-## What is BrowserControl?
-
-BrowserControl gives your AI client a local Chromium browser over the
-[Model Context Protocol](https://modelcontextprotocol.io). Every action returns a
-screenshot with numbered boxes over the page's controls, plus a matching text
-list, so the agent acts by number (`click(5)`) instead of guessing CSS selectors.
+<h1 align="center">BrowserControl</h1>
 
 <p align="center">
-  <img loading="lazy" alt="Recorded BrowserControl session showing numbered elements as the agent navigates, searches, and fills a form" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif" width="100%"/>
+  <b>A real browser for your AI agent. It sees the page and clicks by number.</b>
 </p>
 
-## Features
+<p align="center">
+  <a href="https://pypi.org/project/browsercontrol/"><img src="https://img.shields.io/pypi/v/browsercontrol" alt="PyPI"></a>
+  <a href="https://pypi.org/project/browsercontrol/"><img src="https://img.shields.io/pypi/pyversions/browsercontrol" alt="Python"></a>
+  <a href="https://github.com/adityasasidhar/browsercontrol/actions/workflows/ci.yml"><img src="https://github.com/adityasasidhar/browsercontrol/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/adityasasidhar/browsercontrol/blob/main/LICENSE"><img src="https://img.shields.io/github/license/adityasasidhar/browsercontrol" alt="MIT license"></a>
+</p>
 
-- 🎯 Vision-first control with [Set of Marks][som]: numbered elements on every screenshot, including iframes and shadow DOM
-- 🧭 [Navigate and interact][interaction]: click, double-click, drag, type, and `find("text")` anywhere on the page
-- ⚡ Run several steps in one call with `act(steps)` and get back a single screenshot
-- 🔐 [Use your own browser][sessions]: attach to your running Chrome and its signed-in sites, or open isolated sessions
-- 📝 [Fill forms][forms]: select options, check boxes, and upload local files
-- 📖 [Read pages][content] as Markdown or text, and [extract data][extraction] as tables, links, or JSON fields
-- 🌐 [Test real conditions][network]: mock or block requests, throttle the network, and emulate devices, locations, timezones, and dark mode
-- 🐞 [Debug a web app][debug]: console logs, request headers and bodies, page errors, and HAR export
-- 🎬 [Record a session][recording]: Playwright traces, snapshots, and export to a runnable Playwright test
-- 🔌 Works with Claude Code, Cursor, VS Code, and any MCP client, over stdio or Streamable HTTP
-- 🔒 Runs locally with a persistent profile, so logins survive restarts
+<p align="center">
+  <a href="https://adityasasidhar.github.io/browsercontrol/"><b>Documentation</b></a> ·
+  <a href="https://adityasasidhar.github.io/browsercontrol/guide/quickstart">Quickstart</a> ·
+  <a href="https://adityasasidhar.github.io/browsercontrol/reference/">All 69 tools</a> ·
+  <a href="https://adityasasidhar.github.io/browsercontrol/recipes/">Recipes</a> ·
+  <a href="https://github.com/adityasasidhar/browsercontrol/blob/main/README.es-ES.md">Español</a>
+</p>
 
-### What's new
+---
 
-- 🔗 Attach to your own Chrome over CDP with `connect_to_chrome`; detaching never closes it
-- 🧪 `export_test` turns an agent session into a pytest-playwright or `@playwright/test` file
-- 💬 JS dialogs and downloads are handled automatically and reported in the next response
-- ⏳ Smart settling after every action: load, network quiet, then DOM quiet
-- 👥 Per-client isolated sessions with `--isolate-clients`
+BrowserControl is an [MCP](https://modelcontextprotocol.io) server that lets Claude, Cursor, VS Code, or any other MCP client use a real Chromium browser on your machine.
 
-See the [changelog](CHANGELOG.md) for the full list.
+After every action, the agent gets back a screenshot with a **numbered box on every button, link, and field**, plus the same list as text. To press the button marked 5, it calls `click(5)`. No CSS selectors, no guessing coordinates.
 
-## Quickstart
+<p align="center">
+  <img alt="An agent browsing with BrowserControl: numbered boxes appear over the page, and the agent types and clicks by number" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif" width="100%"/>
+</p>
 
-### 1. Install
+## Install
 
-You need [uv](https://docs.astral.sh/uv/getting-started/installation/) on your
-`PATH`. In **Claude Code**, install the MCP server and the
-[agent skill](skills/browsercontrol/SKILL.md) together as a plugin:
+You need [uv](https://docs.astral.sh/uv/getting-started/installation/). Everything else, including the browser, is set up on first run.
+
+**Claude Code** (installs the server and a skill that teaches Claude to use it):
 
 ```text
 /plugin marketplace add adityasasidhar/browsercontrol
 /plugin install browsercontrol@browsercontrol
 ```
 
-Then restart Claude Code or run `/reload-plugins`.
+**VS Code or Cursor:** one click.
 
-In **VS Code** or **Cursor**, install with one click:
+<a href="https://insiders.vscode.dev/redirect/mcp/install?name=browsercontrol&amp;config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22browsercontrol%22%5D%7D"><img src="https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code"></a>
+<a href="https://cursor.com/en/install-mcp?name=browsercontrol&amp;config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyJicm93c2VyY29udHJvbCJdfQ%3D%3D"><img src="https://img.shields.io/badge/Cursor-Install-000000?style=flat-square&logo=cursor&logoColor=white" alt="Install in Cursor"></a>
 
-<p>
-  <a href="https://insiders.vscode.dev/redirect/mcp/install?name=browsercontrol&amp;config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22browsercontrol%22%5D%7D"><img src="https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code"></a>
-  <a href="https://insiders.vscode.dev/redirect/mcp/install?name=browsercontrol&amp;config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22browsercontrol%22%5D%7D&amp;quality=insiders"><img src="https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code Insiders"></a>
-  <a href="https://cursor.com/en/install-mcp?name=browsercontrol&amp;config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyJicm93c2VyY29udHJvbCJdfQ%3D%3D"><img src="https://img.shields.io/badge/Cursor-Install_Server-000000?style=flat-square&logo=cursor&logoColor=white" alt="Install in Cursor"></a>
-</p>
-
-For **any other MCP client**, launch `uvx browsercontrol`. Clients that use
-`mcpServers` JSON can merge in this entry:
+**Anything else:** add this to your client's MCP config.
 
 ```json
 {
@@ -92,103 +62,99 @@ For **any other MCP client**, launch `uvx browsercontrol`. Clients that use
 }
 ```
 
-Or add it to Claude Code by hand:
+Restart your client and you're done. Setup for Claude Desktop, Gemini CLI, Zed, OpenCode, and others is in the [client guide](https://adityasasidhar.github.io/browsercontrol/guide/clients).
 
-```bash
-claude mcp add --transport stdio browsercontrol -- uvx browsercontrol
+## Try it
+
+Ask your agent something that needs a browser:
+
+> Open Hacker News and tell me the top three stories.
+
+> Go to my app on localhost:3000, sign up with a test account, and tell me if anything breaks.
+
+> Find the cheapest flight from Berlin to Lisbon next Friday and show me the options.
+
+## How it works
+
+Each time the agent does something, BrowserControl waits for the page to settle, takes a screenshot, numbers everything you can interact with, and sends back both:
+
+```text
+Clicked element 5
+
+Found 23 interactive elements:
+  [1] a - Home
+  [2] input[search] - Search products
+  [3] button - Search
+  [4] a - Sign in
+  ...
 ```
 
-Works on Linux, macOS, and Windows with Python 3.11+. On first launch,
-BrowserControl reuses a compatible local browser or downloads Chromium.
+The agent reads the picture to understand the page, then picks a number for its next action. Numbers are rebuilt after every step, so they always match what's on screen right now. If something has moved or gone, the tool says so instead of clicking the wrong thing.
 
-More [client setup][connect] (Cursor, VS Code, and others) and
-[installation options][installation] (pip, from source) are in the docs.
+This is called [Set of Marks](https://adityasasidhar.github.io/browsercontrol/concepts/set-of-marks). It works on any site, including ones with messy markup, iframes, and shadow DOM.
 
-### 2. Ask your agent
+## What your agent can do
 
-Reload your client and try:
+| | |
+| --- | --- |
+| **Browse** | Open pages, click, type, scroll, hover, drag, and press keys. `find("Checkout")` searches the whole page, not just what's visible. |
+| **Batch** | `act([...])` runs several steps in one call and returns one screenshot, which saves time and tokens. |
+| **Fill forms** | Pick from dropdowns, tick checkboxes, and upload files. |
+| **Read and extract** | Get a page as Markdown, pull out tables and links, or extract fields into JSON. |
+| **Use tabs and sessions** | Work across several tabs, or open isolated sessions side by side, each with its own cookies. |
+| **Debug** | Read console logs, page errors, and network requests with their headers and bodies. Export a HAR file. |
+| **Test edge cases** | Fake or block API responses, slow the network, go offline, and emulate phones, locations, timezones, and dark mode. |
+| **Record** | Save Playwright traces, and turn what the agent did into a runnable Playwright test. |
 
-> Open Hacker News with BrowserControl and tell me the top story.
+See [all 69 tools](https://adityasasidhar.github.io/browsercontrol/reference/), with every parameter.
 
-### 3. Share one browser (optional)
+## Common setups
 
-Serve over Streamable HTTP so several clients can use the same browser:
+**Watch it work.** The browser runs hidden by default. To see the window, set `BROWSER_HEADLESS`:
 
-```bash
-uvx browsercontrol --transport http                     # http://127.0.0.1:8000/mcp
-uvx browsercontrol --transport http --isolate-clients   # one session per client
+```json
+"browsercontrol": {
+  "command": "uvx",
+  "args": ["browsercontrol"],
+  "env": { "BROWSER_HEADLESS": "false" }
+}
 ```
 
-## How element numbers work
+**Use your own Chrome.** Start Chrome with `--remote-debugging-port=9222`, then ask the agent to connect to it. It opens its own tab and leaves yours alone. [How to set it up](https://adityasasidhar.github.io/browsercontrol/recipes/your-chrome).
 
-If a button is marked **5**, the agent calls `click(5)`. Every annotated
-screenshot generates a fresh map, so **read the newest map before each action
-that uses an ID**. If a control is off-screen, scroll to it, or let
-`find("its text")` search the whole page and scroll there.
+**Share one browser between clients.** Run it as an HTTP server, and point your clients at `http://127.0.0.1:8000/mcp`:
 
-Read more in [Set of Marks][som].
+```bash
+uvx browsercontrol --transport http
+uvx browsercontrol --transport http --isolate-clients   # a separate session for each client
+```
 
-## Documentation
+Every setting is listed in [Configuration](https://adityasasidhar.github.io/browsercontrol/reference/configuration).
 
-Check out BrowserControl's [documentation][docs] for installation, concepts,
-the [full tool reference][tools], [configuration][configuration], and
-[troubleshooting][troubleshooting].
+## Good to know
 
-Agents can read the docs too: [`llms.txt`][llms] indexes every page,
-[`llms-full.txt`][llms-full] has all of it in one file, and [`tools.json`][tools-json]
-lists every tool with its parameters.
+- **It runs locally.** The browser runs on your machine. Nothing goes through a BrowserControl server.
+- **Logins are kept.** The browser profile lives in `~/.browsercontrol/user_data`, so sites you sign in to stay signed in between runs.
+- **It's built for vision models.** Every action returns an image. That gives the agent the full picture, but uses more tokens than text-only tools. See [how it compares](https://adityasasidhar.github.io/browsercontrol/concepts/comparison) to other approaches.
+- **The HTTP mode has no authentication.** Keep it on `127.0.0.1` unless you put something in front of it.
+- **Something not working?** Check [Troubleshooting](https://adityasasidhar.github.io/browsercontrol/help/troubleshooting), or [open an issue](https://github.com/adityasasidhar/browsercontrol/issues).
 
-## Recipes
+## For agents
 
-Go hands-on with the [recipes][guides]: [web research][guide-research],
-[filling forms][guide-forms], [uploading files][guide-upload],
-[multi-tab workflows][guide-tabs], [mobile and responsive testing][guide-mobile],
-[debugging a web app][debug], and [recording tests][guide-record].
-
-## Get help and support
-
-Found a bug or have an idea? Open an
-[issue](https://github.com/adityasasidhar/browsercontrol/issues).
+The docs are built to be read by agents too: [`llms.txt`](https://adityasasidhar.github.io/browsercontrol/llms.txt) indexes every page, [`llms-full.txt`](https://adityasasidhar.github.io/browsercontrol/llms-full.txt) has all of it in one file, and [`tools.json`](https://adityasasidhar.github.io/browsercontrol/tools.json) lists every tool with its parameters. Any docs page is also available as Markdown by adding `.md` to its address.
 
 ## Contributing
 
+Bug reports, fixes, and new tools are welcome.
+
 ```bash
-uv sync
-uv run playwright install chromium
+git clone https://github.com/adityasasidhar/browsercontrol && cd browsercontrol
+uv sync && uv run playwright install chromium
 uv run pytest
-cd docs && npm install && npm run dev
 ```
 
-Please read the [development guide][development] and
-[contribution guidelines](CONTRIBUTING.md) for details.
+The [contributing guide](https://adityasasidhar.github.io/browsercontrol/project/contributing) covers the checks, adding a tool, and working on the docs. Please also read [CONTRIBUTING.md](https://github.com/adityasasidhar/browsercontrol/blob/main/CONTRIBUTING.md).
 
 ## License
 
-BrowserControl is released under the [MIT license](LICENSE).
-
-[docs]: https://adityasasidhar.github.io/browsercontrol/
-[som]: https://adityasasidhar.github.io/browsercontrol/concepts/set-of-marks
-[interaction]: https://adityasasidhar.github.io/browsercontrol/reference/interaction
-[sessions]: https://adityasasidhar.github.io/browsercontrol/recipes/your-chrome
-[forms]: https://adityasasidhar.github.io/browsercontrol/recipes/fill-a-form
-[content]: https://adityasasidhar.github.io/browsercontrol/reference/content
-[extraction]: https://adityasasidhar.github.io/browsercontrol/recipes/extract-data
-[network]: https://adityasasidhar.github.io/browsercontrol/recipes/edge-states
-[recording]: https://adityasasidhar.github.io/browsercontrol/recipes/record-tests
-[debug]: https://adityasasidhar.github.io/browsercontrol/recipes/debug
-[tools]: https://adityasasidhar.github.io/browsercontrol/reference/
-[configuration]: https://adityasasidhar.github.io/browsercontrol/reference/configuration
-[troubleshooting]: https://adityasasidhar.github.io/browsercontrol/help/troubleshooting
-[connect]: https://adityasasidhar.github.io/browsercontrol/guide/clients
-[installation]: https://adityasasidhar.github.io/browsercontrol/guide/installation
-[development]: https://adityasasidhar.github.io/browsercontrol/project/contributing
-[guides]: https://adityasasidhar.github.io/browsercontrol/recipes/
-[llms]: https://adityasasidhar.github.io/browsercontrol/llms.txt
-[llms-full]: https://adityasasidhar.github.io/browsercontrol/llms-full.txt
-[tools-json]: https://adityasasidhar.github.io/browsercontrol/tools.json
-[guide-research]: https://adityasasidhar.github.io/browsercontrol/recipes/research
-[guide-forms]: https://adityasasidhar.github.io/browsercontrol/recipes/fill-a-form
-[guide-upload]: https://adityasasidhar.github.io/browsercontrol/recipes/upload-a-file
-[guide-tabs]: https://adityasasidhar.github.io/browsercontrol/recipes/tabs
-[guide-mobile]: https://adityasasidhar.github.io/browsercontrol/recipes/responsive
-[guide-record]: https://adityasasidhar.github.io/browsercontrol/recipes/record-tests
+[MIT](https://github.com/adityasasidhar/browsercontrol/blob/main/LICENSE)
