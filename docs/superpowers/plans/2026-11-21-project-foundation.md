@@ -10,6 +10,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-21-project-foundation-design.md`
 
+> **Status (2026-11-21):** executed in PR #14 without ticking the boxes below.
+> Tasks 2, 3, 4, and 7 landed. Task 1 (governance files) and task 6
+> (Dependabot, Codecov) did not. Task 5 is partial: `ci.yml` still lacks
+> `permissions`/`concurrency`, and no workflow pins actions to SHAs. The spec's
+> status section is the source of truth.
+
 ## Global Constraints
 
 - Work on a new branch (e.g. `chore/project-foundation`), never directly on `main`; commit only when the user asks.

@@ -1,6 +1,20 @@
 # Project foundation (docling-style) — design
 
-Status: approved by the maintainer in conversation (2026-11-21).
+Status: approved by the maintainer in conversation (2026-11-21). **Partly
+implemented** (PR #14); checked against the repo on 2026-11-21.
+
+- **Done:** `CHANGELOG.md`, issue and PR templates, CONTRIBUTING (conventional
+  commits, DCO), `.github/dco.yml` and the PR-title check (`pr-checks.yml`),
+  `Makefile`, the max-lines check, refreshed pre-commit hooks with `uv-lock`,
+  least-privilege `permissions` and concurrency in `docs.yml`, `release.yml`,
+  and `pr-checks.yml`.
+- **Not done:** `MAINTAINERS.md`, `CODE_OF_CONDUCT.md`, `.github/SECURITY.md`,
+  `CITATION.cff` (these need maintainer contact details), Dependabot, Codecov,
+  actions pinned to commit SHAs, and `permissions`/`concurrency` in `ci.yml`.
+- **Changed since approval:** Tach *was* adopted for import boundaries
+  (`tach.toml`, pre-commit hook), overriding the non-goal below. The docs moved
+  from MkDocs to VitePress, so the `mkdocs build --strict` constraint is now
+  `npm run build` plus `npm run check:links` in `docs/`.
 
 ## Intent
 Give BrowserControl the governance, contribution flow and CI hardening that

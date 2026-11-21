@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `browsercontrol.__version__` reported `0.1.4`; it and the HAR `creator` version now
+  come from the installed package metadata.
+
 ## [0.3.0] - 2026-11-21
 
 ### Added
@@ -48,7 +53,7 @@ All notable changes to this project are documented here. The format follows
 - An element animating back and forth is no longer refused as stale when two
   samples happen to straddle the point where it reverses.
 
-## [0.2.0]
+## [0.2.0] - 2026-07-28
 
 ### Added
 
@@ -60,3 +65,7 @@ All notable changes to this project are documented here. The format follows
 
 - Form tool semantics, viewport validation and element labels.
 - Upgraded Pillow to 12.3.0 for security advisories.
+
+[Unreleased]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.1.4...v0.2.0
