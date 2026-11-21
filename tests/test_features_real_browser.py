@@ -15,6 +15,7 @@ import threading
 import time
 from collections.abc import AsyncIterator, Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -22,6 +23,8 @@ from unittest.mock import patch
 import pytest
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
+from PIL import Image as PILImage
+from PIL import ImageChops
 
 from browsercontrol.browser import BrowserManager
 from browsercontrol.tools import (
@@ -187,6 +190,35 @@ async def open_app(mcp: FastMCP, port: int) -> str:
     text, image = await call(mcp, "navigate_to", url=f"http://127.0.0.1:{port}/")
     assert isinstance(image, Image)
     return str(text)
+
+
+async def test_agent_pointer_tracks_clicks_without_intercepting_them(
+    tools: FastMCP, manager: BrowserManager, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Chromium is already running headless. Exercise the visible-window behavior
+    # against the same browser so this test also works on CI without a display.
+    monkeypatch.setattr("browsercontrol.config.config.headless", False)
+    page = manager.page
+    await page.set_content(
+        '<button style="position:absolute;left:90px;top:90px" '
+        "onclick=\"this.textContent = 'clicked'\">Click me</button>"
+    )
+    await call(tools, "click_at", x=100, y=100)
+    assert await page.get_by_role("button").inner_text() == "clicked"
+
+    pointer = page.locator("[data-bc-agent-pointer]")
+    assert await pointer.count() == 1
+    assert await page.evaluate("document.elementFromPoint(100, 100).tagName") == "BUTTON"
+
+    # Compare a patch away from the button and its mark. The live browser has
+    # the arrow at its new location, while the tool's screenshot is clean.
+    _, image = await call(tools, "click_at", x=200, y=130)
+    live = PILImage.open(BytesIO(await page.screenshot())).convert("RGB")
+    captured = PILImage.open(BytesIO(image.data)).convert("RGB")
+    patch_box = (198, 128, 225, 157)
+    assert ImageChops.difference(live.crop(patch_box), captured.crop(patch_box)).getbbox()
+    assert captured.crop(patch_box).getcolors() == [(783, (255, 255, 255))]
+    await pointer.wait_for(state="detached")
 
 
 async def test_find_scrolls_to_offscreen_match_and_maps_it_to_an_id(

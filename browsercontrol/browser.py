@@ -21,6 +21,7 @@ from playwright.async_api import (
 
 from browsercontrol.config import config
 from browsercontrol.elements import ElementMap, collect_elements, locate
+from browsercontrol.pointer import HIDE_POINTER_STYLE
 from browsercontrol.session import Session, attach_page_listeners, network_quiet
 
 logger = logging.getLogger(__name__)
@@ -665,7 +666,7 @@ class BrowserManager:
         Returns the annotated image bytes and the active tab's new element map.
         """
         page = self.page
-        screenshot_bytes = await page.screenshot(type="png")
+        screenshot_bytes = await page.screenshot(type="png", style=HIDE_POINTER_STYLE)
         elements = await self.get_interactive_elements()
 
         img = PILImage.open(BytesIO(screenshot_bytes))
