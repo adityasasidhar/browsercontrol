@@ -54,6 +54,12 @@ codex plugin add browsercontrol@browsercontrol
 /plugin install browsercontrol@browsercontrol
 ```
 
+**OpenCode 2** (installs the local MCP server and the BrowserControl skill):
+
+```bash
+opencode plugin add github:adityasasidhar/browsercontrol
+```
+
 **VS Code or Cursor:** one click.
 
 <a href="https://insiders.vscode.dev/redirect/mcp/install?name=browsercontrol&amp;config=%7B%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22browsercontrol%22%5D%7D"><img src="https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code"></a>

@@ -22,6 +22,8 @@ def test_plugin_version_matches_pyproject() -> None:
     codex = json.loads((ROOT / "plugin.json").read_text())
     assert codex["name"] == entry["name"]
     assert codex["version"] == project["version"]
+    opencode = json.loads((ROOT / "package.json").read_text())
+    assert opencode["version"] == project["version"]
 
 
 def test_plugin_runs_bundled_source() -> None:

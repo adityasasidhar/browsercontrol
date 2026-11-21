@@ -11,7 +11,7 @@ It's optional. BrowserControl works without it, but with it agents hit fewer sta
 
 ## Install it
 
-The [Claude Code plugin](/guide/clients#claude-code) already includes the skill. To install it by hand:
+The [Codex](/guide/clients#codex), [Claude Code](/guide/clients#claude-code), and [OpenCode 2](/guide/clients#opencode) plugins include the skill. To install it by hand in Claude Code:
 
 ::: code-group
 

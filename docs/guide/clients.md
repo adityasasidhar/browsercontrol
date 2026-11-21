@@ -5,7 +5,7 @@ description: MCP configuration for Codex, Claude Code, Claude Desktop, Cursor, V
 
 # Connect a client
 
-Your MCP client launches BrowserControl as a local server over stdio. Every example below uses `uvx browsercontrol`, which needs [uv](https://docs.astral.sh/uv/getting-started/installation/). If you [installed](/guide/installation) the `browsercontrol` command yourself, use that as the command and drop the arguments.
+Your MCP client launches BrowserControl as a local server over stdio. Plugin installs and the manual `uvx browsercontrol` examples need [uv](https://docs.astral.sh/uv/getting-started/installation/). If you [installed](/guide/installation) the `browsercontrol` command yourself, use it directly in your manual configuration.
 
 ## Codex
 
@@ -58,11 +58,22 @@ Most clients read a JSON file with an `mcpServers` object. Add this entry to it:
 | Cline | **MCP Servers → Configure → Configure MCP Servers**. [Docs](https://docs.cline.bot/mcp/mcp-overview) |
 | VS Code (Copilot) | **Chat: Open Customizations → MCP Servers → Add Server**. In a portable config, add `"type": "stdio"` to the entry. [Docs](https://code.visualstudio.com/docs/agents/reference/mcp-configuration) |
 
-## Other formats
+## OpenCode
+
+With OpenCode 2.3.2 or later, install the plugin globally:
+
+```bash
+opencode plugin add github:adityasasidhar/browsercontrol
+opencode mcp list
+```
+
+The plugin loads the bundled MCP server and [agent skill](/guide/agent-skill). If you already configured a server named `browsercontrol`, the plugin uses that configuration. Open a session and mention `@browsercontrol` to load the skill.
+
+For manual setup, add the server to your project's `opencode.json` or your OpenCode user configuration. Select the example for your major version.
 
 ::: code-group
 
-```json [OpenCode]
+```json [OpenCode 2]
 {
   "mcp": {
     "servers": {
@@ -74,6 +85,24 @@ Most clients read a JSON file with an `mcpServers` object. Add this entry to it:
   }
 }
 ```
+
+```json [OpenCode 1]
+{
+  "mcp": {
+    "browsercontrol": {
+      "type": "local",
+      "command": ["uvx", "browsercontrol"],
+      "enabled": true
+    }
+  }
+}
+```
+
+:::
+
+## Other formats
+
+::: code-group
 
 ```json [Zed]
 {
@@ -97,7 +126,7 @@ mcpServers:
 
 :::
 
-OpenCode reads `opencode.json` in a project or `~/.config/opencode/opencode.json`; the example uses its v2 format ([docs](https://opencode.ai/docs/mcp-servers)), and `opencode mcp list` confirms it. Zed takes the entry in its settings JSON ([docs](https://zed.dev/docs/ai/mcp)), and Continue in its `config.yaml` ([docs](https://docs.continue.dev/customize/deep-dives/mcp)).
+Zed takes the entry in its settings JSON ([docs](https://zed.dev/docs/ai/mcp)), and Continue in its `config.yaml` ([docs](https://docs.continue.dev/customize/deep-dives/mcp)).
 
 ## From Python
 

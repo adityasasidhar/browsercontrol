@@ -1,0 +1,21 @@
+{
+  "name": "opencode-browsercontrol",
+  "version": "0.2.0",
+  "description": "BrowserControl MCP server and agent skill for OpenCode 2",
+  "license": "MIT",
+  "repository": "github:adityasasidhar/browsercontrol",
+  "type": "module",
+  "exports": {
+    ".": "./opencode/plugin.js"
+  },
+  "files": [
+    "opencode/plugin.js",
+    "skills/browsercontrol",
+    "browsercontrol/**/*.py",
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "dependencies": {
+    "@opencode/plugin": "2.3.2"
+  }
+}
