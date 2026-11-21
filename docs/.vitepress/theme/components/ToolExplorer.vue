@@ -81,7 +81,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
     <TransitionGroup name="row" tag="ul" class="explorer-list">
       <li v-for="t in results" :key="t.name" :class="{ open: open === t.name }">
-        <button class="row-head" :aria-expanded="open === t.name" @click="open = open === t.name ? null : t.name">
+        <button
+          class="row-head"
+          :aria-expanded="open === t.name"
+          :aria-controls="`tool-${t.name}`"
+          @click="open = open === t.name ? null : t.name"
+        >
           <code class="row-name">{{ t.name }}</code>
           <span class="row-summary">{{ t.summary }}</span>
           <span class="row-tags">
@@ -92,23 +97,26 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
           </span>
           <svg class="row-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <div class="row-body-wrap">
+        <!-- inert keeps the collapsed body (and its link) out of the tab order -->
+        <div :id="`tool-${t.name}`" class="row-body-wrap" :inert="open !== t.name">
           <div class="row-body">
             <pre class="row-sig"><code>{{ t.signature }}</code></pre>
             <p v-if="t.details" class="row-details">{{ t.details }}</p>
-            <table v-if="t.params.length" class="row-params">
-              <thead>
-                <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="p in t.params" :key="p.name">
-                  <td><code>{{ p.name }}</code></td>
-                  <td><code>{{ p.type }}</code></td>
-                  <td><code v-if="!p.required">{{ fmtDefault(p.default) }}</code><span v-else class="req">required</span></td>
-                  <td>{{ p.description }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div v-if="t.params.length" class="row-params-scroll">
+              <table class="row-params">
+                <thead>
+                  <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                  <tr v-for="p in t.params" :key="p.name">
+                    <td><code>{{ p.name }}</code></td>
+                    <td><code>{{ p.type }}</code></td>
+                    <td><code v-if="!p.required">{{ fmtDefault(p.default) }}</code><span v-else class="req">required</span></td>
+                    <td>{{ p.description }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <p v-else class="row-details">No parameters.</p>
             <a class="row-link" :href="withBase(t.url)">Full reference →</a>
           </div>
@@ -308,6 +316,10 @@ li.open .row-body {
   margin: 0 0 12px;
   white-space: pre-line;
 }
+.row-params-scroll {
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
 .row-params {
   display: table !important;
   border: 0 !important;
@@ -315,7 +327,10 @@ li.open .row-body {
   width: 100%;
   border-collapse: collapse;
   font-size: 13.5px;
-  margin-bottom: 12px;
+  margin: 0 !important;
+}
+.row-params td:last-child {
+  min-width: 200px;
 }
 .row-params th {
   text-align: left;

@@ -2,6 +2,7 @@
 import { withBase } from 'vitepress'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { onVisible, prefersReducedMotion } from '../../reveal'
+import { tabKeyTarget } from '../../tabs'
 
 const SITE = 'https://adityasasidhar.github.io/browsercontrol'
 
@@ -80,6 +81,11 @@ function pick(i: number) {
   play(i)
 }
 
+function onTabKey(e: KeyboardEvent) {
+  const next = tabKeyTarget(e, index.value, shows.length)
+  if (next !== null) pick(next)
+}
+
 onMounted(() => {
   if (prefersReducedMotion()) {
     typed.value = shows[0].cmd
@@ -129,8 +135,10 @@ const items = [
           :key="s.file"
           role="tab"
           :aria-selected="index === i"
+          :tabindex="index === i ? 0 : -1"
           :class="{ active: index === i }"
           @click="pick(i)"
+          @keydown="onTabKey"
         >
           {{ s.file }}
         </button>
