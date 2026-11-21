@@ -172,6 +172,7 @@ def _entry(locator, detached=False):
 @pytest.fixture(autouse=True)
 def _no_settle_delay(monkeypatch):
     monkeypatch.setattr("browsercontrol.elements.SETTLE_DELAY_S", 0)
+    monkeypatch.setattr("browsercontrol.elements.CONFIRM_DELAY_S", 0)
 
 
 class TestLocate:
@@ -216,7 +217,16 @@ class TestLocate:
     async def test_moved_and_settled_element_is_stale(self):
         moved = (10, 20 + MOVE_TOLERANCE_PX + 1, 30, 40)
         with pytest.raises(StaleElementError, match="it moved"):
-            await locate(1, {1: _entry(_locator(rects=[moved, moved]))})
+            await locate(1, {1: _entry(_locator(rects=[moved, moved, moved]))})
+
+    @pytest.mark.asyncio
+    async def test_element_reversing_direction_is_accepted(self):
+        """A back-and-forth animation can be at the same spot either side of its turnaround.
+
+        Two samples that happen to match must not pass for a settled element.
+        """
+        locator = _locator(rects=[(60, 20, 30, 40), (60, 20, 30, 40), (45, 20, 30, 40)])
+        assert await locate(1, {1: _entry(locator)}) is locator
 
     @pytest.mark.asyncio
     async def test_element_still_animating_is_accepted(self):
