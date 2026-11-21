@@ -32,3 +32,18 @@ def test_marketplace_version_matches_pyproject() -> None:
     assert versions["browsercontrol"] == _project_version(), (
         "bump the version in .claude-plugin/marketplace.json"
     )
+
+
+def test_mcp_registry_server_json_matches_pyproject() -> None:
+    data = json.loads((ROOT / "server.json").read_text(encoding="utf-8"))
+    assert data["version"] == _project_version(), "bump the version in server.json"
+    pypi = [p for p in data["packages"] if p["registryType"] == "pypi"]
+    assert [p["version"] for p in pypi] == [_project_version()], (
+        "bump the pypi package version in server.json"
+    )
+
+
+def test_readme_carries_mcp_registry_ownership_marker() -> None:
+    # The MCP Registry verifies PyPI ownership by finding this line in the package README.
+    name = json.loads((ROOT / "server.json").read_text(encoding="utf-8"))["name"]
+    assert f"mcp-name: {name}" in (ROOT / "README.md").read_text(encoding="utf-8")

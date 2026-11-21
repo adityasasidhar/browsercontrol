@@ -2,6 +2,8 @@
   <img alt="BrowserControl" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/logo-main.png" width="120"/>
 </p>
 
+<!-- mcp-name: io.github.adityasasidhar/browsercontrol -->
+
 <h1 align="center">BrowserControl</h1>
 
 <p align="center">

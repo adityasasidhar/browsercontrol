@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.adityasasidhar/browsercontrol",
+  "title": "BrowserControl",
+  "description": "A real browser for AI agents: screenshots with numbered elements, so the agent clicks by number.",
+  "repository": {
+    "url": "https://github.com/adityasasidhar/browsercontrol",
+    "source": "github"
+  },
+  "websiteUrl": "https://adityasasidhar.github.io/browsercontrol/",
+  "version": "0.3.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "browsercontrol",
+      "version": "0.3.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
