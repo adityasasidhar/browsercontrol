@@ -5,6 +5,7 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.elements import ElementError, strip_marks
+from browsercontrol.pointer import HIDE_POINTER_STYLE
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
@@ -117,7 +118,9 @@ def register_content_tools(mcp: FastMCP) -> None:
 
             if annotate and full_page:
                 # Annotation not supported for full page, fallback to clean
-                screenshot_bytes = await browser.page.screenshot(type="png", full_page=True)
+                screenshot_bytes = await browser.page.screenshot(
+                    type="png", full_page=True, style=HIDE_POINTER_STYLE
+                )
                 image = Image(data=screenshot_bytes, format="png")
                 return (
                     "Screenshot captured (clean) - Note: Annotation disabled for full-page screenshot.",
@@ -128,7 +131,9 @@ def register_content_tools(mcp: FastMCP) -> None:
                 image, summary = await get_screenshot_with_summary(browser)
                 return f"Screenshot captured (annotated)\n\n{summary}", image
             else:
-                screenshot_bytes = await browser.page.screenshot(type="png", full_page=full_page)
+                screenshot_bytes = await browser.page.screenshot(
+                    type="png", full_page=full_page, style=HIDE_POINTER_STYLE
+                )
                 image = Image(data=screenshot_bytes, format="png")
                 return "Screenshot captured (clean)", image
 

@@ -82,6 +82,8 @@ Flags override the matching environment variables. Run `browsercontrol --help` f
 
 `false` by default: a visible window, so you can watch the agent work. Set `true` for no window, which suits servers and CI. Without a display (a server, CI), a visible browser needs a virtual one such as `xvfb-run browsercontrol`, or set `BROWSER_HEADLESS=true`.
 
+In the visible window, an arrow follows the agent's mouse actions and highlights clicks with a brief ring. The arrow disappears after mouse activity stops and is hidden in tool screenshots.
+
 ### `BROWSER_VIEWPORT_WIDTH` and `BROWSER_VIEWPORT_HEIGHT` {#viewport}
 
 The starting viewport, `1280` × `720` by default. Agents can change it while running with [`set_viewport`](/reference/devtools#set_viewport) or [`emulate_device`](/reference/emulation#emulate_device).

@@ -5,6 +5,7 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.elements import ACTION_TIMEOUT_MS, ElementError
+from browsercontrol.pointer import track_pointer
 from browsercontrol.tools._summary import (
     disabled_result,
     element_error_result,
@@ -150,10 +151,11 @@ def register_form_tools(mcp: FastMCP) -> None:
             hit = await element.evaluate(CHECK_HIT_JS)
             if hit == "self":
                 # check()/uncheck() are idempotent state setters, unlike a raw click.
-                if check:
-                    await element.check(timeout=ACTION_TIMEOUT_MS)
-                else:
-                    await element.uncheck(timeout=ACTION_TIMEOUT_MS)
+                async with track_pointer(browser.page):
+                    if check:
+                        await element.check(timeout=ACTION_TIMEOUT_MS)
+                    else:
+                        await element.uncheck(timeout=ACTION_TIMEOUT_MS)
             elif hit == "standin":
                 # The real input is hidden under a styled replacement, so a mouse
                 # click would land on the replacement. Click the input directly,

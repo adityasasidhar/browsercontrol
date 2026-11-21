@@ -8,6 +8,7 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.elements import ACTION_TIMEOUT_MS
+from browsercontrol.pointer import track_pointer
 from browsercontrol.tools._summary import get_screenshot_with_summary
 from browsercontrol.tools.interaction import EDIT_KIND_JS
 
@@ -89,12 +90,18 @@ async def _run_step(step: dict[str, Any]) -> str:
             raise ValueError(f"element {element_id} is disabled")
         button = "right" if action == "right_click" else "left"
         count = 2 if action == "double_click" else 1
-        await locator.click(button=button, click_count=count, timeout=ACTION_TIMEOUT_MS)  # type: ignore[arg-type]
+        async with track_pointer(page):
+            await locator.click(
+                button=button,  # type: ignore[arg-type]
+                click_count=count,
+                timeout=ACTION_TIMEOUT_MS,
+            )
         browser.log_action("click", target, button=button, click_count=count)
         await browser.settle(1500)
         return f"{action.replace('_', '-')}ed [{element_id}]"
     if action == "hover":
-        await locator.hover(timeout=ACTION_TIMEOUT_MS)
+        async with track_pointer(page):
+            await locator.hover(timeout=ACTION_TIMEOUT_MS)
         browser.log_action("hover", target)
         return f"hovered [{element_id}]"
     if action == "type":
@@ -112,14 +119,16 @@ async def _run_step(step: dict[str, Any]) -> str:
         return f"selected {option!r} in [{element_id}]"
     if action == "check":
         checked = bool(step.get("checked", True))
-        await locator.set_checked(checked, timeout=ACTION_TIMEOUT_MS)
+        async with track_pointer(page):
+            await locator.set_checked(checked, timeout=ACTION_TIMEOUT_MS)
         browser.log_action("check", target, checked=checked)
         return f"{'checked' if checked else 'unchecked'} [{element_id}]"
     if action == "drag":
         target_id = int(_need(step, "target_id"))
         dest = await browser.resolve_element(target_id)
         dest_desc = await browser.codegen_target(dest)
-        await locator.drag_to(dest, timeout=ACTION_TIMEOUT_MS)
+        async with track_pointer(page):
+            await locator.drag_to(dest, timeout=ACTION_TIMEOUT_MS)
         browser.log_action("drag", target, dest=dest_desc)
         await browser.settle(1500)
         return f"dragged [{element_id}] onto [{target_id}]"

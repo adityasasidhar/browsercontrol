@@ -8,6 +8,7 @@ from browsercontrol.browser import browser
 from browsercontrol.codegen import render_test
 from browsercontrol.config import config
 from browsercontrol.elements import strip_marks
+from browsercontrol.pointer import HIDE_POINTER_STYLE
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +108,7 @@ def register_recording_tools(mcp: FastMCP) -> None:
 
             # Save screenshot
             screenshot_path = snapshots_dir / f"{name}.png"
-            await browser.page.screenshot(path=str(screenshot_path))
+            await browser.page.screenshot(path=str(screenshot_path), style=HIDE_POINTER_STYLE)
 
             # Save HTML
             html_path = snapshots_dir / f"{name}.html"

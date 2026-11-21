@@ -6,6 +6,7 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.elements import ACTION_TIMEOUT_MS, ElementError
+from browsercontrol.pointer import track_pointer
 from browsercontrol.tools._summary import (
     disabled_result,
     element_error_result,
@@ -82,7 +83,8 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             text = (elem.get("text") or "no text")[:30]
             logger.info(f"Clicking element {element_id}: {elem['tag']} - {text}")
             target = await browser.codegen_target(locator)
-            await locator.click(timeout=ACTION_TIMEOUT_MS)
+            async with track_pointer(browser.page):
+                await locator.click(timeout=ACTION_TIMEOUT_MS)
             browser.log_action("click", target)
             await browser.settle()
 
@@ -112,7 +114,9 @@ def register_interaction_tools(mcp: FastMCP) -> None:
         try:
             await browser.ensure_started()
             logger.info(f"Clicking at ({x}, {y})")
-            await browser.page.mouse.click(x, y)
+            page = browser.page
+            async with track_pointer(page):
+                await page.mouse.click(x, y)
             await browser.settle()
             image, summary = await get_screenshot_with_summary(browser)
             return f"Clicked at ({x}, {y})\n\n{summary}", image
@@ -151,7 +155,8 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             elif kind == "custom":
                 # A widget that only declares a text role: focus it by clicking,
                 # then replace whatever it holds, as fill() would.
-                await locator.click(timeout=ACTION_TIMEOUT_MS)
+                async with track_pointer(browser.page):
+                    await locator.click(timeout=ACTION_TIMEOUT_MS)
                 if not await locator.evaluate(FOCUS_IS_EDITABLE_JS):
                     raise ValueError(
                         f"Clicking element {element_id} did not focus a text field, "
@@ -214,7 +219,8 @@ def register_interaction_tools(mcp: FastMCP) -> None:
 
             logger.info(f"Hovering over element {element_id}")
             target = await browser.codegen_target(locator)
-            await locator.hover(timeout=ACTION_TIMEOUT_MS)
+            async with track_pointer(browser.page):
+                await locator.hover(timeout=ACTION_TIMEOUT_MS)
             browser.log_action("hover", target)
             await browser.page.wait_for_timeout(300)
 
@@ -238,11 +244,12 @@ def register_interaction_tools(mcp: FastMCP) -> None:
 
         logger.info(f"{verb.capitalize()} element {element_id}")
         target = await browser.codegen_target(locator)
-        await locator.click(
-            button=button,  # type: ignore[arg-type]
-            click_count=click_count,
-            timeout=ACTION_TIMEOUT_MS,
-        )
+        async with track_pointer(browser.page):
+            await locator.click(
+                button=button,  # type: ignore[arg-type]
+                click_count=click_count,
+                timeout=ACTION_TIMEOUT_MS,
+            )
         browser.log_action("click", target, button=button, click_count=click_count)
         await browser.settle()
         image, summary = await get_screenshot_with_summary(browser)
@@ -298,7 +305,8 @@ def register_interaction_tools(mcp: FastMCP) -> None:
             logger.info(f"Dragging element {source_id} onto element {target_id}")
             source_desc = await browser.codegen_target(source)
             dest_desc = await browser.codegen_target(dest)
-            await source.drag_to(dest, timeout=ACTION_TIMEOUT_MS)
+            async with track_pointer(browser.page):
+                await source.drag_to(dest, timeout=ACTION_TIMEOUT_MS)
             browser.log_action("drag", source_desc, dest=dest_desc)
             await browser.settle()
 
