@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig, type DefaultTheme } from 'vitepress'
 import llmstxt, { copyOrDownloadAsMarkdownButtons } from 'vitepress-plugin-llms'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
@@ -5,7 +6,10 @@ import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-i
 const SITE = 'https://adityasasidhar.github.io'
 const BASE = '/browsercontrol/'
 const REPO = 'https://github.com/adityasasidhar/browsercontrol'
-const VERSION = '0.2.0'
+// Read from pyproject.toml so the header can't drift from the released version.
+const pyproject = readFileSync(new URL('../../pyproject.toml', import.meta.url), 'utf8')
+const VERSION = pyproject.match(/^version\s*=\s*"([^"]+)"/m)?.[1]
+if (!VERSION) throw new Error('docs config: could not read version from pyproject.toml')
 
 const description =
   'A local MCP server that gives AI agents a real Chromium browser. Every action returns a screenshot with numbered boxes on what can be clicked, so agents act with click(7) instead of guessing selectors.'

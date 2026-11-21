@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, useId, watch } from 'vue'
+import { tabKeyTarget } from '../tabs'
 
 interface Option {
   id: string
@@ -55,6 +56,14 @@ onMounted(() => {
 })
 watch(active, () => nextTick(place))
 
+// The home page renders this component twice, so ids must be per instance.
+const uid = useId()
+
+function onTabKey(e: KeyboardEvent) {
+  const next = tabKeyTarget(e)
+  if (next !== null) active.value = options[next].id
+}
+
 async function copy() {
   await navigator.clipboard.writeText(current.value.lines.join('\n'))
   copied.value = true
@@ -69,16 +78,20 @@ async function copy() {
       <button
         v-for="o in options"
         :key="o.id"
+        :id="`${uid}-tab-${o.id}`"
         :data-id="o.id"
         role="tab"
         :aria-selected="active === o.id"
+        :aria-controls="`${uid}-panel`"
+        :tabindex="active === o.id ? 0 : -1"
         :class="{ active: active === o.id }"
         @click="active = o.id"
+        @keydown="onTabKey"
       >
         {{ o.label }}
       </button>
     </div>
-    <div class="install-body">
+    <div :id="`${uid}-panel`" class="install-body" role="tabpanel" :aria-labelledby="`${uid}-tab-${active}`">
       <Transition name="install-swap" mode="out-in">
         <pre :key="active"><code><span v-for="line in current.lines" :key="line" class="line"><span class="prompt">{{ line.startsWith('/') ? '›' : '$' }}</span>{{ line }}</span></code></pre>
       </Transition>

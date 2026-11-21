@@ -2,6 +2,7 @@
 import { withBase } from 'vitepress'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { onVisible, prefersReducedMotion } from '../../reveal'
+import { tabKeyTarget } from '../../tabs'
 
 const SITE = 'https://adityasasidhar.github.io/browsercontrol'
 
@@ -75,15 +76,27 @@ function play(i: number) {
   schedule(typeNext, 300)
 }
 
+// Reduced motion: show the whole entry at once (the typing loop never runs).
+function showStatic(i: number) {
+  index.value = i
+  typed.value = shows[i].cmd
+  shown.value = shows[i].out.length
+}
+
 function pick(i: number) {
   clearTimeout(timer)
-  play(i)
+  if (prefersReducedMotion()) showStatic(i)
+  else play(i)
+}
+
+function onTabKey(e: KeyboardEvent) {
+  const next = tabKeyTarget(e)
+  if (next !== null) pick(next)
 }
 
 onMounted(() => {
   if (prefersReducedMotion()) {
-    typed.value = shows[0].cmd
-    shown.value = shows[0].out.length
+    showStatic(0)
     return
   }
   stop = onVisible(el.value!, (v) => (visible = v))
@@ -129,8 +142,10 @@ const items = [
           :key="s.file"
           role="tab"
           :aria-selected="index === i"
+          :tabindex="index === i ? 0 : -1"
           :class="{ active: index === i }"
           @click="pick(i)"
+          @keydown="onTabKey"
         >
           {{ s.file }}
         </button>

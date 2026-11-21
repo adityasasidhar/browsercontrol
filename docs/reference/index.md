@@ -5,7 +5,7 @@ description: Search and filter all 69 BrowserControl MCP tools, with signatures,
 
 # Tool reference
 
-BrowserControl exposes 69 MCP tools. Search them below, filter by category, and open any tool for its signature and parameters. Tools marked **screenshot** return a fresh annotated screenshot with their result; tools marked **text** only read.
+BrowserControl exposes 69 MCP tools. Search them below, filter by category, and open any tool for its signature and parameters. Tools marked **screenshot** return a fresh annotated screenshot with their result; tools marked **text** return text only. Either kind can change browser state: `clear_cookies`, for example, returns text.
 
 <ToolExplorer />
 
