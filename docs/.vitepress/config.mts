@@ -122,6 +122,7 @@ export default defineConfig({
     pageData.frontmatter.head ??= []
     pageData.frontmatter.head.push(
       ['link', { rel: 'canonical', href: canonical }],
+      ['meta', { property: 'og:url', content: canonical }],
       ['meta', { property: 'og:title', content: pageData.title || 'BrowserControl' }],
       [
         'meta',

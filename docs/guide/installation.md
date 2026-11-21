@@ -76,6 +76,8 @@ python -m playwright install chromium --with-deps
 If Playwright has no Chromium build for your distribution, point `BROWSER_EXECUTABLE_PATH` at a Chrome or Chromium you already have. See [Troubleshooting](/help/troubleshooting#chromium-won-t-launch).
 :::
 
+BrowserControl is listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.adityasasidhar/browsercontrol) as `io.github.adityasasidhar/browsercontrol`.
+
 ## Next step
 
 [Connect your MCP client →](/guide/clients)
