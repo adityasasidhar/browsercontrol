@@ -30,7 +30,10 @@ BrowserControl is an [MCP](https://modelcontextprotocol.io) server that lets Cla
 After every action, the agent gets back a screenshot with a **numbered box on every button, link, and field**, plus the same list as text. To press the button marked 5, it calls `click(5)`. No CSS selectors, no guessing coordinates.
 
 <p align="center">
-  <img alt="An agent browsing with BrowserControl: numbered boxes appear over the page, and the agent types and clicks by number" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif" width="100%"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/demo-dark.gif">
+    <img alt="Animated demo: numbered boxes appear on a shop page, the agent types into box 5, clicks box 6, the numbers rebuild on the results page, and it clicks box 9 to add an item to the cart, while a transcript shows each tool call" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/demo-light.gif" width="720">
+  </picture>
 </p>
 
 ## Install

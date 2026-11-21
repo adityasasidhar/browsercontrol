@@ -30,7 +30,10 @@ BrowserControl es un servidor [MCP](https://modelcontextprotocol.io) que permite
 Después de cada acción, el agente recibe una captura de pantalla con **un recuadro numerado sobre cada botón, enlace y campo**, y la misma lista en texto. Para pulsar el botón marcado con el 5, llama a `click(5)`. Sin selectores CSS y sin adivinar coordenadas.
 
 <p align="center">
-  <img alt="Un agente navegando con BrowserControl: aparecen recuadros numerados sobre la página y el agente escribe y hace clic por número" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/som-demo.gif" width="100%"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/demo-dark.gif">
+    <img alt="Demo animada: aparecen recuadros numerados en una tienda, el agente escribe en el 5, hace clic en el 6, los números se rehacen en la página de resultados y hace clic en el 9 para añadir un producto al carrito, mientras una transcripción muestra cada llamada" src="https://raw.githubusercontent.com/adityasasidhar/browsercontrol/main/assets/demo-light.gif" width="720">
+  </picture>
 </p>
 
 ## Instalación
