@@ -1,0 +1,18 @@
+# The server composes the tools and core. The core does not import either.
+[[modules]]
+paths = [
+    "browsercontrol.browser",
+    "browsercontrol.codegen",
+    "browsercontrol.config",
+    "browsercontrol.elements",
+    "browsercontrol.emulation",
+    "browsercontrol.session",
+]
+cannot_depend_on = ["browsercontrol.server", "browsercontrol.tools"]
+
+[[modules]]
+path = "browsercontrol.tools"
+cannot_depend_on = ["browsercontrol.server"]
+
+[[modules]]
+path = "browsercontrol.server"

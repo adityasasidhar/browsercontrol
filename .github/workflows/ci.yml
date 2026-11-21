@@ -38,8 +38,15 @@ jobs:
         run: uv run ruff format --check .
 
   test:
-    runs-on: ubuntu-latest
     needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.12", "3.14"]
+    runs-on: ${{ matrix.os }}
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,46 +58,6 @@ jobs:
 
       - name: Install dependencies
         run: uv sync
-
-
-      - name: Run tests
-        run: uv run pytest -v
-
-  # Test on Windows and macOS as well
-  test-windows:
-    runs-on: windows-latest
-    needs: lint
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: "latest"
-
-      - name: Install dependencies
-        run: uv sync
-
-
-      - name: Run tests
-        run: uv run pytest -v
-
-  test-macos:
-    runs-on: macos-latest
-    needs: lint
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: "latest"
-
-      - name: Install dependencies
-        run: uv sync
-
 
       - name: Run tests
         run: uv run pytest -v
