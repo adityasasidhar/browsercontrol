@@ -85,6 +85,7 @@ The version lives in `pyproject.toml`, but the plugin manifests carry their own 
 | --- | --- |
 | `pyproject.toml`, `uv.lock` | `uv version --bump minor` (or `patch` / `major`) updates both. |
 | `plugin.json`, `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` | Set `version` to the same value. |
+| `server.json` | Set both `version` fields (the server and its PyPI package). The release job publishes it to the MCP Registry after PyPI. |
 | `CHANGELOG.md` | Move the `[Unreleased]` entries under a new `## [X.Y.Z] - YYYY-MM-DD` heading, and add its compare link at the bottom. |
 
 `tests/test_version.py` fails if any manifest disagrees with `pyproject.toml`. The package's `__version__` and the HAR `creator` version read the installed package metadata, so they need no edit.

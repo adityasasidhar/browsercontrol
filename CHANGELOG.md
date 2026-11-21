@@ -6,10 +6,26 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-21
+
+### Added
+
+- Listed in the official MCP Registry as `io.github.adityasasidhar/browsercontrol`
+  (`server.json`); each tagged release now publishes it after PyPI.
+- Codex, OpenCode, Hermes, and OpenClaw install options in the docs.
+
+### Changed
+
+- The browser now opens visibly by default (`BROWSER_HEADLESS` defaults to `false`).
+  Set `BROWSER_HEADLESS=true` for servers and CI.
+- Clearer PyPI summary, keywords, and Documentation/Changelog links.
+
 ### Fixed
 
 - `browsercontrol.__version__` reported `0.1.4`; it and the HAR `creator` version now
   come from the installed package metadata.
+- Docs: tool reference wording, mobile tables, keyboard access, and stale contributor,
+  release, and version info.
 
 ## [0.3.0] - 2026-11-21
 
@@ -66,6 +82,7 @@ All notable changes to this project are documented here. The format follows
 - Form tool semantics, viewport validation and element labels.
 - Upgraded Pillow to 12.3.0 for security advisories.
 
-[Unreleased]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.1.4...v0.2.0
