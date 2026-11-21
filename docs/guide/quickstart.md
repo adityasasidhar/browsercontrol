@@ -41,7 +41,7 @@ The first launch can take a minute: BrowserControl reuses a Chromium or Chrome i
 2. BrowserControl loaded the page, waited for it to [settle](/concepts/settling), and returned a screenshot with every link and button numbered, plus the same numbers as text.
 3. The agent read the top story from the screenshot or the text, and, if it needed more, called something like `click(12)` or `get_page_content()`.
 
-The browser runs headless by default. To watch it work, set `BROWSER_HEADLESS=false` in your client's MCP config. See [Configuration](/reference/configuration#browser_headless).
+The browser opens a visible window by default. To hide it, set `BROWSER_HEADLESS=true` in your client's MCP config. See [Configuration](/reference/configuration#browser_headless).
 
 ::: tip Not working?
 If your client doesn't list BrowserControl's tools, check its MCP logs, then see [Troubleshooting](/help/troubleshooting#the-client-cant-find-browsercontrol).

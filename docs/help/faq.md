@@ -43,4 +43,4 @@ Under `~/.browsercontrol/`: the profile, recordings, snapshots, downloads, and g
 
 ## How do I see what the agent is doing?
 
-Set `BROWSER_HEADLESS=false` to watch the window, or record a [trace](/recipes/record-tests) and replay it afterwards.
+The browser window is visible by default (set `BROWSER_HEADLESS=true` to hide it). You can also record a [trace](/recipes/record-tests) and replay it afterwards.

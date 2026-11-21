@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://pypi.org/project/browsercontrol/"><img src="https://img.shields.io/pypi/v/browsercontrol" alt="PyPI"></a>
   <a href="https://pypi.org/project/browsercontrol/"><img src="https://img.shields.io/pypi/pyversions/browsercontrol" alt="Python"></a>
-  <a href="https://github.com/adityasasidhar/browsercontrol/actions/workflows/ci.yml"><img src="https://github.com/adityasasidhar/browsercontrol/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://pepy.tech/projects/browsercontrol"><img src="https://static.pepy.tech/badge/browsercontrol" alt="Total downloads"></a>
   <a href="https://github.com/adityasasidhar/browsercontrol/blob/main/LICENSE"><img src="https://img.shields.io/github/license/adityasasidhar/browsercontrol" alt="MIT license"></a>
 </p>
 
@@ -126,13 +126,13 @@ See [all 69 tools](https://adityasasidhar.github.io/browsercontrol/reference/), 
 
 ## Common setups
 
-**Watch it work.** The browser runs hidden by default. To see the window, set `BROWSER_HEADLESS`:
+**Run it hidden.** The browser opens a visible window by default. To run it headless (servers, CI), set `BROWSER_HEADLESS`:
 
 ```json
 "browsercontrol": {
   "command": "uvx",
   "args": ["browsercontrol"],
-  "env": { "BROWSER_HEADLESS": "false" }
+  "env": { "BROWSER_HEADLESS": "true" }
 }
 ```
 

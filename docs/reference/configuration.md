@@ -11,7 +11,7 @@ BrowserControl reads its settings from environment variables once, at startup. C
 
 | Variable | Default | What it does |
 | --- | --- | --- |
-| [`BROWSER_HEADLESS`](#browser_headless) | `true` | `false` shows the browser window. |
+| [`BROWSER_HEADLESS`](#browser_headless) | `false` | `true` hides the browser window. |
 | [`BROWSER_VIEWPORT_WIDTH`](#viewport) | `1280` | Viewport width in pixels. |
 | [`BROWSER_VIEWPORT_HEIGHT`](#viewport) | `720` | Viewport height in pixels. |
 | [`BROWSER_TIMEOUT`](#browser_timeout) | `30000` | Navigation timeout, in ms. |
@@ -41,7 +41,7 @@ In an MCP client, add an `env` object to the server entry:
       "command": "uvx",
       "args": ["browsercontrol"],
       "env": {
-        "BROWSER_HEADLESS": "false",
+        "BROWSER_HEADLESS": "true",
         "BROWSER_VIEWPORT_WIDTH": "1440",
         "BROWSER_VIEWPORT_HEIGHT": "900"
       }
@@ -55,15 +55,15 @@ In a shell:
 ::: code-group
 
 ```bash [bash / zsh]
-BROWSER_HEADLESS=false browsercontrol
+BROWSER_HEADLESS=true browsercontrol
 ```
 
 ```fish [fish]
-env BROWSER_HEADLESS=false browsercontrol
+env BROWSER_HEADLESS=true browsercontrol
 ```
 
 ```powershell [PowerShell]
-$env:BROWSER_HEADLESS = "false"; browsercontrol
+$env:BROWSER_HEADLESS = "true"; browsercontrol
 ```
 
 :::
@@ -80,7 +80,7 @@ Flags override the matching environment variables. Run `browsercontrol --help` f
 
 ### `BROWSER_HEADLESS` {#browser_headless}
 
-`true` by default: no window, which suits servers and CI. Set `false` to watch the agent work. Without a display (a server, CI), a visible browser needs a virtual one such as `xvfb-run browsercontrol`.
+`false` by default: a visible window, so you can watch the agent work. Set `true` for no window, which suits servers and CI. Without a display (a server, CI), a visible browser needs a virtual one such as `xvfb-run browsercontrol`, or set `BROWSER_HEADLESS=true`.
 
 ### `BROWSER_VIEWPORT_WIDTH` and `BROWSER_VIEWPORT_HEIGHT` {#viewport}
 
