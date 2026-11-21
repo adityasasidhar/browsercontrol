@@ -6,6 +6,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from browsercontrol.config import config
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _force_headless() -> None:
+    """The default is a visible window; tests must never open one (CI has no display)."""
+    config.headless = True
+
 
 @pytest.fixture
 def mock_page():

@@ -180,7 +180,7 @@ A desktop app may not see the same `PATH` as your terminal. If the client can't 
 
 ## Pass settings
 
-Add an `env` object to the server entry to configure BrowserControl. For example, to watch the browser while it works:
+Add an `env` object to the server entry to configure BrowserControl. For example, to run the browser headless:
 
 ```json
 {
@@ -188,7 +188,7 @@ Add an `env` object to the server entry to configure BrowserControl. For example
     "browsercontrol": {
       "command": "uvx",
       "args": ["browsercontrol"],
-      "env": { "BROWSER_HEADLESS": "false" }
+      "env": { "BROWSER_HEADLESS": "true" }
     }
   }
 }

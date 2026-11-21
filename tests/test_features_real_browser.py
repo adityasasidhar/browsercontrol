@@ -489,6 +489,7 @@ async def test_http_transport_serves_tools(tmp_path: Path) -> None:
     port = _free_port()
     env = {
         **__import__("os").environ,
+        "BROWSER_HEADLESS": "true",
         "BROWSER_USER_DATA_DIR": str(tmp_path / "profile"),
     }
     proc = subprocess.Popen(

@@ -53,7 +53,7 @@ BROWSER_EXECUTABLE_PATH=/usr/bin/google-chrome browsercontrol
 
 ### It won't start on a server or in CI
 
-BrowserControl is headless by default, which needs no display. If you set `BROWSER_HEADLESS=false`, run it under a virtual display: `xvfb-run browsercontrol`.
+BrowserControl opens a visible window by default, which needs a display. On a server or in CI, set `BROWSER_HEADLESS=true`, or run it under a virtual display: `xvfb-run browsercontrol`.
 
 ### Install fails on old Python
 
