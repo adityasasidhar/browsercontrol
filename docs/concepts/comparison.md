@@ -22,7 +22,7 @@ There are several good ways to give an agent a browser. They differ mostly in **
 
 - The model gets a picture *and* precise targets. Layout, color, and state are visible; icon-only buttons and input types are named in the list.
 - It can't invent a target, since it can only pick a number that exists. Out-of-date numbers are refused rather than applied to whatever moved in.
-- Works the same on pages with poor accessibility markup, inside iframes, and in shadow DOM.
+- What the model sees is what a user sees: elements covered by a modal or overlay get no number.
 
 **Trade-offs**
 
@@ -31,9 +31,9 @@ There are several good ways to give an agent a browser. They differ mostly in **
 
 ## Accessibility snapshots
 
-Servers like [Playwright MCP](https://github.com/microsoft/playwright-mcp) describe the page as a tree of roles and names. On well-built, accessible sites this is precise and compact, and it works with models that can't see images. Its quality depends on the page's accessibility markup, and the model gets no picture of layout or visual state.
+Servers like [Playwright MCP](https://github.com/microsoft/playwright-mcp) describe the page as a tree of roles and names. On well-built, accessible sites this is precise and compact, and it works with models that can't see images. It reaches iframes and shadow DOM too, and costs far fewer tokens per step than a screenshot. The model gets no picture of layout or visual state.
 
-**Pick it when** your pages have good accessibility markup, or your model is text-only.
+**Pick it when** token cost matters most, your model is text-only, or the task doesn't depend on how the page looks.
 
 ## Frameworks with their own LLM
 
@@ -52,4 +52,5 @@ Choose it when you want:
 - **Vision and text together**, with targets the model can't get wrong by guessing.
 - **Everything local.** BrowserControl calls no model and needs no API key. The browser, its profile, and its captured traffic stay on your machine.
 - **A full toolbox** in one server: debugging, network mocking, emulation, recording, and test export, alongside the clicks.
-- **Real-world pages**: iframes, shadow DOM, logged-in sessions, your own Chrome.
+- **Your real browser**: a persistent logged-in profile, or your own Chrome attached over CDP.
+- **To see the page**: layout and visual bugs, mobile and dark-mode checks, and UIs where the picture matters.
