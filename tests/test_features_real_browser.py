@@ -48,6 +48,7 @@ pytestmark = [
 ]
 
 TOOL_MODULES = (
+    "assertions",
     "batch",
     "emulate",
     "extract",

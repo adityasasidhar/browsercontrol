@@ -19,6 +19,7 @@ const reference: DefaultTheme.SidebarItem[] = [
   { text: 'Navigation', link: '/reference/navigation' },
   { text: 'Interaction', link: '/reference/interaction' },
   { text: 'Waiting & dialogs', link: '/reference/waiting' },
+  { text: 'Assertions', link: '/reference/assertions' },
   { text: 'Forms', link: '/reference/forms' },
   { text: 'Content', link: '/reference/content' },
   { text: 'Extraction', link: '/reference/extraction' },

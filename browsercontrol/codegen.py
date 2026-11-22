@@ -227,6 +227,21 @@ def _route_pattern(pattern: str, lang: str) -> str:
     return _q(f"**/*{pattern}*")
 
 
+def _assert_url(pattern: str, py: bool) -> str:
+    """expect(page).to_have_url() for a url_matches pattern: regex, glob, or substring."""
+    if pattern.startswith("re:"):
+        arg = f"re.compile({_q(pattern[3:])})" if py else f"new RegExp({_q(pattern[3:])})"
+    elif "*" in pattern or "?" in pattern:
+        arg = _q(pattern)
+    else:
+        arg = (
+            f"re.compile(re.escape({_q(pattern)}))"
+            if py
+            else f"new RegExp({_q(re.escape(pattern))})"
+        )
+    return f"expect(page).to_have_url({arg})" if py else f"await expect(page).toHaveURL({arg});"
+
+
 def _step(action: dict[str, Any], lang: str, secrets: list[str]) -> list[str]:
     """Lines for one logged action in Python ("py") or TypeScript ("ts")."""
     py = lang == "py"
@@ -284,6 +299,18 @@ def _step(action: dict[str, Any], lang: str, secrets: list[str]) -> list[str]:
             f"await page.route({pattern}, (route) => route.fulfill({{ status: {status}, body: {body}, contentType: {ctype} }}));"
         ]
 
+    if kind == "assert_url":
+        return [_assert_url(action["pattern"], py)]
+    if kind == "assert_text" and loc is None:
+        text = _q(action["text"])
+        if action.get("present", True):
+            if py:
+                return [f"expect(page.get_by_text({text}).first).to_be_visible()"]
+            return [f"await expect(page.getByText({text}).first()).toBeVisible();"]
+        if py:
+            return [f"expect(page.get_by_text({text})).to_have_count(0)"]
+        return [f"await expect(page.getByText({text})).toHaveCount(0);"]
+
     if loc is None:
         return [f"{'#' if py else '//'} {kind}: not replayable (element could not be described)"]
     if kind == "click":
@@ -302,6 +329,18 @@ def _step(action: dict[str, Any], lang: str, secrets: list[str]) -> list[str]:
         else:
             value = _q(action.get("text", ""))
         return [f"{aw}{loc}.fill({value}){end}"]
+    if kind == "assert_text":
+        text = _q(action["text"])
+        present = action.get("present", True)
+        if py:
+            fn = "to_contain_text" if present else "not_to_contain_text"
+            return [f"expect({loc}).{fn}({text})"]
+        return [f"await expect({loc}).{'' if present else 'not.'}toContainText({text});"]
+    if kind == "assert_value":
+        if "text" not in action:
+            return [f"{'#' if py else '//'} assert_value: password field value not recorded"]
+        fn = "to_have_value" if py else "toHaveValue"
+        return [f"{aw}expect({loc}).{fn}({_q(action['text'])}){end}"]
     if kind == "hover":
         return [f"{aw}{loc}.hover(){end}"]
     if kind == "select":

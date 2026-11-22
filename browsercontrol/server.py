@@ -8,6 +8,7 @@ from browsercontrol.browser import browser
 from browsercontrol.config import config
 from browsercontrol.resources import SessionBindingMiddleware, register_resources
 from browsercontrol.tools import (
+    register_assertion_tools,
     register_batch_tools,
     register_content_tools,
     register_devtools,
@@ -96,6 +97,11 @@ Waiting, Dialogs and Downloads:
 - handle_dialog(accept, prompt_text)
 - list_downloads()
 
+Assertions (passing checks become expect() lines in export_test):
+- verify_text(text, element_id, present)
+- verify_url(pattern)
+- verify_value(element_id, expected)
+
 Forms:
 - select_option(element_id, option)
 - check_checkbox(element_id, check)
@@ -178,6 +184,7 @@ register_search_tools(mcp)
 register_interaction_tools(mcp)
 register_batch_tools(mcp)
 register_waiting_tools(mcp)
+register_assertion_tools(mcp)
 register_form_tools(mcp)
 register_content_tools(mcp)
 register_extract_tools(mcp)

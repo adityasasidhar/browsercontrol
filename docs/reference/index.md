@@ -15,6 +15,7 @@ BrowserControl exposes 69 MCP tools. Search them below, filter by category, and 
   <Card title="Navigation" link="/reference/navigation">Open URLs, history, scrolling, and <code>find</code>.</Card>
   <Card title="Interaction" link="/reference/interaction">Click, type, keys, hover, drag, and <code>act</code>.</Card>
   <Card title="Waiting & dialogs" link="/reference/waiting">Wait for conditions; dialogs and downloads.</Card>
+  <Card title="Assertions" link="/reference/assertions">Verify text, URLs, and field values; recorded into <code>export_test</code>.</Card>
   <Card title="Forms" link="/reference/forms">Dropdowns, checkboxes, and file uploads.</Card>
   <Card title="Content" link="/reference/content">Markdown, element text, JavaScript, screenshots.</Card>
   <Card title="Extraction" link="/reference/extraction">Tables, links, and schema fields as JSON.</Card>
