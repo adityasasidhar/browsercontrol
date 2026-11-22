@@ -1,7 +1,7 @@
 {
   "name": "BrowserControl",
   "description": "MCP tools exposed by the BrowserControl server.",
-  "count": 74,
+  "count": 79,
   "tools": [
     {
       "name": "find",
@@ -592,6 +592,32 @@
       ]
     },
     {
+      "name": "get_accessibility_tree",
+      "category": "Content",
+      "page": "content",
+      "url": "/reference/content#get_accessibility_tree",
+      "signature": "get_accessibility_tree(element_id: int | None = None, depth: int | None = None)",
+      "returns": "text",
+      "summary": "Get the accessibility tree (ARIA snapshot) of the page or one element as text.",
+      "details": "Much cheaper than a screenshot: use it to read text-heavy pages or to find a page's structure (headings, landmarks, lists, links, form controls) before acting. Element IDs still come from the annotated screenshot.",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "description": "Number label of an element to snapshot; omit for the whole page"
+        },
+        {
+          "name": "depth",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "description": "Maximum nesting depth to include; omit for the full tree"
+        }
+      ]
+    },
+    {
       "name": "get_page_content",
       "category": "Content",
       "page": "content",
@@ -648,6 +674,39 @@
           "required": true,
           "default": null,
           "description": "JavaScript code to execute"
+        }
+      ]
+    },
+    {
+      "name": "save_pdf",
+      "category": "Content",
+      "page": "content",
+      "url": "/reference/content#save_pdf",
+      "signature": "save_pdf(file_name: str | None = None, landscape: bool = False, print_background: bool = True)",
+      "returns": "text",
+      "summary": "Save the current page as a PDF in the downloads directory (needs headless Chromium).",
+      "details": "",
+      "params": [
+        {
+          "name": "file_name",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "File name for the PDF (directories are stripped). Defaults to the page title."
+        },
+        {
+          "name": "landscape",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Print in landscape orientation."
+        },
+        {
+          "name": "print_background",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "Include background colors and images."
         }
       ]
     },
@@ -984,6 +1043,32 @@
       "params": []
     },
     {
+      "name": "clear_storage",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#clear_storage",
+      "signature": "clear_storage(kind: str = 'local', key: str | None = None)",
+      "returns": "text",
+      "summary": "Remove one key from, or clear all of, localStorage or sessionStorage for the current origin.",
+      "details": "",
+      "params": [
+        {
+          "name": "kind",
+          "type": "str",
+          "required": false,
+          "default": "local",
+          "description": "\"local\" for localStorage (default) or \"session\" for sessionStorage"
+        },
+        {
+          "name": "key",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "The key to remove. Omit to clear every key."
+        }
+      ]
+    },
+    {
       "name": "delete_cookie",
       "category": "DevTools",
       "page": "devtools",
@@ -1081,6 +1166,32 @@
       "params": []
     },
     {
+      "name": "get_storage",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#get_storage",
+      "signature": "get_storage(kind: str = 'local', key: str | None = None)",
+      "returns": "text",
+      "summary": "Read localStorage or sessionStorage for the current page's origin.",
+      "details": "",
+      "params": [
+        {
+          "name": "kind",
+          "type": "str",
+          "required": false,
+          "default": "local",
+          "description": "\"local\" for localStorage (default) or \"session\" for sessionStorage"
+        },
+        {
+          "name": "key",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "A single key to read. Omit to list every key with a value preview."
+        }
+      ]
+    },
+    {
       "name": "inspect_element",
       "category": "DevTools",
       "page": "devtools",
@@ -1155,6 +1266,39 @@
           "required": false,
           "default": "/",
           "description": "Cookie path (default: \"/\")"
+        }
+      ]
+    },
+    {
+      "name": "set_storage",
+      "category": "DevTools",
+      "page": "devtools",
+      "url": "/reference/devtools#set_storage",
+      "signature": "set_storage(key: str, value: str, kind: str = 'local')",
+      "returns": "text",
+      "summary": "Set a localStorage or sessionStorage item for the current page's origin.",
+      "details": "",
+      "params": [
+        {
+          "name": "key",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "Storage key"
+        },
+        {
+          "name": "value",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "String value to store"
+        },
+        {
+          "name": "kind",
+          "type": "str",
+          "required": false,
+          "default": "local",
+          "description": "\"local\" for localStorage (default) or \"session\" for sessionStorage"
         }
       ]
     },
