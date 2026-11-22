@@ -189,8 +189,13 @@ class BrowserManager:
         session.context = context
         context.on("page", lambda page: self._on_new_page(session, page))
 
-    async def create_session(self, name: str, device: str | None = None) -> Session:
-        """Open an isolated context (no cookies or storage shared) and bind the caller to it."""
+    async def create_session(
+        self, name: str, device: str | None = None, storage_state: Path | None = None
+    ) -> Session:
+        """Open an isolated context (no cookies or storage shared) and bind the caller to it.
+
+        ``storage_state`` is a file from ``save_auth_state`` to start the context signed in.
+        """
         if not name or name in self._sessions:
             raise ValueError(f"Session name {name!r} is empty or already in use")
         await self.ensure_started()
@@ -204,6 +209,8 @@ class BrowserManager:
             kwargs.update(self.device_descriptor(device))
         else:
             kwargs["viewport"] = {"width": config.viewport_width, "height": config.viewport_height}
+        if storage_state is not None:
+            kwargs["storage_state"] = storage_state
         context = await owner.new_context(**kwargs)
         session = Session(name, isolated=True)
         self._wire_context(session, context)

@@ -15,6 +15,8 @@ Choose which browser and which context the agent works in. See [Sessions & profi
 | [`switch_session`](#switch_session) | Switch to another session. "default" is the persistent, logged-in profile. | text + screenshot |
 | [`list_sessions`](#list_sessions) | List browser sessions, their tabs, and which one you are using. | text |
 | [`close_session`](#close_session) | Close an isolated session and discard its cookies and tabs. | text |
+| [`save_auth_state`](#save_auth_state) | Save the current session's login state (cookies, localStorage, IndexedDB) to a file. | text |
+| [`list_auth_states`](#list_auth_states) | List login states saved with save_auth_state. | text |
 
 ## `connect_to_chrome` {#connect_to_chrome}
 
@@ -53,7 +55,7 @@ Detaches, leaving your Chrome open, and returns to the browser BrowserControl ma
 Open an isolated browser session (its own cookies, storage, tabs) and switch to it.
 
 ```python
-create_session(name: str, device: str | None = None, url: str | None = None)
+create_session(name: str, device: str | None = None, url: str | None = None, auth_state: str | None = None)
 ```
 
 Returns text and a fresh annotated screenshot.
@@ -63,8 +65,9 @@ Returns text and a fresh annotated screenshot.
 | `name` | `str` | required | A name for the session, used by switch_session and close_session |
 | `device` | `str \| None` | `None` | Optional device to emulate for the whole session (see list_devices) |
 | `url` | `str \| None` | `None` | Optional URL to open in the session |
+| `auth_state` | `str \| None` | `None` | Optional saved login state to load (see list_auth_states) |
 
-Opens a fresh context with no shared cookies, storage, or tabs, and switches to it. With `device`, the whole context is created as that device, pixel ratio and mobile viewport included. With `url`, it opens that page. Sessions live in memory and are lost when closed.
+Opens a fresh context with no shared cookies, storage, or tabs, and switches to it. With `device`, the whole context is created as that device, pixel ratio and mobile viewport included. With `url`, it opens that page. With `auth_state`, the context starts with the cookies and storage from a [`save_auth_state`](#save_auth_state) file, so it is already signed in. Sessions live in memory and are lost when closed.
 
 ## `switch_session` {#switch_session}
 
@@ -109,6 +112,40 @@ Returns text only.
 | `name` | `str` | required | The session to close (the default session cannot be closed) |
 
 Closes an isolated session and discards its cookies and tabs. The default session can't be closed.
+
+## `save_auth_state` {#save_auth_state}
+
+Save the current session's login state (cookies, localStorage, IndexedDB) to a file.
+
+```python
+save_auth_state(name: str)
+```
+
+Returns text only.
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | `str` | required | A name for the saved state (letters, digits, '.', '_', '-') |
+
+Writes Playwright storage state for the current session to `BROWSER_AUTH_DIR/<name>.json` (owner-only permissions), overwriting a previous save of the same name. Log in once in any session, save it, then start isolated sessions already signed in with `create_session(name, auth_state=...)`. The file holds session tokens, so treat it like a password.
+
+```text
+Saved auth state 'admin' to /home/me/.browsercontrol/auth/admin.json
+  4 cookie(s); storage for 1 origin(s): https://app.example.com
+Load it with create_session(name, auth_state='admin').
+```
+
+## `list_auth_states` {#list_auth_states}
+
+List login states saved with save_auth_state.
+
+```python
+list_auth_states()
+```
+
+Returns text only.
+
+Lists the saved states in `BROWSER_AUTH_DIR` with their cookie and origin counts.
 
 ## See also
 
