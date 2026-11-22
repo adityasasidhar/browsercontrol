@@ -21,6 +21,8 @@ class Config:
 
     downloads_dir: Path = Path.home() / ".browsercontrol" / "downloads"
     generated_tests_dir: Path = Path.home() / ".browsercontrol" / "generated_tests"
+    # Saved login state (cookies + storage) from save_auth_state. Holds secrets.
+    auth_dir: Path = Path.home() / ".browsercontrol" / "auth"
 
     # Attach to an already running Chrome (e.g. http://localhost:9222) instead of
     # launching one, so the agent uses that browser's logged-in sessions.
@@ -107,6 +109,9 @@ class Config:
         config.generated_tests_dir = (
             Path(tests_dir) if tests_dir else config.user_data_dir.parent / "generated_tests"
         )
+
+        auth_dir = os.getenv("BROWSER_AUTH_DIR")
+        config.auth_dir = Path(auth_dir) if auth_dir else config.user_data_dir.parent / "auth"
 
         # Logging
         config.log_level = os.getenv("LOG_LEVEL", "INFO")
