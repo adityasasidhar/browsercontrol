@@ -20,7 +20,7 @@
 <p align="center">
   <a href="https://adityasasidhar.github.io/browsercontrol/"><b>Documentation</b></a> ·
   <a href="https://adityasasidhar.github.io/browsercontrol/guide/quickstart">Quickstart</a> ·
-  <a href="https://adityasasidhar.github.io/browsercontrol/reference/">All 69 tools</a> ·
+  <a href="https://adityasasidhar.github.io/browsercontrol/reference/">All 79 tools</a> ·
   <a href="https://adityasasidhar.github.io/browsercontrol/recipes/">Recipes</a> ·
   <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.adityasasidhar/browsercontrol">MCP Registry</a> ·
   <a href="https://github.com/adityasasidhar/browsercontrol/blob/main/README.es-ES.md">Español</a>
@@ -125,7 +125,7 @@ This is called [Set of Marks](https://adityasasidhar.github.io/browsercontrol/co
 | **Test edge cases** | Fake or block API responses, slow the network, go offline, and emulate phones, locations, timezones, and dark mode. |
 | **Record** | Save Playwright traces, and turn what the agent did into a runnable Playwright test. |
 
-See [all 69 tools](https://adityasasidhar.github.io/browsercontrol/reference/), with every parameter.
+See [all 79 tools](https://adityasasidhar.github.io/browsercontrol/reference/), with every parameter.
 
 ## Common setups
 

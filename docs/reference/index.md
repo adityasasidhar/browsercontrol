@@ -1,6 +1,6 @@
 ---
 title: Tool reference
-description: Search and filter all 69 BrowserControl MCP tools, with signatures, parameters, and links to each category's reference.
+description: Search and filter all 79 BrowserControl MCP tools, with signatures, parameters, and links to each category's reference.
 ---
 
 # Tool reference

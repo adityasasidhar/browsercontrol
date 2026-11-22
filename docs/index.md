@@ -17,7 +17,7 @@ BrowserControl is a local MCP server that gives AI agents a real Chromium browse
 
 - Install for Claude Code: `/plugin marketplace add adityasasidhar/browsercontrol`, then `/plugin install browsercontrol@browsercontrol`.
 - Any other MCP client: run `uvx browsercontrol` as a stdio server.
-- 69 tools: navigation and `find`, interaction and `act` batching, waiting and dialogs, forms, content, extraction, tabs, sessions (including attaching to your own Chrome over CDP), devtools, network mocking, emulation, and recording with Playwright test export.
+- 79 tools: navigation and `find`, interaction and `act` batching, waiting and dialogs, forms, content, extraction, tabs, sessions (including attaching to your own Chrome over CDP and saved logins), devtools and web storage, network mocking, emulation, recording with Playwright test export, and assertions that become `expect()` lines.
 
 Start with the quickstart (/guide/quickstart.md), then Set of Marks (/concepts/set-of-marks.md). The tool reference starts at /reference.md, and /tools.json lists every tool with its parameters.
 

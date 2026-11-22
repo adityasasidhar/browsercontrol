@@ -158,7 +158,7 @@ export default defineConfig({
         description:
           'A local MCP server for browser automation. BrowserControl marks interactive elements in Chromium screenshots with numbered boxes, and agents refer to those numbers in tool calls such as `click(7)`.',
         details: [
-          'Python 3.11+, built on FastMCP and Playwright. MIT licensed. 69 MCP tools; a machine-readable catalog of every tool with its parameters is at ' +
+          'Python 3.11+, built on FastMCP and Playwright. MIT licensed. 79 MCP tools; a machine-readable catalog of every tool with its parameters is at ' +
             `${SITE}${BASE}tools.json.`,
           '',
           'Two rules govern correct use:',
