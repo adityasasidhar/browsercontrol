@@ -269,8 +269,10 @@ def _step(action: dict[str, Any], lang: str, secrets: list[str]) -> list[str]:
     if kind == "wait_for_text":
         text = _q(action["text"])
         if py:
-            return [f"expect(page.get_by_text({text}).first).to_be_visible()"]
-        return [f"await expect(page.getByText({text}).first()).toBeVisible();"]
+            return [f"expect(page.get_by_text({text}).filter(visible=True).first).to_be_visible()"]
+        return [
+            f"await expect(page.getByText({text}).filter({{ visible: true }}).first()).toBeVisible();"
+        ]
     if kind == "dialog":
         prompt = action.get("prompt_text")
         if action.get("accept"):
@@ -305,11 +307,15 @@ def _step(action: dict[str, Any], lang: str, secrets: list[str]) -> list[str]:
         text = _q(action["text"])
         if action.get("present", True):
             if py:
-                return [f"expect(page.get_by_text({text}).first).to_be_visible()"]
-            return [f"await expect(page.getByText({text}).first()).toBeVisible();"]
+                return [
+                    f"expect(page.get_by_text({text}).filter(visible=True).first).to_be_visible()"
+                ]
+            return [
+                f"await expect(page.getByText({text}).filter({{ visible: true }}).first()).toBeVisible();"
+            ]
         if py:
-            return [f"expect(page.get_by_text({text})).to_have_count(0)"]
-        return [f"await expect(page.getByText({text})).toHaveCount(0);"]
+            return [f"expect(page.get_by_text({text}).filter(visible=True)).to_have_count(0)"]
+        return [f"await expect(page.getByText({text}).filter({{ visible: true }})).toHaveCount(0);"]
 
     if loc is None:
         return [f"{'#' if py else '//'} {kind}: not replayable (element could not be described)"]

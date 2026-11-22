@@ -35,7 +35,8 @@ def register_assertion_tools(mcp: FastMCP) -> None:
             await browser.ensure_started()
             target = None
             if element_id is None:
-                found = await browser.page.get_by_text(text).first.is_visible()
+                # Any visible match counts; a hidden first match must not decide it.
+                found = await browser.page.get_by_text(text).filter(visible=True).count() > 0
                 where = "on the page"
             else:
                 try:

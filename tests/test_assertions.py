@@ -29,9 +29,11 @@ def mgr(mock_browser_manager: Any) -> Iterator[Any]:
 
 
 def _page_text(mgr: Any, visible: bool) -> None:
-    first = MagicMock()
-    first.is_visible = AsyncMock(return_value=visible)
-    mgr.page.get_by_text = MagicMock(return_value=MagicMock(first=first))
+    visible_matches = MagicMock()
+    visible_matches.count = AsyncMock(return_value=1 if visible else 0)
+    matches = MagicMock()
+    matches.filter = MagicMock(return_value=visible_matches)
+    mgr.page.get_by_text = MagicMock(return_value=matches)
 
 
 class TestVerifyText:
@@ -123,8 +125,8 @@ class TestRenderAssertions:
             ],
             "t",
         )
-        assert 'expect(page.get_by_text("Hi").first).to_be_visible()' in code
-        assert 'expect(page.get_by_text("Bye")).to_have_count(0)' in code
+        assert 'expect(page.get_by_text("Hi").filter(visible=True).first).to_be_visible()' in code
+        assert 'expect(page.get_by_text("Bye").filter(visible=True)).to_have_count(0)' in code
         assert 'expect(page.get_by_label("Name", exact=True)).to_contain_text("42")' in code
         assert ').not_to_contain_text("0")' in code
 
@@ -138,8 +140,13 @@ class TestRenderAssertions:
             "t",
             "typescript",
         )
-        assert 'await expect(page.getByText("Hi").first()).toBeVisible();' in code
-        assert 'await expect(page.getByText("Bye")).toHaveCount(0);' in code
+        assert (
+            'await expect(page.getByText("Hi").filter({ visible: true }).first()).toBeVisible();'
+            in code
+        )
+        assert (
+            'await expect(page.getByText("Bye").filter({ visible: true })).toHaveCount(0);' in code
+        )
         assert ').not.toContainText("0");' in code
 
     def test_url(self) -> None:
