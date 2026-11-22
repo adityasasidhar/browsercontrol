@@ -104,6 +104,7 @@ Forms:
 Page Content:
 - get_page_content()
 - get_text(element_id)
+- get_accessibility_tree(element_id, depth)
 - get_page_info()
 - run_javascript(script)
 - screenshot(annotate, full_page)
@@ -121,10 +122,12 @@ Tab Management:
 - list_tabs()
 
 Sessions:
-- create_session(name, device, url)
+- create_session(name, device, url, auth_state)
 - switch_session(name)
 - list_sessions()
 - close_session(name)
+- save_auth_state(name)
+- list_auth_states()
 - connect_to_chrome(cdp_url)
 - disconnect_chrome()
 

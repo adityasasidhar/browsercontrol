@@ -23,6 +23,7 @@ BrowserControl reads its settings from environment variables once, at startup. C
 | [`BROWSER_RECORDINGS_DIR`](#paths) | beside the profile | Traces and HAR files. |
 | [`BROWSER_SNAPSHOTS_DIR`](#paths) | beside the profile | Snapshots. |
 | [`BROWSER_DOWNLOADS_DIR`](#paths) | beside the profile | Downloads. |
+| [`BROWSER_AUTH_DIR`](#paths) | beside the profile | Saved login states (`save_auth_state`). |
 | [`BROWSER_GENERATED_TESTS_DIR`](#paths) | beside the profile | Tests written by `export_test`. |
 | [`BROWSER_TRANSPORT`](#transport) | `stdio` | `stdio`, `http`, or `sse`. |
 | [`BROWSER_HOST`](#transport) | `127.0.0.1` | HTTP bind address. |
@@ -131,6 +132,7 @@ BROWSER_CDP_URL=http://localhost:9222 browsercontrol
 | `BROWSER_RECORDINGS_DIR` | `~/.browsercontrol/recordings` | Playwright traces and HAR exports |
 | `BROWSER_SNAPSHOTS_DIR` | `~/.browsercontrol/snapshots` | `take_snapshot` PNG and HTML |
 | `BROWSER_DOWNLOADS_DIR` | `~/.browsercontrol/downloads` | Downloads (never overwritten) |
+| `BROWSER_AUTH_DIR` | `~/.browsercontrol/auth` | Saved login states; contains session tokens |
 | `BROWSER_GENERATED_TESTS_DIR` | `~/.browsercontrol/generated_tests` | `export_test` output |
 
 Each default sits beside the profile directory, so moving `BROWSER_USER_DATA_DIR` moves them too unless you set them yourself.

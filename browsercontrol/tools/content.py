@@ -15,6 +15,7 @@ from browsercontrol.tools._summary import get_screenshot_with_summary
 logger = logging.getLogger(__name__)
 
 MAX_TEXT_CHARS = 10_000
+MAX_TREE_CHARS = 20_000
 
 # Form fields report their value; everything else its rendered text.
 READ_TEXT_JS = """
@@ -84,6 +85,45 @@ def register_content_tools(mcp: FastMCP) -> None:
         except Exception as e:
             logger.error(f"Get text failed: {e}")
             raise RuntimeError(f"Get text failed: {e}")
+
+    @mcp.tool()
+    async def get_accessibility_tree(
+        element_id: int | None = None, depth: int | None = None
+    ) -> str:
+        """
+        Get the accessibility tree (ARIA snapshot) of the page or one element as text.
+
+        Much cheaper than a screenshot: use it to read text-heavy pages or to find
+        a page's structure (headings, landmarks, lists, links, form controls)
+        before acting. Element IDs still come from the annotated screenshot.
+
+        Args:
+            element_id: Number label of an element to snapshot; omit for the whole page
+            depth: Maximum nesting depth to include; omit for the full tree
+        """
+        try:
+            await browser.ensure_started()
+            if element_id is None:
+                locator = browser.page.locator("body")
+            else:
+                try:
+                    locator = await browser.resolve_element(element_id)
+                except ElementError as e:
+                    return f"Error: {e}"
+
+            tree = await locator.aria_snapshot(depth=depth)
+            if len(tree) > MAX_TREE_CHARS:
+                tree = (
+                    tree[:MAX_TREE_CHARS]
+                    + f"\n... [tree truncated at {MAX_TREE_CHARS:,} characters; "
+                    "pass depth or element_id to narrow it]"
+                )
+            scope = "page" if element_id is None else f"element {element_id}"
+            return f"Accessibility tree of {scope}:\n{tree}"
+
+        except Exception as e:
+            logger.error(f"Get accessibility tree failed: {e}")
+            raise RuntimeError(f"Get accessibility tree failed: {e}")
 
     @mcp.tool()
     async def get_page_info() -> str:

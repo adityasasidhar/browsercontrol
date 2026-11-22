@@ -1,12 +1,16 @@
 """Tests for content extraction tools."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastmcp import FastMCP
 
-from browsercontrol.elements import ElementNotFoundError
-from browsercontrol.tools.content import MAX_TEXT_CHARS, register_content_tools
+from browsercontrol.elements import ElementNotFoundError, StaleElementError
+from browsercontrol.tools.content import (
+    MAX_TEXT_CHARS,
+    MAX_TREE_CHARS,
+    register_content_tools,
+)
 
 
 @pytest.fixture
@@ -81,6 +85,68 @@ class TestGetText:
             result = await tool.fn(element_id=9)
 
         assert result == "Error: Element 9 not found. Valid IDs: [1, 2]"
+
+
+class TestGetAccessibilityTree:
+    """Test get_accessibility_tree tool."""
+
+    @pytest.mark.asyncio
+    async def test_whole_page_snapshots_body(self, mcp_server, mock_browser_manager):
+        register_content_tools(mcp_server)
+        locator = AsyncMock()
+        locator.aria_snapshot = AsyncMock(return_value='- heading "Hi" [level=1]')
+        mock_browser_manager.page.locator = MagicMock(return_value=locator)
+
+        with patch("browsercontrol.tools.content.browser", mock_browser_manager):
+            tool = await mcp_server.get_tool("get_accessibility_tree")
+            result = await tool.fn()
+
+        mock_browser_manager.page.locator.assert_called_once_with("body")
+        locator.aria_snapshot.assert_awaited_once_with(depth=None)
+        assert result == 'Accessibility tree of page:\n- heading "Hi" [level=1]'
+
+    @pytest.mark.asyncio
+    async def test_element_snapshot_with_depth(self, mcp_server, mock_browser_manager):
+        register_content_tools(mcp_server)
+        locator = AsyncMock()
+        locator.aria_snapshot = AsyncMock(return_value="- list")
+        mock_browser_manager.resolve_element = AsyncMock(return_value=locator)
+
+        with patch("browsercontrol.tools.content.browser", mock_browser_manager):
+            tool = await mcp_server.get_tool("get_accessibility_tree")
+            result = await tool.fn(element_id=3, depth=2)
+
+        mock_browser_manager.resolve_element.assert_awaited_once_with(3)
+        locator.aria_snapshot.assert_awaited_once_with(depth=2)
+        assert result == "Accessibility tree of element 3:\n- list"
+
+    @pytest.mark.asyncio
+    async def test_stale_element(self, mcp_server, mock_browser_manager):
+        register_content_tools(mcp_server)
+        mock_browser_manager.resolve_element = AsyncMock(
+            side_effect=StaleElementError(4, "it is no longer on the page")
+        )
+
+        with patch("browsercontrol.tools.content.browser", mock_browser_manager):
+            tool = await mcp_server.get_tool("get_accessibility_tree")
+            result = await tool.fn(element_id=4)
+
+        assert result.startswith("Error: ")
+        assert "4" in result
+
+    @pytest.mark.asyncio
+    async def test_truncates_huge_tree(self, mcp_server, mock_browser_manager):
+        register_content_tools(mcp_server)
+        locator = AsyncMock()
+        locator.aria_snapshot = AsyncMock(return_value="z" * (MAX_TREE_CHARS + 100))
+        mock_browser_manager.page.locator = MagicMock(return_value=locator)
+
+        with patch("browsercontrol.tools.content.browser", mock_browser_manager):
+            tool = await mcp_server.get_tool("get_accessibility_tree")
+            result = await tool.fn()
+
+        assert "[tree truncated" in result
+        assert result.count("z") == MAX_TREE_CHARS
 
 
 class TestGetPageInfo:

@@ -1,11 +1,16 @@
 """Isolated sessions and attaching to the user's own Chrome over CDP."""
 
+import json
 import logging
+import os
+import re
+from pathlib import Path
 
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
+from browsercontrol.config import config
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
@@ -17,33 +22,64 @@ CDP_HELP = (
     "--user-data-dir and sign in there once.)"
 )
 
+_AUTH_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
+
+
+def auth_state_path(name: str) -> Path:
+    """The file for a saved auth state. Names are plain words, never paths."""
+    if not _AUTH_NAME.fullmatch(name) or ".." in name:
+        raise ValueError(
+            f"Invalid auth state name {name!r}: use letters, digits, '.', '_' or '-' "
+            "(up to 64 characters)"
+        )
+    return config.auth_dir / f"{name}.json"
+
+
+def saved_auth_states() -> list[str]:
+    if not config.auth_dir.is_dir():
+        return []
+    return sorted(p.stem for p in config.auth_dir.glob("*.json"))
+
 
 def register_session_tools(mcp: FastMCP) -> None:
     """Register session and CDP tools with the MCP server."""
 
     @mcp.tool()
     async def create_session(
-        name: str, device: str | None = None, url: str | None = None
+        name: str,
+        device: str | None = None,
+        url: str | None = None,
+        auth_state: str | None = None,
     ) -> tuple[str, Image]:
         """
         Open an isolated browser session (its own cookies, storage, tabs) and switch to it.
 
         Use it to log in as a second user, test signed-out flows, or keep agents
-        apart. The session is in memory only and is lost when closed.
+        apart. The session is in memory only and is lost when closed. Pass
+        auth_state to start it already signed in from a save_auth_state file.
 
         Args:
             name: A name for the session, used by switch_session and close_session
             device: Optional device to emulate for the whole session (see list_devices)
             url: Optional URL to open in the session
+            auth_state: Optional saved login state to load (see list_auth_states)
         """
         try:
-            session = await browser.create_session(name, device)
+            state_file = None
+            if auth_state:
+                state_file = auth_state_path(auth_state)
+                if not state_file.is_file():
+                    saved = ", ".join(saved_auth_states()) or "none"
+                    raise ValueError(f"No saved auth state {auth_state!r}. Saved: {saved}")
+            session = await browser.create_session(name, device, state_file)
             if url and session.page is not None:
                 await session.page.goto(url, wait_until="domcontentloaded")
                 browser.log_action("navigate", url=url)
                 await browser.settle()
             image, summary = await get_screenshot_with_summary(browser)
             extra = f" emulating {device}" if device else ""
+            if auth_state:
+                extra += f" with auth state {auth_state!r}"
             return (
                 f"Created isolated session {name!r}{extra} and switched to it\n\n{summary}",
                 image,
@@ -96,6 +132,60 @@ def register_session_tools(mcp: FastMCP) -> None:
         except Exception as e:
             logger.error(f"Close session failed: {e}")
             raise RuntimeError(f"Close session failed: {e}")
+
+    @mcp.tool()
+    async def save_auth_state(name: str) -> str:
+        """
+        Save the current session's login state (cookies, localStorage, IndexedDB) to a file.
+
+        Log in once, save it, then start isolated sessions already signed in with
+        create_session(name, auth_state=...). The file holds session tokens: treat
+        it like a password. Saving again under the same name overwrites it.
+
+        Args:
+            name: A name for the saved state (letters, digits, '.', '_', '-')
+        """
+        try:
+            path = auth_state_path(name)
+            await browser.ensure_started()
+            context = browser.session.context
+            if context is None:
+                raise RuntimeError("The current session has no browser context")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            state = await context.storage_state(indexed_db=True)
+            # Owner-only permissions: the file is as sensitive as the logins it holds.
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(state, f, indent=2)
+            cookies = len(state.get("cookies", []))
+            origins = [o["origin"] for o in state.get("origins", [])]
+            shown = ", ".join(origins[:5]) + (", ..." if len(origins) > 5 else "")
+            return (
+                f"Saved auth state {name!r} to {path}\n"
+                f"  {cookies} cookie(s); storage for {len(origins)} origin(s)"
+                + (f": {shown}" if origins else "")
+                + f"\nLoad it with create_session(name, auth_state={name!r})."
+            )
+        except Exception as e:
+            logger.error(f"Save auth state failed: {e}")
+            raise RuntimeError(f"Save auth state failed: {e}")
+
+    @mcp.tool()
+    async def list_auth_states() -> str:
+        """List login states saved with save_auth_state."""
+        names = saved_auth_states()
+        if not names:
+            return f"No saved auth states in {config.auth_dir}."
+        lines = [f"Saved auth states ({config.auth_dir}):"]
+        for name in names:
+            try:
+                state = json.loads((config.auth_dir / f"{name}.json").read_text("utf-8"))
+                cookies = len(state.get("cookies", []))
+                origins = len(state.get("origins", []))
+                lines.append(f"  {name} ({cookies} cookie(s), {origins} origin(s))")
+            except (OSError, ValueError):
+                lines.append(f"  {name} (unreadable)")
+        return "\n".join(lines)
 
     @mcp.tool()
     async def connect_to_chrome(cdp_url: str = "http://localhost:9222") -> tuple[str, Image]:

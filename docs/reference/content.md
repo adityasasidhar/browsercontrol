@@ -11,6 +11,7 @@ Read what's on the page, and take screenshots on demand.
 | --- | --- | --- |
 | [`get_page_content`](#get_page_content) | Get the page content as markdown text. | text + screenshot |
 | [`get_text`](#get_text) | Get the full, current text of an element by its ID. | text |
+| [`get_accessibility_tree`](#get_accessibility_tree) | Get the accessibility tree (ARIA snapshot) of the page or one element as text. | text |
 | [`get_page_info`](#get_page_info) | Get current page URL and title. | text |
 | [`screenshot`](#screenshot) | Take a screenshot of the page. | text + screenshot |
 | [`run_javascript`](#run_javascript) | Execute JavaScript and return the result. | text + screenshot |
@@ -43,6 +44,23 @@ Returns text only.
 | `element_id` | `int` | required | The number label of the element |
 
 Reads the live element, so it returns the whole text rather than the 40-character label from the element list (up to 10,000 characters). Form fields return their current value.
+
+## `get_accessibility_tree` {#get_accessibility_tree}
+
+Get the accessibility tree (ARIA snapshot) of the page or one element as text.
+
+```python
+get_accessibility_tree(element_id: int | None = None, depth: int | None = None)
+```
+
+Returns text only.
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `element_id` | `int \| None` | `None` | Number label of an element to snapshot; omit for the whole page |
+| `depth` | `int \| None` | `None` | Maximum nesting depth to include; omit for the full tree |
+
+Returns Playwright's YAML-like ARIA snapshot: roles, accessible names, and text, nested as the page is (up to 20,000 characters; pass `depth` or `element_id` to narrow a larger tree). It is much cheaper than a screenshot, so use it to read text-heavy pages or to find headings, landmarks, and form controls before acting. Element IDs still come from the annotated screenshot.
 
 ## `get_page_info` {#get_page_info}
 
