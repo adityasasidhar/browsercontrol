@@ -104,6 +104,7 @@ Forms:
 Page Content:
 - get_page_content()
 - get_text(element_id)
+- get_accessibility_tree(element_id, depth)
 - get_page_info()
 - run_javascript(script)
 - screenshot(annotate, full_page)
