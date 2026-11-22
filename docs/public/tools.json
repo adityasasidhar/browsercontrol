@@ -1,7 +1,7 @@
 {
   "name": "BrowserControl",
   "description": "MCP tools exposed by the BrowserControl server.",
-  "count": 69,
+  "count": 70,
   "tools": [
     {
       "name": "find",
@@ -510,6 +510,32 @@
           "required": true,
           "default": null,
           "description": "The absolute path to the file to upload"
+        }
+      ]
+    },
+    {
+      "name": "get_accessibility_tree",
+      "category": "Content",
+      "page": "content",
+      "url": "/reference/content#get_accessibility_tree",
+      "signature": "get_accessibility_tree(element_id: int | None = None, depth: int | None = None)",
+      "returns": "text",
+      "summary": "Get the accessibility tree (ARIA snapshot) of the page or one element as text.",
+      "details": "Much cheaper than a screenshot: use it to read text-heavy pages or to find a page's structure (headings, landmarks, lists, links, form controls) before acting. Element IDs still come from the annotated screenshot.",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "description": "Number label of an element to snapshot; omit for the whole page"
+        },
+        {
+          "name": "depth",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "description": "Maximum nesting depth to include; omit for the full tree"
         }
       ]
     },
