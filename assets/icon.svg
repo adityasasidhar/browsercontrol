@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="BrowserControl">
+  <rect width="128" height="128" rx="24" fill="#111827"/>
+  <rect x="16" y="26" width="96" height="76" rx="8" fill="#f9fafb"/>
+  <rect x="16" y="26" width="96" height="16" rx="8" fill="#e5e7eb"/>
+  <circle cx="28" cy="34" r="3" fill="#9ca3af"/>
+  <circle cx="38" cy="34" r="3" fill="#9ca3af"/>
+  <rect x="26" y="54" width="44" height="12" rx="3" fill="none" stroke="#ef4444" stroke-width="3"/>
+  <rect x="26" y="54" width="14" height="12" fill="#ef4444"/>
+  <text x="33" y="64" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="middle" fill="#fff">1</text>
+  <rect x="26" y="76" width="30" height="14" rx="3" fill="none" stroke="#ef4444" stroke-width="3"/>
+  <rect x="26" y="76" width="14" height="14" fill="#ef4444"/>
+  <text x="33" y="87" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="middle" fill="#fff">2</text>
+  <rect x="78" y="54" width="24" height="36" rx="3" fill="none" stroke="#ef4444" stroke-width="3"/>
+  <rect x="78" y="54" width="14" height="14" fill="#ef4444"/>
+  <text x="85" y="65" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="middle" fill="#fff">3</text>
+</svg>

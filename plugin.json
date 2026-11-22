@@ -20,6 +20,7 @@
         "developerName": "Aditya Sasidhar",
         "category": "Developer Tools",
         "websiteURL": "https://adityasasidhar.github.io/browsercontrol/",
+        "composerIcon": "./assets/icon.svg",
         "logo": "./assets/logo-main.png"
       }
     }
