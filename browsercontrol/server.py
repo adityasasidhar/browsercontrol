@@ -107,6 +107,7 @@ Page Content:
 - get_page_info()
 - run_javascript(script)
 - screenshot(annotate, full_page)
+- save_pdf(file_name, landscape, print_background)
 
 Extraction:
 - extract_table(element_id, index, output_format)
@@ -139,6 +140,9 @@ Developer Tools:
 - set_cookie(name, value, domain, path)
 - delete_cookie(name)
 - clear_cookies()
+- get_storage(kind, key)
+- set_storage(key, value, kind)
+- clear_storage(kind, key)
 - set_viewport(width, height)
 
 Network Control:

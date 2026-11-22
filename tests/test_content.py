@@ -158,3 +158,60 @@ class TestScreenshot:
             await tool.fn(annotate=False)
 
             mock_page.screenshot.assert_called_once()
+
+
+class TestSavePdf:
+    """Test save_pdf tool."""
+
+    @pytest.mark.asyncio
+    async def test_save_pdf_default_name(
+        self, mcp_server, mock_browser_manager, mock_page, tmp_path
+    ):
+        register_content_tools(mcp_server)
+        mock_page.title = AsyncMock(return_value="My: Page/Title")
+        mock_page.pdf = AsyncMock(return_value=b"%PDF-1.4 data")
+        with (
+            patch("browsercontrol.tools.content.browser", mock_browser_manager),
+            patch("browsercontrol.tools.content.config.downloads_dir", tmp_path / "dl"),
+        ):
+            tool = await mcp_server.get_tool("save_pdf")
+            result = await tool.fn(landscape=True)
+            again = await tool.fn(landscape=True)
+        saved = tmp_path / "dl" / "My PageTitle.pdf"
+        assert saved.read_bytes() == b"%PDF-1.4 data"
+        assert str(saved) in result and "13 bytes" in result
+        assert "My PageTitle (1).pdf" in again
+        mock_page.pdf.assert_called_with(landscape=True, print_background=True)
+
+    @pytest.mark.asyncio
+    async def test_save_pdf_sanitizes_name(
+        self, mcp_server, mock_browser_manager, mock_page, tmp_path
+    ):
+        register_content_tools(mcp_server)
+        mock_page.title = AsyncMock(return_value="")
+        mock_page.pdf = AsyncMock(return_value=b"%PDF")
+        with (
+            patch("browsercontrol.tools.content.browser", mock_browser_manager),
+            patch("browsercontrol.tools.content.config.downloads_dir", tmp_path),
+        ):
+            tool = await mcp_server.get_tool("save_pdf")
+            await tool.fn(file_name="../../etc/report")
+            await tool.fn(file_name="..\\evil.PDF")
+            await tool.fn()
+        assert sorted(p.name for p in tmp_path.iterdir()) == ["evil.PDF", "page.pdf", "report.pdf"]
+
+    @pytest.mark.asyncio
+    async def test_save_pdf_headed_failure(
+        self, mcp_server, mock_browser_manager, mock_page, tmp_path
+    ):
+        register_content_tools(mcp_server)
+        mock_page.title = AsyncMock(return_value="t")
+        mock_page.pdf = AsyncMock(side_effect=Exception("PrintToPDF is not implemented"))
+        with (
+            patch("browsercontrol.tools.content.browser", mock_browser_manager),
+            patch("browsercontrol.tools.content.config.downloads_dir", tmp_path),
+        ):
+            tool = await mcp_server.get_tool("save_pdf")
+            with pytest.raises(RuntimeError, match="BROWSER_HEADLESS=true"):
+                await tool.fn()
+        assert list(tmp_path.iterdir()) == []

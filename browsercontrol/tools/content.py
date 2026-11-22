@@ -1,11 +1,15 @@
 import logging
+import re
+from pathlib import Path
 
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
+from browsercontrol.config import config
 from browsercontrol.elements import ElementError, strip_marks
 from browsercontrol.pointer import HIDE_POINTER_STYLE
+from browsercontrol.session import _unique_path
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
@@ -19,6 +23,16 @@ READ_TEXT_JS = """
     return (el.innerText || el.textContent || '').trim();
 }
 """
+
+
+def _pdf_file_name(file_name: str | None, title: str) -> str:
+    """A bare ``.pdf`` file name: no directories, defaulting to the page title."""
+    name = Path(file_name.replace("\\", "/")).name if file_name else ""
+    if not name:
+        name = re.sub(r"[^\w\- ]+", "", title).strip()[:80] or "page"
+    if not name.lower().endswith(".pdf"):
+        name += ".pdf"
+    return name
 
 
 def register_content_tools(mcp: FastMCP) -> None:
@@ -140,5 +154,38 @@ def register_content_tools(mcp: FastMCP) -> None:
         except Exception as e:
             logger.error(f"Screenshot failed: {e}")
             raise RuntimeError(f"Screenshot failed: {e}")
+
+    @mcp.tool()
+    async def save_pdf(
+        file_name: str | None = None, landscape: bool = False, print_background: bool = True
+    ) -> str:
+        """
+        Save the current page as a PDF in the downloads directory (needs headless Chromium).
+
+        Args:
+            file_name: File name for the PDF (directories are stripped). Defaults to the page title.
+            landscape: Print in landscape orientation.
+            print_background: Include background colors and images.
+        """
+        try:
+            await browser.ensure_started()
+            page = browser.page
+            name = _pdf_file_name(file_name, await page.title())
+            try:
+                data = await page.pdf(landscape=landscape, print_background=print_background)
+            except Exception as e:
+                raise RuntimeError(
+                    f"PDF printing failed ({e}). Chromium only prints PDFs in headless mode: "
+                    "restart the server with BROWSER_HEADLESS=true."
+                ) from e
+            directory = config.downloads_dir
+            directory.mkdir(parents=True, exist_ok=True)
+            target = _unique_path(directory, name)
+            target.write_bytes(data)
+            return f"Saved PDF to {target} ({len(data):,} bytes)."
+
+        except Exception as e:
+            logger.error(f"Save PDF failed: {e}")
+            raise RuntimeError(f"Save PDF failed: {e}")
 
     logger.debug("Registered content tools")

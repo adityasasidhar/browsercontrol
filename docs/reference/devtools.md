@@ -19,6 +19,9 @@ What the browser's developer tools would show you. Logs and requests are capture
 | [`set_cookie`](#set_cookie) | Set a cookie. | text |
 | [`delete_cookie`](#delete_cookie) | Delete a cookie by name. Note: This deletes all cookies with this name across all domains in context. | text |
 | [`clear_cookies`](#clear_cookies) | Clear all cookies. | text |
+| [`get_storage`](#get_storage) | Read localStorage or sessionStorage for the current page's origin. | text |
+| [`set_storage`](#set_storage) | Set a localStorage or sessionStorage item for the current page's origin. | text |
+| [`clear_storage`](#clear_storage) | Remove one key from, or clear all of, localStorage or sessionStorage for the current origin. | text |
 | [`set_viewport`](#set_viewport) | Set the browser viewport size. | text + screenshot |
 
 ## `get_console_logs` {#get_console_logs}
@@ -186,6 +189,58 @@ clear_cookies()
 Returns text only.
 
 Deletes every cookie in the session.
+
+## `get_storage` {#get_storage}
+
+Read localStorage or sessionStorage for the current page's origin.
+
+```python
+get_storage(kind: str = 'local', key: str | None = None)
+```
+
+Returns text only.
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `kind` | `str` | `"local"` | "local" for localStorage (default) or "session" for sessionStorage |
+| `key` | `str \| None` | `None` | A single key to read. Omit to list every key with a value preview. |
+
+Without `key`, lists every key with its value cut to 100 characters, prefixed by the origin and a count. With `key`, returns the full value or says the key is missing. Pages without storage access, such as `about:blank`, return a clear error.
+
+## `set_storage` {#set_storage}
+
+Set a localStorage or sessionStorage item for the current page's origin.
+
+```python
+set_storage(key: str, value: str, kind: str = 'local')
+```
+
+Returns text only.
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `key` | `str` | required | Storage key |
+| `value` | `str` | required | String value to store |
+| `kind` | `str` | `"local"` | "local" for localStorage (default) or "session" for sessionStorage |
+
+The page's own scripts see the change immediately; reload if the app only reads storage on load.
+
+## `clear_storage` {#clear_storage}
+
+Remove one key from, or clear all of, localStorage or sessionStorage for the current origin.
+
+```python
+clear_storage(kind: str = 'local', key: str | None = None)
+```
+
+Returns text only.
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `kind` | `str` | `"local"` | "local" for localStorage (default) or "session" for sessionStorage |
+| `key` | `str \| None` | `None` | The key to remove. Omit to clear every key. |
+
+Only touches the current origin's storage. Use `clear_cookies` for cookies.
 
 ## `set_viewport` {#set_viewport}
 

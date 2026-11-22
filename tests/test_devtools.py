@@ -271,3 +271,71 @@ class TestInspectElement:
             result = await tool.fn(element_id=4)
 
         assert result.startswith("Error: Element 4 is stale (it moved)")
+
+
+class TestWebStorage:
+    """Test get_storage/set_storage/clear_storage."""
+
+    async def _tool(self, mcp_server, name):
+        register_devtools(mcp_server)
+        return await mcp_server.get_tool(name)
+
+    @pytest.mark.asyncio
+    async def test_get_storage_lists_and_truncates(
+        self, mcp_server, mock_browser_manager, mock_page
+    ):
+        mock_page.evaluate = AsyncMock(
+            return_value={"origin": "https://a.test", "items": [["k", "v"], ["big", "x" * 300]]}
+        )
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            tool = await self._tool(mcp_server, "get_storage")
+            result = await tool.fn()
+        assert "https://a.test localStorage (2 keys)" in result
+        assert "k = v" in result
+        assert "(300 chars)" in result and "x" * 101 not in result
+        # User values travel as arguments, not interpolated into the script.
+        assert mock_page.evaluate.call_args.args[1] == ["local", "get", None, None]
+
+    @pytest.mark.asyncio
+    async def test_get_storage_single_key(self, mcp_server, mock_browser_manager, mock_page):
+        mock_page.evaluate = AsyncMock(return_value={"origin": "https://a.test", "value": None})
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            tool = await self._tool(mcp_server, "get_storage")
+            result = await tool.fn(kind="session", key="tok'en")
+        assert "sessionStorage has no key" in result
+        assert mock_page.evaluate.call_args.args[1] == ["session", "get", "tok'en", None]
+
+    @pytest.mark.asyncio
+    async def test_invalid_kind(self, mcp_server, mock_browser_manager, mock_page):
+        mock_page.evaluate = AsyncMock()
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            tool = await self._tool(mcp_server, "get_storage")
+            with pytest.raises(RuntimeError, match="Invalid kind"):
+                await tool.fn(kind="indexeddb")
+        mock_page.evaluate.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_storage_unavailable(self, mcp_server, mock_browser_manager, mock_page):
+        mock_page.evaluate = AsyncMock(return_value={"error": "denied", "origin": "null"})
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            tool = await self._tool(mcp_server, "set_storage")
+            with pytest.raises(RuntimeError, match="not available on this page"):
+                await tool.fn(key="a", value="b")
+
+    @pytest.mark.asyncio
+    async def test_set_storage(self, mcp_server, mock_browser_manager, mock_page):
+        mock_page.evaluate = AsyncMock(return_value={"origin": "https://a.test"})
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            tool = await self._tool(mcp_server, "set_storage")
+            result = await tool.fn(key="theme", value="dark")
+        assert "Set https://a.test localStorage['theme']" in result
+        assert mock_page.evaluate.call_args.args[1] == ["local", "set", "theme", "dark"]
+
+    @pytest.mark.asyncio
+    async def test_clear_storage(self, mcp_server, mock_browser_manager, mock_page):
+        mock_page.evaluate = AsyncMock(return_value={"origin": "https://a.test", "count": 3})
+        with patch("browsercontrol.tools.devtools.browser", mock_browser_manager):
+            tool = await self._tool(mcp_server, "clear_storage")
+            assert "Cleared 3 keys" in await tool.fn()
+            mock_page.evaluate.return_value = {"origin": "https://a.test", "existed": True}
+            assert "Removed 'theme'" in await tool.fn(key="theme")
