@@ -1,7 +1,7 @@
 {
   "name": "BrowserControl",
   "description": "MCP tools exposed by the BrowserControl server.",
-  "count": 70,
+  "count": 72,
   "tools": [
     {
       "name": "find",
@@ -814,10 +814,10 @@
       "category": "Sessions",
       "page": "sessions",
       "url": "/reference/sessions#create_session",
-      "signature": "create_session(name: str, device: str | None = None, url: str | None = None)",
+      "signature": "create_session(name: str, device: str | None = None, url: str | None = None, auth_state: str | None = None)",
       "returns": "text + screenshot",
       "summary": "Open an isolated browser session (its own cookies, storage, tabs) and switch to it.",
-      "details": "Use it to log in as a second user, test signed-out flows, or keep agents apart. The session is in memory only and is lost when closed.",
+      "details": "Use it to log in as a second user, test signed-out flows, or keep agents apart. The session is in memory only and is lost when closed. Pass auth_state to start it already signed in from a save_auth_state file.",
       "params": [
         {
           "name": "name",
@@ -839,6 +839,13 @@
           "required": false,
           "default": null,
           "description": "Optional URL to open in the session"
+        },
+        {
+          "name": "auth_state",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "description": "Optional saved login state to load (see list_auth_states)"
         }
       ]
     },
@@ -854,6 +861,17 @@
       "params": []
     },
     {
+      "name": "list_auth_states",
+      "category": "Sessions",
+      "page": "sessions",
+      "url": "/reference/sessions#list_auth_states",
+      "signature": "list_auth_states()",
+      "returns": "text",
+      "summary": "List login states saved with save_auth_state.",
+      "details": "",
+      "params": []
+    },
+    {
       "name": "list_sessions",
       "category": "Sessions",
       "page": "sessions",
@@ -863,6 +881,25 @@
       "summary": "List browser sessions, their tabs, and which one you are using.",
       "details": "",
       "params": []
+    },
+    {
+      "name": "save_auth_state",
+      "category": "Sessions",
+      "page": "sessions",
+      "url": "/reference/sessions#save_auth_state",
+      "signature": "save_auth_state(name: str)",
+      "returns": "text",
+      "summary": "Save the current session's login state (cookies, localStorage, IndexedDB) to a file.",
+      "details": "Log in once, save it, then start isolated sessions already signed in with create_session(name, auth_state=...). The file holds session tokens: treat it like a password. Saving again under the same name overwrites it.",
+      "params": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "A name for the saved state (letters, digits, '.', '_', '-')"
+        }
+      ]
     },
     {
       "name": "switch_session",
