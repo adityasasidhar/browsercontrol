@@ -30,6 +30,7 @@ CATEGORIES: dict[str, tuple[str, str]] = {
     "interaction": ("interaction", "Interaction"),
     "batch": ("interaction", "Interaction"),
     "waiting": ("waiting", "Waiting & dialogs"),
+    "assertions": ("assertions", "Assertions"),
     "forms": ("forms", "Forms"),
     "content": ("content", "Content"),
     "extract": ("extraction", "Extraction"),

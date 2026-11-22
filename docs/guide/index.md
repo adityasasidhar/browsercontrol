@@ -55,5 +55,5 @@ The numbered screenshot is the core, but BrowserControl is a whole browser:
 <CardGrid>
   <Card title="Quickstart" link="/guide/quickstart">Install, connect, and run a first task in about two minutes.</Card>
   <Card title="How it works" link="/concepts/how-it-works">The loop every tool runs, and what a response contains.</Card>
-  <Card title="Tool reference" link="/reference/">Search all 69 tools and their parameters.</Card>
+  <Card title="Tool reference" link="/reference/">Search all 79 tools and their parameters.</Card>
 </CardGrid>

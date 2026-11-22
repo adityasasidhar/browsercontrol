@@ -19,6 +19,7 @@ const reference: DefaultTheme.SidebarItem[] = [
   { text: 'Navigation', link: '/reference/navigation' },
   { text: 'Interaction', link: '/reference/interaction' },
   { text: 'Waiting & dialogs', link: '/reference/waiting' },
+  { text: 'Assertions', link: '/reference/assertions' },
   { text: 'Forms', link: '/reference/forms' },
   { text: 'Content', link: '/reference/content' },
   { text: 'Extraction', link: '/reference/extraction' },
@@ -157,7 +158,7 @@ export default defineConfig({
         description:
           'A local MCP server for browser automation. BrowserControl marks interactive elements in Chromium screenshots with numbered boxes, and agents refer to those numbers in tool calls such as `click(7)`.',
         details: [
-          'Python 3.11+, built on FastMCP and Playwright. MIT licensed. 69 MCP tools; a machine-readable catalog of every tool with its parameters is at ' +
+          'Python 3.11+, built on FastMCP and Playwright. MIT licensed. 79 MCP tools; a machine-readable catalog of every tool with its parameters is at ' +
             `${SITE}${BASE}tools.json.`,
           '',
           'Two rules govern correct use:',

@@ -1,7 +1,7 @@
 {
   "name": "BrowserControl",
   "description": "MCP tools exposed by the BrowserControl server.",
-  "count": 76,
+  "count": 79,
   "tools": [
     {
       "name": "find",
@@ -432,6 +432,84 @@
           "required": false,
           "default": 10.0,
           "description": "Give up after this long (default 10)"
+        }
+      ]
+    },
+    {
+      "name": "verify_text",
+      "category": "Assertions",
+      "page": "assertions",
+      "url": "/reference/assertions#verify_text",
+      "signature": "verify_text(text: str, element_id: int | None = None, present: bool = True)",
+      "returns": "text",
+      "summary": "Check that text is (or is not) on the page, or inside one element.",
+      "details": "Returns \"PASS: ...\" or \"FAIL: ...\". A passing check is recorded, so export_test turns it into an expect() assertion.",
+      "params": [
+        {
+          "name": "text",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "The text to look for"
+        },
+        {
+          "name": "element_id",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "description": "Only look inside this element's text (from the latest screenshot)"
+        },
+        {
+          "name": "present",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "False to check that the text is NOT there"
+        }
+      ]
+    },
+    {
+      "name": "verify_url",
+      "category": "Assertions",
+      "page": "assertions",
+      "url": "/reference/assertions#verify_url",
+      "signature": "verify_url(pattern: str)",
+      "returns": "text",
+      "summary": "Check that the current URL matches a pattern.",
+      "details": "Returns \"PASS: ...\" or \"FAIL: ...\". A passing check is recorded, so export_test turns it into an expect(page).to_have_url() assertion.",
+      "params": [
+        {
+          "name": "pattern",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "A plain substring, a glob with * or ?, or \"re:<regex>\""
+        }
+      ]
+    },
+    {
+      "name": "verify_value",
+      "category": "Assertions",
+      "page": "assertions",
+      "url": "/reference/assertions#verify_value",
+      "signature": "verify_value(element_id: int, expected: str)",
+      "returns": "text",
+      "summary": "Check that an input, textarea, or select has exactly the expected value.",
+      "details": "Returns \"PASS: ...\" or \"FAIL: ...\". A passing check is recorded, so export_test turns it into an expect().to_have_value() assertion.",
+      "params": [
+        {
+          "name": "element_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "description": "The field's number from the latest screenshot"
+        },
+        {
+          "name": "expected",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "description": "The value the field should hold"
         }
       ]
     },

@@ -65,7 +65,7 @@ Tools that only read (like `get_console_logs`, `list_tabs`, or the extraction to
 
 | Part | What it does |
 | --- | --- |
-| **Server** | A [FastMCP](https://gofastmcp.com) app with 69 tools, 8 `browser://` [resources](/reference/resources), and middleware that binds each call to the calling client's session. It serves stdio by default, or [Streamable HTTP](/guide/http). |
+| **Server** | A [FastMCP](https://gofastmcp.com) app with 79 tools, 8 `browser://` [resources](/reference/resources), and middleware that binds each call to the calling client's session. It serves stdio by default, or [Streamable HTTP](/guide/http). |
 | **Browser manager** | Starts the browser: a persistent profile, or [your own Chrome](/recipes/your-chrome) over CDP. Settles the page after each action and keeps one element map per tab. |
 | **Element detection** | Runs in every frame (cross-origin included), descends into open shadow roots, keeps elements that are visible and not covered, and tags each with a numbered attribute so it can be found again. |
 | **Sessions** | Each [session](/concepts/sessions) is one browser context with its own tabs, captured console and network data, mocks, emulation, dialog policy, and action log. |

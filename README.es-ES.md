@@ -18,7 +18,7 @@
 <p align="center">
   <a href="https://adityasasidhar.github.io/browsercontrol/"><b>Documentación</b> (en inglés)</a> ·
   <a href="https://adityasasidhar.github.io/browsercontrol/guide/quickstart">Inicio rápido</a> ·
-  <a href="https://adityasasidhar.github.io/browsercontrol/reference/">Las 69 herramientas</a> ·
+  <a href="https://adityasasidhar.github.io/browsercontrol/reference/">Las 79 herramientas</a> ·
   <a href="https://adityasasidhar.github.io/browsercontrol/recipes/">Recetas</a> ·
   <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.adityasasidhar/browsercontrol">Registro MCP</a> ·
   <a href="README.md">English</a>
@@ -123,7 +123,7 @@ Esta técnica se llama [Set of Marks](https://adityasasidhar.github.io/browserco
 | **Probar casos límite** | Simular o bloquear respuestas de una API, ralentizar la red, quedarse sin conexión y emular móviles, ubicaciones, zonas horarias y el modo oscuro. |
 | **Grabar** | Guardar trazas de Playwright y convertir lo que hizo el agente en un test de Playwright que se puede ejecutar. |
 
-Consulta [las 69 herramientas](https://adityasasidhar.github.io/browsercontrol/reference/), con todos sus parámetros.
+Consulta [las 79 herramientas](https://adityasasidhar.github.io/browsercontrol/reference/), con todos sus parámetros.
 
 ## Configuraciones habituales
 

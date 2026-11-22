@@ -1,5 +1,6 @@
 """Browser control tools package."""
 
+from browsercontrol.tools.assertions import register_assertion_tools
 from browsercontrol.tools.batch import register_batch_tools
 from browsercontrol.tools.content import register_content_tools
 from browsercontrol.tools.devtools import register_devtools
@@ -16,6 +17,7 @@ from browsercontrol.tools.tabs import register_tab_tools
 from browsercontrol.tools.waiting import register_waiting_tools
 
 __all__ = [
+    "register_assertion_tools",
     "register_batch_tools",
     "register_content_tools",
     "register_devtools",
