@@ -120,10 +120,12 @@ Tab Management:
 - list_tabs()
 
 Sessions:
-- create_session(name, device, url)
+- create_session(name, device, url, auth_state)
 - switch_session(name)
 - list_sessions()
 - close_session(name)
+- save_auth_state(name)
+- list_auth_states()
 - connect_to_chrome(cdp_url)
 - disconnect_chrome()
 
