@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
@@ -8,6 +9,41 @@ from browsercontrol.elements import ElementError
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
+
+STORAGE_VALUE_PREVIEW = 100
+
+# Every user value travels as an evaluate() argument, never spliced into the source.
+# Storage access throws on opaque origins (about:blank, data:, sandboxed frames).
+STORAGE_JS = """
+([kind, op, key, value]) => {
+    let store;
+    try {
+        store = kind === 'session' ? window.sessionStorage : window.localStorage;
+        store.length;
+    } catch (e) {
+        return {error: String((e && e.message) || e), origin: location.origin};
+    }
+    const origin = location.origin;
+    if (op === 'get') {
+        if (key !== null) return {origin, value: store.getItem(key)};
+        const items = [];
+        for (let i = 0; i < store.length; i++) {
+            const k = store.key(i);
+            items.push([k, store.getItem(k)]);
+        }
+        return {origin, items};
+    }
+    if (op === 'set') { store.setItem(key, value); return {origin}; }
+    if (key !== null) {
+        const existed = store.getItem(key) !== null;
+        store.removeItem(key);
+        return {origin, existed};
+    }
+    const count = store.length;
+    store.clear();
+    return {origin, count};
+}
+"""
 
 
 def register_devtools(mcp: FastMCP) -> None:
@@ -412,6 +448,88 @@ def register_devtools(mcp: FastMCP) -> None:
         except Exception as e:
             logger.error(f"Clear cookies failed: {e}")
             raise RuntimeError(f"Clear cookies failed: {e}")
+
+    async def _storage(
+        kind: str, op: str, key: str | None = None, value: str | None = None
+    ) -> dict[str, Any]:
+        if kind not in ("local", "session"):
+            raise ValueError(f"Invalid kind {kind!r}: use 'local' or 'session'.")
+        await browser.ensure_started()
+        result: dict[str, Any] = await browser.page.evaluate(STORAGE_JS, [kind, op, key, value])
+        if "error" in result:
+            raise ValueError(
+                f"{kind}Storage is not available on this page (origin "
+                f"{result.get('origin')!r}): {result['error']}. Navigate to a regular "
+                "http(s) page first."
+            )
+        return result
+
+    @mcp.tool()
+    async def get_storage(kind: str = "local", key: str | None = None) -> str:
+        """
+        Read localStorage or sessionStorage for the current page's origin.
+
+        Args:
+            kind: "local" for localStorage (default) or "session" for sessionStorage
+            key: A single key to read. Omit to list every key with a value preview.
+        """
+        try:
+            result = await _storage(kind, "get", key)
+            origin = result["origin"]
+            if key is not None:
+                if result["value"] is None:
+                    return f"{origin} {kind}Storage has no key {key!r}."
+                return f"{origin} {kind}Storage[{key!r}] = {result['value']}"
+            items = result["items"]
+            if not items:
+                return f"{origin} {kind}Storage is empty."
+            lines = [f"{origin} {kind}Storage ({len(items)} keys):"]
+            for k, v in items:
+                if len(v) > STORAGE_VALUE_PREVIEW:
+                    v = v[:STORAGE_VALUE_PREVIEW] + f"... ({len(v)} chars)"
+                lines.append(f"  {k} = {v}")
+            return "\n".join(lines)
+        except Exception as e:
+            logger.error(f"Get storage failed: {e}")
+            raise RuntimeError(f"Get storage failed: {e}")
+
+    @mcp.tool()
+    async def set_storage(key: str, value: str, kind: str = "local") -> str:
+        """
+        Set a localStorage or sessionStorage item for the current page's origin.
+
+        Args:
+            key: Storage key
+            value: String value to store
+            kind: "local" for localStorage (default) or "session" for sessionStorage
+        """
+        try:
+            result = await _storage(kind, "set", key, value)
+            return f"Set {result['origin']} {kind}Storage[{key!r}] ({len(value)} chars)."
+        except Exception as e:
+            logger.error(f"Set storage failed: {e}")
+            raise RuntimeError(f"Set storage failed: {e}")
+
+    @mcp.tool()
+    async def clear_storage(kind: str = "local", key: str | None = None) -> str:
+        """
+        Remove one key from, or clear all of, localStorage or sessionStorage for the current origin.
+
+        Args:
+            kind: "local" for localStorage (default) or "session" for sessionStorage
+            key: The key to remove. Omit to clear every key.
+        """
+        try:
+            result = await _storage(kind, "clear", key)
+            origin = result["origin"]
+            if key is not None:
+                if not result["existed"]:
+                    return f"{origin} {kind}Storage has no key {key!r}; nothing removed."
+                return f"Removed {key!r} from {origin} {kind}Storage."
+            return f"Cleared {result['count']} keys from {origin} {kind}Storage."
+        except Exception as e:
+            logger.error(f"Clear storage failed: {e}")
+            raise RuntimeError(f"Clear storage failed: {e}")
 
     @mcp.tool()
     async def set_viewport(width: int, height: int) -> tuple[str, Image]:

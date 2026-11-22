@@ -15,6 +15,7 @@ Read what's on the page, and take screenshots on demand.
 | [`get_page_info`](#get_page_info) | Get current page URL and title. | text |
 | [`screenshot`](#screenshot) | Take a screenshot of the page. | text + screenshot |
 | [`run_javascript`](#run_javascript) | Execute JavaScript and return the result. | text + screenshot |
+| [`save_pdf`](#save_pdf) | Save the current page as a PDF in the downloads directory (needs headless Chromium). | text |
 
 ## `get_page_content` {#get_page_content}
 
@@ -121,6 +122,24 @@ Evaluates JavaScript in the page and returns the result as JSON, with a fresh sc
 → run_javascript("document.title")
 → run_javascript("[...document.querySelectorAll('img')].length")
 ```
+
+## `save_pdf` {#save_pdf}
+
+Save the current page as a PDF in the downloads directory (needs headless Chromium).
+
+```python
+save_pdf(file_name: str | None = None, landscape: bool = False, print_background: bool = True)
+```
+
+Returns text only.
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `file_name` | `str \| None` | `None` | File name for the PDF (directories are stripped). Defaults to the page title. |
+| `landscape` | `bool` | `False` | Print in landscape orientation. |
+| `print_background` | `bool` | `True` | Include background colors and images. |
+
+Saves into `BROWSER_DOWNLOADS_DIR`, adds `.pdf` if missing, and never overwrites an existing file (it appends ` (1)`, ` (2)`, ...). Returns the saved path and size. Chromium only prints PDFs headless, so with a visible browser it fails and asks you to restart with `BROWSER_HEADLESS=true`.
 
 ## See also
 
