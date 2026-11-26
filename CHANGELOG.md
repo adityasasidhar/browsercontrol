@@ -32,6 +32,9 @@ All notable changes to this project are documented here. The format follows
 - Codex plugin manifest now declares `composerIcon` (`assets/icon.svg`), as Codex plugin
   directories require.
 - `SECURITY.md`, Dependabot configuration, and a Glama manifest (`glama.json`).
+- `Dockerfile`: a container image that serves Streamable HTTP on port 8000 with headless Chromium
+  (installs `libatomic1`, which Playwright's bundled Node needs on slim images), and the Glama
+  score badge in the README.
 
 ### Changed
 
