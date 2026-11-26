@@ -15,9 +15,14 @@ def _force_headless() -> None:
     config.headless = True
 
 
-@pytest.fixture
-def mock_page():
-    """Mock Playwright page object."""
+def make_mock_page() -> AsyncMock:
+    """Build a mock Playwright page.
+
+    Playwright's ``Page`` has both coroutine methods (``goto``, ``screenshot``) and plain
+    ones (``is_closed``, ``on``, ``locator``). An ``AsyncMock`` child returns an un-awaited
+    coroutine from every call, so the plain ones must be ``MagicMock``: otherwise
+    ``page.is_closed()`` is always truthy and Python warns that the coroutine was never awaited.
+    """
     page = AsyncMock()
     page.goto = AsyncMock()
     page.go_back = AsyncMock()
@@ -27,7 +32,16 @@ def mock_page():
     page.evaluate = AsyncMock()
     page.screenshot = AsyncMock(return_value=b"fake_screenshot_data")
     page.title = AsyncMock(return_value="Test Page")
+    page.close = AsyncMock()
     page.url = "https://example.com"
+
+    # Synchronous Playwright methods
+    page.is_closed = MagicMock(return_value=False)
+    page.on = MagicMock()
+    page.once = MagicMock()
+    page.remove_listener = MagicMock()
+    page.locator = MagicMock()
+    page.get_by_text = MagicMock()
 
     # Mouse and keyboard
     page.mouse = AsyncMock()
@@ -41,6 +55,18 @@ def mock_page():
 
 
 @pytest.fixture
+def mock_page():
+    """Mock Playwright page object."""
+    return make_mock_page()
+
+
+@pytest.fixture
+def page_factory():
+    """Build extra mock pages (second tab, popup) with the same sync/async split."""
+    return make_mock_page
+
+
+@pytest.fixture
 def mock_context():
     """Mock Playwright browser context."""
     context = AsyncMock()
@@ -49,6 +75,11 @@ def mock_context():
     context.cookies = AsyncMock(return_value=[])
     context.add_cookies = AsyncMock()
     context.clear_cookies = AsyncMock()
+    context.close = AsyncMock()
+    # Plain (non-coroutine) Playwright methods
+    context.on = MagicMock()
+    context.once = MagicMock()
+    context.remove_listener = MagicMock()
     return context
 
 
