@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-27
+
 ### Added
 
 - `BROWSER_AUTH_TOKEN`: optional bearer-token authentication for the `http` and `sse`
@@ -15,12 +17,36 @@ All notable changes to this project are documented here. The format follows
 - `BROWSER_ALLOWED_DOMAINS`: comma-separated domains (subdomains included) that `navigate_to`,
   `act`'s `navigate` step, `create_tab`, and `create_session` may open. Empty means no
   restriction. Blocked URLs return an error naming the URL and the setting.
+- Isolated sessions can save and reuse logins: `save_auth_state(name)`, `list_auth_states()`, and an
+  `auth_state` parameter on `create_session`. States live in `BROWSER_AUTH_DIR` with owner-only
+  permissions, and names cannot escape that directory.
+- `get_accessibility_tree`: the page (or one element) as an ARIA snapshot in text, with an optional
+  depth limit, for reading text-heavy pages without a screenshot.
+- `verify_text`, `verify_url`, `verify_value`: assertions that return PASS/FAIL and, on a pass, are
+  recorded by `export_test` as `expect()` lines in Python and TypeScript. Password values are never
+  recorded.
+- Web storage tools `get_storage`, `set_storage`, `clear_storage` (localStorage and sessionStorage
+  of the current origin) and `save_pdf` (print the page to the downloads directory). The server now
+  has 79 tools.
+- A live cursor is drawn for agent mouse actions.
+- Codex plugin manifest now declares `composerIcon` (`assets/icon.svg`), as Codex plugin
+  directories require.
+- `SECURITY.md`, Dependabot configuration, and a Glama manifest (`glama.json`).
+- `Dockerfile`: a container image that serves Streamable HTTP on port 8000 with headless Chromium
+  (installs `libatomic1`, which Playwright's bundled Node needs on slim images), and the Glama
+  score badge in the README.
 
 ### Changed
 
 - **Breaking:** `javascript:`, `file:`, `data:`, and `chrome:` URLs (and similar internal
   schemes) are now blocked by the navigation tools. Set `BROWSER_ALLOW_UNSAFE_SCHEMES=true` to
   restore the old behavior.
+
+### Fixed
+
+- `verify_text` counted only the first match, so a hidden first match made it fail for text that
+  is present and pass for text that is absent. It now counts visible matches, and the exported
+  `to_have_count(0)` does too.
 
 ## [0.3.1] - 2026-11-21
 
@@ -98,7 +124,8 @@ All notable changes to this project are documented here. The format follows
 - Form tool semantics, viewport validation and element labels.
 - Upgraded Pillow to 12.3.0 for security advisories.
 
-[Unreleased]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/adityasasidhar/browsercontrol/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.1.4...v0.2.0
