@@ -1,6 +1,6 @@
 {
   "name": "opencode-browsercontrol",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "BrowserControl MCP server and agent skill for OpenCode 2",
   "license": "MIT",
   "repository": "github:adityasasidhar/browsercontrol",
