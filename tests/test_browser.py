@@ -27,6 +27,16 @@ class TestBrowserLifecycle:
 
             assert browser_mgr.is_started
             assert browser_mgr._context == mock_context
+            # New tabs get the capture listeners, and the context watches for popups.
+            assert mock_context.on.call_args.args[0] == "page"
+            assert {call.args[0] for call in mock_page.on.call_args_list} >= {
+                "console",
+                "pageerror",
+                "request",
+                "response",
+                "dialog",
+                "download",
+            }
 
     @pytest.mark.asyncio
     async def test_browser_stops_successfully(self, mock_playwright, mock_context, mock_page):
@@ -250,9 +260,9 @@ class TestTabManagement:
     """Test tab creation, switching, and closing."""
 
     @pytest.mark.asyncio
-    async def test_create_tab_without_url(self, mock_context, mock_page):
+    async def test_create_tab_without_url(self, mock_context, mock_page, page_factory):
         """Test creating a new blank tab."""
-        new_page = AsyncMock()
+        new_page = page_factory()
         mock_context.new_page.return_value = new_page
         mock_context.pages = [mock_page, new_page]
 
@@ -267,9 +277,9 @@ class TestTabManagement:
         # the current index mapping is removed in browsercontrol/browser.py, replacing it with assert browser_mgr._page == new_page doesn't work consistently if relying on index, here we just do a length check or ignore current index, since browser.py removed _current_page_index. We already checked new_page logic.
 
     @pytest.mark.asyncio
-    async def test_create_tab_with_url(self, mock_context, mock_page):
+    async def test_create_tab_with_url(self, mock_context, mock_page, page_factory):
         """Test creating a new tab and navigating to URL."""
-        new_page = AsyncMock()
+        new_page = page_factory()
         mock_context.new_page.return_value = new_page
         mock_context.pages = [mock_page, new_page]
 
@@ -283,9 +293,9 @@ class TestTabManagement:
         new_page.goto.assert_called_once_with("https://example.com")
 
     @pytest.mark.asyncio
-    async def test_switch_to_tab(self, mock_context, mock_page):
+    async def test_switch_to_tab(self, mock_context, mock_page, page_factory):
         """Test switching to a different tab."""
-        page2 = AsyncMock()
+        page2 = page_factory()
         mock_context.pages = [mock_page, page2]
 
         browser_mgr = BrowserManager()
@@ -311,10 +321,16 @@ class TestTabManagement:
             await browser_mgr.switch_to_tab(5)
 
     @pytest.mark.asyncio
-    async def test_close_tab(self, mock_context, mock_page):
-        """Test closing a tab."""
-        page2 = AsyncMock()
+    async def test_close_tab(self, mock_context, mock_page, page_factory):
+        """Closing the active tab closes it and falls back to the remaining one."""
+        page2 = page_factory()
         mock_context.pages = [mock_page, page2]
+
+        async def close_page2() -> None:
+            page2.is_closed.return_value = True
+            mock_context.pages = [mock_page]
+
+        page2.close.side_effect = close_page2
 
         browser_mgr = BrowserManager()
         browser_mgr._started = True
@@ -324,11 +340,63 @@ class TestTabManagement:
         await browser_mgr.close_tab(1)
 
         page2.close.assert_called_once()
+        assert browser_mgr._page is mock_page
+        mock_context.new_page.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_list_tabs(self, mock_context, mock_page):
+    async def test_close_last_tab_opens_a_blank_one(self, mock_context, mock_page, page_factory):
+        """Closing the only tab leaves the browser with a fresh blank page, not a dead one."""
+        blank = page_factory()
+        mock_context.pages = [mock_page]
+        mock_context.new_page.return_value = blank
+
+        async def close_page() -> None:
+            mock_page.is_closed.return_value = True
+            mock_context.pages = []
+
+        mock_page.close.side_effect = close_page
+
+        browser_mgr = BrowserManager()
+        browser_mgr._started = True
+        browser_mgr._context = mock_context
+        browser_mgr._page = mock_page
+
+        await browser_mgr.close_tab(0)
+
+        assert browser_mgr._page is blank
+
+    @pytest.mark.asyncio
+    async def test_close_inactive_tab_keeps_the_active_page(
+        self, mock_context, mock_page, page_factory
+    ):
+        page2 = page_factory()
+        mock_context.pages = [mock_page, page2]
+
+        browser_mgr = BrowserManager()
+        browser_mgr._started = True
+        browser_mgr._context = mock_context
+        browser_mgr._page = mock_page
+
+        await browser_mgr.close_tab(1)
+
+        page2.close.assert_called_once()
+        assert browser_mgr._page is mock_page
+
+    @pytest.mark.asyncio
+    async def test_close_tab_out_of_range(self, mock_context, mock_page):
+        mock_context.pages = [mock_page]
+        browser_mgr = BrowserManager()
+        browser_mgr._started = True
+        browser_mgr._context = mock_context
+        browser_mgr._page = mock_page
+
+        with pytest.raises(ValueError, match="Tab index 3 out of range"):
+            await browser_mgr.close_tab(3)
+
+    @pytest.mark.asyncio
+    async def test_list_tabs(self, mock_context, mock_page, page_factory):
         """Test listing all open tabs."""
-        page2 = AsyncMock()
+        page2 = page_factory()
         page2.title = AsyncMock(return_value="Page 2")
         page2.url = "https://example2.com"
 
@@ -476,11 +544,9 @@ class TestElementMapping:
         assert elem_map == {}
 
     @pytest.mark.asyncio
-    async def test_element_maps_are_kept_per_tab(self, mock_page):
+    async def test_element_maps_are_kept_per_tab(self, mock_page, page_factory):
         """IDs from one tab's screenshot must not resolve against another tab."""
-        other = AsyncMock()
-        other.is_closed = MagicMock(return_value=False)
-        mock_page.is_closed = MagicMock(return_value=False)
+        other = page_factory()
         mgr = self._manager(mock_page)
         elements = [
             {"tag": "button", "x": 1, "y": 1, "width": 10, "height": 10},

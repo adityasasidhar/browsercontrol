@@ -80,7 +80,13 @@ indent-style = "space"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 addopts = ["-v", "--strict-markers", "--tb=short"]
+filterwarnings = [
+    "error::RuntimeWarning",
+    # "coroutine was never awaited" fires from garbage collection, which pytest reports as this.
+    "error::pytest.PytestUnraisableExceptionWarning",
+]
 markers = ["browser: drives a real headless Chromium (skipped when it is not installed)"]
 
 [tool.bandit]
