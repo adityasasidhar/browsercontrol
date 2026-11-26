@@ -125,8 +125,9 @@ by the iframe border for elements inside cross-origin frames.
 `SessionBindingMiddleware`, calls each `register_*_tools(mcp)`, and registers the
 `browser://` resources (`resources.py`; they read the caller's session and never
 start the browser). `__main__.py` picks the transport (`--transport`/
-`BROWSER_TRANSPORT`) and warns when HTTP binds a non-loopback host, since there
-is no auth. The server-level `instructions` string is the prompt the
+`BROWSER_TRANSPORT`), wraps the HTTP/SSE app in bearer-token auth when
+`BROWSER_AUTH_TOKEN` is set (`auth.py`), and warns when HTTP binds a non-loopback
+host, saying whether the token is set. The server-level `instructions` string is the prompt the
 agent sees describing available tools. It is hand-maintained; update it whenever
 you add, rename, or remove a tool or change its parameters.
 `tests/test_server.py` fails if the `- name(params)` lines drift from the
@@ -148,6 +149,11 @@ Conventions every tool follows:
 - Ends by building the result via `get_screenshot_with_summary(browser)` from
   `tools/_summary.py`. It takes the manager as an argument on purpose: passing
   the module's own `browser` keeps the per-module test patching working.
+
+**`navigation_policy.py`** — the one place that decides whether a caller-supplied URL may be
+opened (`BROWSER_ALLOWED_DOMAINS`, `BROWSER_ALLOW_UNSAFE_SCHEMES`). Every tool that navigates to a
+caller-supplied URL (`navigate_to`, `act`'s navigate step, `create_tab`, `create_session`) calls
+`check_navigation_allowed(url)` before touching the browser; a new such tool must too.
 
 **`config.py`** — a `Config` dataclass loaded once at import via
 `Config.from_env()` into a global `config`. All settings come from `BROWSER_*`

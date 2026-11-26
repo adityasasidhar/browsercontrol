@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `BROWSER_AUTH_TOKEN`: optional bearer-token authentication for the `http` and `sse`
+  transports. Requests without `Authorization: Bearer <token>` get `401`; the token is compared
+  in constant time and is read from the environment only (no flag). The warning for binding to a
+  non-loopback host now says whether the token is set.
+- `BROWSER_ALLOWED_DOMAINS`: comma-separated domains (subdomains included) that `navigate_to`,
+  `act`'s `navigate` step, `create_tab`, and `create_session` may open. Empty means no
+  restriction. Blocked URLs return an error naming the URL and the setting.
+
+### Changed
+
+- **Breaking:** `javascript:`, `file:`, `data:`, and `chrome:` URLs (and similar internal
+  schemes) are now blocked by the navigation tools. Set `BROWSER_ALLOW_UNSAFE_SCHEMES=true` to
+  restore the old behavior.
+
 ## [0.3.1] - 2026-11-21
 
 ### Added

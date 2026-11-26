@@ -30,7 +30,7 @@ Returns text and a fresh annotated screenshot.
 | --- | --- | --- | --- |
 | `url` | `str` | required | The URL to navigate to |
 
-Opens the URL in the current tab and waits for it to settle. `http`, `https`, `file`, and `about:blank` URLs all work. If a `localhost` URL refuses the connection, it retries with `127.0.0.1`. Navigation times out after [`BROWSER_TIMEOUT`](/reference/configuration#browser_timeout) (30 s).
+Opens the URL in the current tab and waits for it to settle. `http`, `https`, and `about:blank` URLs work. `javascript:`, `file:`, `data:`, and `chrome:` URLs are blocked unless [`BROWSER_ALLOW_UNSAFE_SCHEMES`](/reference/configuration#navigation-policy) is `true`, and when [`BROWSER_ALLOWED_DOMAINS`](/reference/configuration#navigation-policy) is set, so is any host outside it. A blocked URL returns an error that names the URL and the setting. If a `localhost` URL refuses the connection, it retries with `127.0.0.1`. Navigation times out after [`BROWSER_TIMEOUT`](/reference/configuration#browser_timeout) (30 s).
 
 ```text
 → navigate_to("https://news.ycombinator.com")

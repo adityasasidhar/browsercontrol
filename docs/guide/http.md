@@ -51,8 +51,43 @@ With `--isolate-clients` (or `BROWSER_ISOLATE_CLIENTS=true`), each client gets a
 
 ## Security
 
-::: danger There is no authentication
-Anyone who can reach the port controls the browser, including every site it is signed in to. Keep the default `127.0.0.1` host. BrowserControl logs a warning if you bind to any other address.
+::: danger Authentication is off unless you set a token
+Anyone who can reach the port controls the browser, including every site it is signed in to. Keep the default `127.0.0.1` host, or set `BROWSER_AUTH_TOKEN` as below. BrowserControl logs a warning if you bind to any other address, and says in it whether the token is set.
 :::
 
-If you do need remote access, put it behind something that authenticates, such as an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 host`) or a reverse proxy with auth.
+### Authenticate clients {#authenticate-clients}
+
+Set `BROWSER_AUTH_TOKEN` and the server rejects every request that lacks `Authorization: Bearer <token>` with `401 Unauthorized`, comparing the token in constant time:
+
+```bash
+export BROWSER_AUTH_TOKEN="$(openssl rand -hex 32)"
+uvx browsercontrol --transport http --host 0.0.0.0
+```
+
+Then give each client the header:
+
+```bash
+claude mcp add --transport http browsercontrol http://HOST:8000/mcp \
+  --header "Authorization: Bearer $BROWSER_AUTH_TOKEN"
+```
+
+```json
+{
+  "mcpServers": {
+    "browsercontrol": {
+      "url": "http://HOST:8000/mcp",
+      "headers": { "Authorization": "Bearer <token>" }
+    }
+  }
+}
+```
+
+The token is read from the environment only. There is deliberately no `--auth-token` flag, because command-line arguments show up in process lists. It also applies to `--transport sse`.
+
+::: warning Plain HTTP is not encrypted
+A bearer token sent over plain HTTP can be read by anyone on the network path. Off loopback, terminate TLS in front of BrowserControl (a reverse proxy) or use an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 host`).
+:::
+
+### Limit where the agent can browse
+
+Shared servers should also restrict navigation with [`BROWSER_ALLOWED_DOMAINS`](/reference/configuration#navigation-policy).
