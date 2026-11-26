@@ -15,6 +15,7 @@
   <a href="https://pypi.org/project/browsercontrol/"><img src="https://img.shields.io/pypi/pyversions/browsercontrol" alt="Python"></a>
   <a href="https://pepy.tech/projects/browsercontrol"><img src="https://static.pepy.tech/badge/browsercontrol" alt="Total downloads"></a>
   <a href="https://github.com/adityasasidhar/browsercontrol/blob/main/LICENSE"><img src="https://img.shields.io/github/license/adityasasidhar/browsercontrol" alt="MIT license"></a>
+  <a href="https://glama.ai/mcp/servers/adityasasidhar/browsercontrol"><img src="https://glama.ai/mcp/servers/adityasasidhar/browsercontrol/badges/score.svg" alt="adityasasidhar/browsercontrol MCP server"></a>
 </p>
 
 <p align="center">
