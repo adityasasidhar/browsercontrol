@@ -4,6 +4,7 @@ from fastmcp import FastMCP
 from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
+from browsercontrol.navigation_policy import check_navigation_allowed
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,8 @@ def register_tab_tools(mcp: FastMCP) -> None:
             url: Optional URL to open in the new tab.
         """
         try:
+            if url:
+                check_navigation_allowed(url)
             await browser.ensure_started()
             await browser.create_tab(url)
 

@@ -28,7 +28,10 @@ BrowserControl reads its settings from environment variables once, at startup. C
 | [`BROWSER_TRANSPORT`](#transport) | `stdio` | `stdio`, `http`, or `sse`. |
 | [`BROWSER_HOST`](#transport) | `127.0.0.1` | HTTP bind address. |
 | [`BROWSER_PORT`](#transport) | `8000` | HTTP port. |
+| [`BROWSER_AUTH_TOKEN`](#browser_auth_token) | — | Bearer token required on the `http` and `sse` transports. |
 | [`BROWSER_ISOLATE_CLIENTS`](#browser_isolate_clients) | `false` | One isolated session per MCP client. |
+| [`BROWSER_ALLOWED_DOMAINS`](#navigation-policy) | — | Comma-separated domains navigation tools may open (subdomains included). Empty means no restriction. |
+| [`BROWSER_ALLOW_UNSAFE_SCHEMES`](#navigation-policy) | `false` | `true` allows `javascript:`, `file:`, `data:`, and `chrome:` URLs. |
 | [`LOG_LEVEL`](#log_level) | `INFO` | `DEBUG`, `INFO`, `WARNING`, or `ERROR`. |
 
 ## Setting them
@@ -143,8 +146,38 @@ Each default sits beside the profile directory, so moving `BROWSER_USER_DATA_DIR
 
 `stdio` (the default) is for clients that launch the server themselves. `http` serves Streamable HTTP at `http://BROWSER_HOST:BROWSER_PORT/mcp` so several clients can share one browser; `sse` is the older HTTP transport. The flags `--transport`, `--host`, and `--port` do the same. See [Share over HTTP](/guide/http).
 
-::: danger No authentication
-Anyone who can reach the port controls the browser and its signed-in sessions. The default host is `127.0.0.1`, and the server warns if you bind anywhere else.
+::: danger No authentication unless you set a token
+Anyone who can reach the port controls the browser and its signed-in sessions. The default host is `127.0.0.1`, and the server warns if you bind anywhere else, saying whether `BROWSER_AUTH_TOKEN` is set. See below.
+:::
+
+### `BROWSER_AUTH_TOKEN` {#browser_auth_token}
+
+A secret that clients must send as `Authorization: Bearer <token>` on the `http` and `sse` transports. Requests without it, or with a different token, get `401 Unauthorized`; the comparison is constant-time. Unset (the default) means no authentication. `stdio` is unaffected.
+
+```bash
+BROWSER_AUTH_TOKEN="$(openssl rand -hex 32)" browsercontrol --transport http
+```
+
+It is an environment variable only, with no command-line flag, so the token does not appear in process lists. The token travels in clear text over plain HTTP: off loopback, put a TLS proxy in front. See [Share over HTTP](/guide/http#authenticate-clients).
+
+## Navigation policy {#navigation-policy}
+
+Limits what the navigation tools (`navigate_to`, the `navigate` step of `act`, `create_tab`, and the `url` of `create_session`) will open.
+
+### `BROWSER_ALLOWED_DOMAINS`
+
+Comma-separated domains, for example `example.com,docs.python.org`. Only those hosts and their subdomains can be opened (`example.com` allows `www.example.com`, not `notexample.com`). Ports and a leading `*.` are ignored, and an IP address matches only itself. Empty or unset (the default) means no restriction. Anything else is refused with an error that names the URL and this setting.
+
+```bash
+BROWSER_ALLOWED_DOMAINS=example.com,localhost browsercontrol
+```
+
+### `BROWSER_ALLOW_UNSAFE_SCHEMES`
+
+By default `javascript:`, `file:`, `data:`, and `chrome:` URLs (plus `chrome-extension:`, `devtools:`, `view-source:`, `blob:`, `filesystem:`, and `about:` pages other than `about:blank`) are refused, whatever the allowlist. Set `true` to allow them. With `BROWSER_ALLOWED_DOMAINS` set, they are still refused unless they name an allowed host.
+
+::: warning A guardrail, not a sandbox
+The policy checks the URLs the agent passes to navigation tools. It does not stop links the agent clicks, redirects a page performs, or JavaScript the agent runs from navigating elsewhere. `connect_to_chrome` takes a debugging address, not a page URL, and is not covered.
 :::
 
 ### `BROWSER_ISOLATE_CLIENTS` {#browser_isolate_clients}

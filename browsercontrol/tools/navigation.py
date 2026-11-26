@@ -5,6 +5,7 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.config import config
+from browsercontrol.navigation_policy import NavigationBlockedError, check_navigation_allowed
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ def register_navigation_tools(mcp: FastMCP) -> None:
             Element summary and annotated screenshot
         """
         try:
+            check_navigation_allowed(url)
             await browser.ensure_started()
             logger.info(f"Navigating to: {url}")
 
@@ -36,6 +38,7 @@ def register_navigation_tools(mcp: FastMCP) -> None:
                 # Handle localhost vs 127.0.0.1 resolution issues
                 if "ERR_CONNECTION_REFUSED" in str(e) and "localhost" in url:
                     fallback_url = url.replace("localhost", "127.0.0.1")
+                    check_navigation_allowed(fallback_url)  # the host changes: re-check it
                     logger.info(f"Navigation to localhost failed, retrying with: {fallback_url}")
                     await browser.page.goto(
                         fallback_url, wait_until="domcontentloaded", timeout=config.timeout_ms
@@ -48,6 +51,9 @@ def register_navigation_tools(mcp: FastMCP) -> None:
             browser.log_action("navigate", url=url)
             image, summary = await get_screenshot_with_summary(browser)
             return f"Navigated to {url}\n\n{summary}", image
+        except NavigationBlockedError as e:
+            logger.warning(str(e))
+            raise RuntimeError(str(e))
         except Exception as e:
             logger.error(f"Navigation failed: {e}")
             try:

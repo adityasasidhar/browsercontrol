@@ -146,6 +146,18 @@ uvx browsercontrol --transport http
 uvx browsercontrol --transport http --isolate-clients   # una sesión separada por cliente
 ```
 
+**Limitar adónde puede ir.** Permite solo ciertos sitios con `BROWSER_ALLOWED_DOMAINS` (separados por comas; incluye subdominios). Las herramientas de navegación rechazan todo lo demás, y siempre rechazan las URL `javascript:`, `file:`, `data:` y `chrome:` salvo que definas `BROWSER_ALLOW_UNSAFE_SCHEMES=true`:
+
+```json
+"env": { "BROWSER_ALLOWED_DOMAINS": "example.com,docs.python.org" }
+```
+
+**Proteger el servidor HTTP.** Define `BROWSER_AUTH_TOKEN` y el servidor rechaza las solicitudes sin `Authorization: Bearer <token>`:
+
+```bash
+BROWSER_AUTH_TOKEN="$(openssl rand -hex 32)" uvx browsercontrol --transport http
+```
+
 Todos los ajustes están en [Configuración](https://adityasasidhar.github.io/browsercontrol/reference/configuration).
 
 ## Conviene saber
@@ -153,7 +165,7 @@ Todos los ajustes están en [Configuración](https://adityasasidhar.github.io/br
 - **Se ejecuta en local.** El navegador corre en tu equipo. Nada pasa por un servidor de BrowserControl.
 - **Las sesiones se conservan.** El perfil del navegador está en `~/.browsercontrol/user_data`, así que los sitios donde inicias sesión siguen con la sesión abierta entre usos.
 - **Está pensado para modelos con visión.** Cada acción devuelve una imagen. Eso le da al agente la imagen completa, pero gasta más tokens que las herramientas solo de texto. Mira [cómo se compara](https://adityasasidhar.github.io/browsercontrol/concepts/comparison) con otros enfoques.
-- **El modo HTTP no tiene autenticación.** Mantenlo en `127.0.0.1` salvo que pongas algo delante.
+- **El modo HTTP no tiene autenticación salvo que definas `BROWSER_AUTH_TOKEN`.** Mantenlo en `127.0.0.1` salvo que definas un token o pongas algo delante.
 - **¿Algo no funciona?** Revisa la [solución de problemas](https://adityasasidhar.github.io/browsercontrol/help/troubleshooting) o [abre un issue](https://github.com/adityasasidhar/browsercontrol/issues).
 
 ## Para agentes

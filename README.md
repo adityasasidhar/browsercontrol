@@ -148,6 +148,18 @@ uvx browsercontrol --transport http
 uvx browsercontrol --transport http --isolate-clients   # a separate session for each client
 ```
 
+**Limit where it can go.** Allow only certain sites with `BROWSER_ALLOWED_DOMAINS` (comma-separated; subdomains included). Navigation tools refuse anything else, and always refuse `javascript:`, `file:`, `data:`, and `chrome:` URLs unless `BROWSER_ALLOW_UNSAFE_SCHEMES=true`:
+
+```json
+"env": { "BROWSER_ALLOWED_DOMAINS": "example.com,docs.python.org" }
+```
+
+**Protect the HTTP server.** Set `BROWSER_AUTH_TOKEN` and the server rejects requests without `Authorization: Bearer <token>`:
+
+```bash
+BROWSER_AUTH_TOKEN="$(openssl rand -hex 32)" uvx browsercontrol --transport http
+```
+
 Every setting is listed in [Configuration](https://adityasasidhar.github.io/browsercontrol/reference/configuration).
 
 ## Good to know
@@ -155,7 +167,7 @@ Every setting is listed in [Configuration](https://adityasasidhar.github.io/brow
 - **It runs locally.** The browser runs on your machine. Nothing goes through a BrowserControl server.
 - **Logins are kept.** The browser profile lives in `~/.browsercontrol/user_data`, so sites you sign in to stay signed in between runs.
 - **It's built for vision models.** Every action returns an image. That gives the agent the full picture, but uses more tokens than text-only tools. See [how it compares](https://adityasasidhar.github.io/browsercontrol/concepts/comparison) to other approaches.
-- **The HTTP mode has no authentication.** Keep it on `127.0.0.1` unless you put something in front of it.
+- **The HTTP mode has no authentication unless you set `BROWSER_AUTH_TOKEN`.** Keep it on `127.0.0.1` unless you set a token or put something in front of it.
 - **Something not working?** Check [Troubleshooting](https://adityasasidhar.github.io/browsercontrol/help/troubleshooting), or [open an issue](https://github.com/adityasasidhar/browsercontrol/issues).
 
 ## For agents
