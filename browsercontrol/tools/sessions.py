@@ -11,6 +11,7 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.config import config
+from browsercontrol.navigation_policy import check_navigation_allowed
 from browsercontrol.tools._summary import get_screenshot_with_summary
 
 logger = logging.getLogger(__name__)
@@ -65,6 +66,8 @@ def register_session_tools(mcp: FastMCP) -> None:
             auth_state: Optional saved login state to load (see list_auth_states)
         """
         try:
+            if url:
+                check_navigation_allowed(url)
             state_file = None
             if auth_state:
                 state_file = auth_state_path(auth_state)

@@ -8,6 +8,7 @@ from fastmcp.utilities.types import Image
 
 from browsercontrol.browser import browser
 from browsercontrol.elements import ACTION_TIMEOUT_MS
+from browsercontrol.navigation_policy import check_navigation_allowed
 from browsercontrol.pointer import track_pointer
 from browsercontrol.tools._summary import get_screenshot_with_summary
 from browsercontrol.tools.interaction import EDIT_KIND_JS
@@ -47,6 +48,7 @@ async def _run_step(step: dict[str, Any]) -> str:
 
     if action == "navigate":
         url = _need(step, "url")
+        check_navigation_allowed(url)
         await page.goto(url, wait_until="domcontentloaded")
         await browser.settle()
         browser.log_action("navigate", url=url)

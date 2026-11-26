@@ -558,6 +558,87 @@ async def test_http_transport_serves_tools(tmp_path: Path) -> None:
         proc.wait(timeout=30)
 
 
+async def test_http_transport_requires_the_bearer_token(tmp_path: Path) -> None:
+    import httpx
+    from fastmcp import Client
+
+    token = "test-token-1234"
+    port = _free_port()
+    env = {
+        **__import__("os").environ,
+        "BROWSER_HEADLESS": "true",
+        "BROWSER_USER_DATA_DIR": str(tmp_path / "profile"),
+        "BROWSER_AUTH_TOKEN": token,
+    }
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "browsercontrol", "--transport", "http", "--port", str(port)],
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
+    url = f"http://127.0.0.1:{port}/mcp"
+    try:
+        deadline = time.time() + 60
+        while True:
+            try:
+                async with Client(url, auth=token) as client:
+                    names = {t.name for t in await client.list_tools()}
+                break
+            except Exception:
+                if proc.poll() is not None or time.time() > deadline:
+                    raise AssertionError(proc.stderr.read().decode() if proc.stderr else "")
+                await asyncio.sleep(0.5)
+        assert "navigate_to" in names
+
+        async with httpx.AsyncClient() as http:
+            for headers in ({}, {"Authorization": "Bearer wrong"}, {"Authorization": token}):
+                r = await http.post(url, headers=headers, json={})
+                assert r.status_code == 401, headers
+        with pytest.raises(Exception):  # noqa: B017 - the client surfaces the 401 as an error
+            async with Client(url) as client:
+                await client.list_tools()
+    finally:
+        proc.terminate()
+        proc.wait(timeout=30)
+
+
+async def test_navigation_policy_blocks_in_a_real_browser(
+    tools: FastMCP, manager: BrowserManager, server: int
+) -> None:
+    from browsercontrol.config import config
+
+    base = f"http://127.0.0.1:{server}"
+    with patch.object(config, "allowed_domains", ["127.0.0.1"]):
+        text, _ = await call(tools, "navigate_to", url=f"{base}/")
+        assert text.startswith(f"Navigated to {base}/")
+
+        blocked = [
+            f"http://localhost:{server}/",  # same server, but not an allowed host
+            "file:///etc/hostname",
+            "data:text/html,<h1>owned</h1>",
+            "javascript:document.title='owned'",
+        ]
+        for url in blocked:
+            with pytest.raises(RuntimeError, match="blocked"):
+                await call(tools, "navigate_to", url=url)
+        text, _ = await call(
+            tools, "act", steps=[{"action": "navigate", "url": "file:///etc/hostname"}]
+        )
+        assert "FAILED (navigate)" in text and "BROWSER_ALLOW_UNSAFE_SCHEMES" in text
+        with pytest.raises(RuntimeError, match="blocked"):
+            await call(tools, "create_session", name="x", url="https://example.com/")
+
+        # None of it moved the browser: it is still on the allowed page, in its one tab.
+        assert manager.page.url == f"{base}/"
+        assert await manager.page.title() == ""
+        assert len(manager._context.pages) == 1
+    # Without the allowlist, only the dangerous schemes are blocked.
+    with pytest.raises(RuntimeError, match="BROWSER_ALLOW_UNSAFE_SCHEMES"):
+        await call(tools, "navigate_to", url="file:///etc/hostname")
+    text, _ = await call(tools, "navigate_to", url=f"{base}/other")
+    assert text.startswith("Navigated to")
+
+
 async def test_isolate_clients_gives_each_client_its_own_session(
     tmp_path: Path, server: int
 ) -> None:

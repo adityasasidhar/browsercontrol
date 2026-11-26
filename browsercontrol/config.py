@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
@@ -42,6 +42,16 @@ class Config:
     # Chromium binary to drive. Left unset, Playwright uses its own bundled
     # build; set it when Playwright ships no build for the host platform.
     executable_path: Path | None = None
+
+    # Bearer token required on the http and sse transports. Unset means no authentication.
+    # Env only (never a flag), so it stays out of process lists; hidden from repr.
+    auth_token: str | None = field(default=None, repr=False)
+
+    # Navigation policy (see navigation_policy.py). Domains (and their subdomains) that
+    # navigation tools may open; empty means no restriction.
+    allowed_domains: list[str] = field(default_factory=list)
+    # Lift the block on javascript:, file:, data:, chrome: and similar URLs.
+    allow_unsafe_schemes: bool = False
 
     # Logging
     log_level: str = "INFO"
@@ -112,6 +122,16 @@ class Config:
 
         auth_dir = os.getenv("BROWSER_AUTH_DIR")
         config.auth_dir = Path(auth_dir) if auth_dir else config.user_data_dir.parent / "auth"
+
+        config.auth_token = os.getenv("BROWSER_AUTH_TOKEN", "").strip() or None
+        config.allowed_domains = [
+            d.strip().lower()
+            for d in os.getenv("BROWSER_ALLOWED_DOMAINS", "").split(",")
+            if d.strip()
+        ]
+        config.allow_unsafe_schemes = (
+            os.getenv("BROWSER_ALLOW_UNSAFE_SCHEMES", "").lower() == "true"
+        )
 
         # Logging
         config.log_level = os.getenv("LOG_LEVEL", "INFO")
