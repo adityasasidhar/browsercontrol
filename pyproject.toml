@@ -26,7 +26,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Browsers",
 ]
 dependencies = [
-    "fastmcp>=3.4.10",
+    "fastmcp>=3.4.10,<4",
     "playwright>=1.49.0",
     "markdownify>=0.14.1",
     "pillow>=13.0.0",
