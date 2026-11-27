@@ -3,12 +3,9 @@ import contextlib
 import logging
 import time
 from contextvars import ContextVar
-from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-from PIL import Image as PILImage
-from PIL import ImageDraw, ImageFont
 from playwright.async_api import (
     Browser,
     BrowserContext,
@@ -21,40 +18,11 @@ from playwright.async_api import (
 
 from browsercontrol.config import config
 from browsercontrol.elements import ElementMap, collect_elements, locate
+from browsercontrol.marks import annotate
 from browsercontrol.pointer import HIDE_POINTER_STYLE
 from browsercontrol.session import Session, attach_page_listeners, network_quiet
 
 logger = logging.getLogger(__name__)
-
-# Module-level cached font (loaded once, reused across screenshots)
-_cached_font: ImageFont.FreeTypeFont | ImageFont.ImageFont | None = None
-
-
-def _get_label_font() -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    """Load and cache the label font for SoM overlays (loaded once per process)."""
-    global _cached_font
-    if _cached_font is not None:
-        return _cached_font
-    font_names = [
-        "Arial.ttf",
-        "arial.ttf",  # Windows/macOS
-        "Helvetica.ttf",
-        "helvetica.ttf",  # macOS
-        "DejaVuSans-Bold.ttf",  # Linux
-        "FreeSansBold.ttf",  # Linux
-        "LiberationSans-Bold.ttf",  # Linux
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  # Linux specific path
-        "/System/Library/Fonts/Helvetica.ttc",  # macOS specific path
-    ]
-    for font_name in font_names:
-        try:
-            _cached_font = ImageFont.truetype(font_name, 14)
-            return _cached_font
-        except OSError:
-            continue
-    _cached_font = ImageFont.load_default()
-    return _cached_font
-
 
 DEFAULT_SESSION = "default"
 
@@ -693,48 +661,14 @@ class BrowserManager:
         screenshot_bytes = await page.screenshot(type="png", style=HIDE_POINTER_STYLE)
         elements = await self.get_interactive_elements()
 
-        img = PILImage.open(BytesIO(screenshot_bytes))
-        draw = ImageDraw.Draw(img, "RGBA")
-        font = _get_label_font()
-
-        new_map: ElementMap = {}
-        for idx, elem in enumerate(elements):
-            element_id = idx + 1
-            new_map[element_id] = elem
-            _draw_mark(draw, font, element_id, elem)
+        annotated, new_map = annotate(screenshot_bytes, elements)
 
         # Maps are per tab, so IDs from one tab never resolve against another.
         self._element_maps = {p: m for p, m in self._element_maps.items() if not p.is_closed()}
         self._element_maps[page] = new_map
 
-        output = BytesIO()
-        img.save(output, format="PNG")
-
         logger.debug(f"Captured screenshot with {len(new_map)} elements")
-        return output.getvalue(), new_map
-
-
-def _draw_mark(
-    draw: ImageDraw.ImageDraw,
-    font: ImageFont.FreeTypeFont | ImageFont.ImageFont,
-    element_id: int,
-    elem: dict[str, Any],
-) -> None:
-    """Draw one numbered box. Disabled elements are drawn grey instead of red."""
-    x, y = max(0.0, elem["x"]), max(0.0, elem["y"])
-    x2, y2 = elem["x"] + elem["width"], elem["y"] + elem["height"]
-    color = (128, 128, 128) if elem.get("disabled") else (255, 0, 0)
-
-    draw.rectangle([x, y, x2, y2], outline=color, width=2, fill=(*color, 60))
-
-    label = str(element_id)
-    label_bbox = draw.textbbox((0, 0), label, font=font)
-    label_w = label_bbox[2] - label_bbox[0] + 6
-    label_h = label_bbox[3] - label_bbox[1] + 4
-    label_y = max(0.0, y - label_h - 2)
-
-    draw.rectangle([x, label_y, x + label_w, label_y + label_h], fill=color)
-    draw.text((x + 3, label_y + 2), label, fill="white", font=font)
+        return annotated, new_map
 
 
 # Global browser manager instance

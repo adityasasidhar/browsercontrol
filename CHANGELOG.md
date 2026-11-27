@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-27
+
 ### Added
 
 - `BROWSER_AUTH_TOKENS`: named per-client bearer tokens (`name:token,name:token`). The name
@@ -20,6 +22,12 @@ All notable changes to this project are documented here. The format follows
   `switch_session` and `--isolate-clients` lost track of such clients after every call.
 - `--isolate-clients` on `http`/`sse` without `BROWSER_AUTH_TOKENS` now logs a warning: clients on
   the current protocol can't be told apart and share one session.
+
+### Fixed
+
+- `--isolate-clients`: two new clients whose first calls arrived at the same moment could be
+  bound to the same session, sharing tabs, cookies and storage, while one browser context was
+  left orphaned. Each client's session is now created one at a time.
 
 ## [0.4.0] - 2026-11-27
 
@@ -139,7 +147,8 @@ All notable changes to this project are documented here. The format follows
 - Form tool semantics, viewport validation and element labels.
 - Upgraded Pillow to 12.3.0 for security advisories.
 
-[Unreleased]: https://github.com/adityasasidhar/browsercontrol/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/adityasasidhar/browsercontrol/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/adityasasidhar/browsercontrol/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/adityasasidhar/browsercontrol/compare/v0.2.0...v0.3.0

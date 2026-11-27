@@ -531,7 +531,7 @@ class TestElementMapping:
 
         with (
             patch("browsercontrol.browser.collect_elements", AsyncMock(return_value=[])),
-            patch("browsercontrol.browser.PILImage") as mock_pil,
+            patch("browsercontrol.marks.PILImage") as mock_pil,
         ):
             mock_img = MagicMock()
             mock_pil.open.return_value = mock_img
@@ -539,7 +539,7 @@ class TestElementMapping:
             mock_img_bytes = MagicMock()
             mock_img_bytes.getvalue.return_value = b"annotated_image"
 
-            with patch("browsercontrol.browser.BytesIO", return_value=mock_img_bytes):
+            with patch("browsercontrol.marks.BytesIO", return_value=mock_img_bytes):
                 screenshot_bytes, elem_map = await mgr.screenshot_with_som()
 
         assert screenshot_bytes == b"annotated_image"
@@ -557,9 +557,9 @@ class TestElementMapping:
 
         with (
             patch("browsercontrol.browser.collect_elements", AsyncMock(return_value=elements)),
-            patch("browsercontrol.browser.PILImage"),
-            patch("browsercontrol.browser.ImageDraw"),
-            patch("browsercontrol.browser._draw_mark"),
+            patch("browsercontrol.marks.PILImage"),
+            patch("browsercontrol.marks.ImageDraw"),
+            patch("browsercontrol.marks._draw_mark"),
         ):
             await mgr.screenshot_with_som()
 

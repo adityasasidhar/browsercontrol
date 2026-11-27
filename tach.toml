@@ -6,6 +6,7 @@ paths = [
     "browsercontrol.config",
     "browsercontrol.elements",
     "browsercontrol.emulation",
+    "browsercontrol.marks",
     "browsercontrol.navigation_policy",
     "browsercontrol.session",
 ]
