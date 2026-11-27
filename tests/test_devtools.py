@@ -59,8 +59,7 @@ class TestNetworkRequests:
             result = await tool.fn()
 
             assert isinstance(result, str)
-            assert "api.example.com" in result
-            assert "200" in result
+            assert "GET https://api.example.com/data -> 200" in result
 
 
 class TestCookieManagement:

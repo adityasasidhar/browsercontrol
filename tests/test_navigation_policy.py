@@ -138,9 +138,9 @@ class TestAllowedDomains:
         with pytest.raises(NavigationBlockedError) as err:
             check_navigation_allowed(url)
         message = str(err.value)
-        assert "BROWSER_ALLOWED_DOMAINS" in message
-        assert "example.com" in message  # lists what is allowed
-        assert repr(url)[1:-1] in message
+        assert message.startswith(f"Navigation to {url!r} is blocked: ")
+        # Names the setting and lists what is allowed.
+        assert "BROWSER_ALLOWED_DOMAINS (allowed: example.com, localhost, 10.0.0.5;" in message
 
     def test_entries_may_be_wildcards_urls_or_ports(self) -> None:
         with patch.object(
@@ -184,7 +184,7 @@ class TestTools:
             tool = await mcp_server.get_tool("navigate_to")
             with pytest.raises(RuntimeError) as err:
                 await tool.fn(url="https://evil.com/")
-        assert "https://evil.com/" in str(err.value)
+        assert "Navigation to 'https://evil.com/' is blocked" in str(err.value)
         assert "BROWSER_ALLOWED_DOMAINS" in str(err.value)
         mock_page.goto.assert_not_called()
 
@@ -262,7 +262,8 @@ class TestTools:
             )
         assert "1. ok: navigated to https://example.com/" in text
         assert "2. FAILED (navigate)" in text
-        assert "https://evil.com/" in text and "BROWSER_ALLOWED_DOMAINS" in text
+        assert "2. FAILED (navigate): Navigation to 'https://evil.com/' is blocked" in text
+        assert "BROWSER_ALLOWED_DOMAINS" in text
         assert "remaining step(s) skipped" in text
         assert mock_page.goto.call_count == 1
 

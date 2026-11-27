@@ -166,8 +166,7 @@ class TestGetPageInfo:
             tool = await mcp_server.get_tool("get_page_info")
             result = await tool.fn()
 
-            assert "https://example.com" in result
-            assert "Example Page" in result
+            assert result == "Title: Example Page\nURL: https://example.com"
 
 
 class TestRunJavaScript:
