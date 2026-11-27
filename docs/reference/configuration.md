@@ -29,6 +29,7 @@ BrowserControl reads its settings from environment variables once, at startup. C
 | [`BROWSER_HOST`](#transport) | `127.0.0.1` | HTTP bind address. |
 | [`BROWSER_PORT`](#transport) | `8000` | HTTP port. |
 | [`BROWSER_AUTH_TOKEN`](#browser_auth_token) | — | Bearer token required on the `http` and `sse` transports. |
+| [`BROWSER_AUTH_TOKENS`](#browser_auth_tokens) | — | Named per-client tokens, `name:token,name:token`; the name identifies the client. |
 | [`BROWSER_ISOLATE_CLIENTS`](#browser_isolate_clients) | `false` | One isolated session per MCP client. |
 | [`BROWSER_ALLOWED_DOMAINS`](#navigation-policy) | — | Comma-separated domains navigation tools may open (subdomains included). Empty means no restriction. |
 | [`BROWSER_ALLOW_UNSAFE_SCHEMES`](#navigation-policy) | `false` | `true` allows `javascript:`, `file:`, `data:`, and `chrome:` URLs. |
@@ -160,6 +161,15 @@ BROWSER_AUTH_TOKEN="$(openssl rand -hex 32)" browsercontrol --transport http
 
 It is an environment variable only, with no command-line flag, so the token does not appear in process lists. The token travels in clear text over plain HTTP: off loopback, put a TLS proxy in front. See [Share over HTTP](/guide/http#authenticate-clients).
 
+### `BROWSER_AUTH_TOKENS` {#browser_auth_tokens}
+
+One token per client, as comma-separated `name:token` pairs. Any listed token is accepted (each is compared in constant time), and its name identifies the client, so [`BROWSER_ISOLATE_CLIENTS`](#browser_isolate_clients) can give each one its own session on the current MCP protocol. Names may use letters, digits, `.`, `_`, and `-` (up to 64 characters); a token may contain `:` but not `,`. Malformed entries, repeated names, and repeated tokens are skipped with a warning that never includes the token. It works alongside `BROWSER_AUTH_TOKEN`, and like it is environment-only.
+
+```bash
+BROWSER_AUTH_TOKENS="alice:$(openssl rand -hex 32),bob:$(openssl rand -hex 32)" \
+  browsercontrol --transport http --isolate-clients
+```
+
 ## Navigation policy {#navigation-policy}
 
 Limits what the navigation tools (`navigate_to`, the `navigate` step of `act`, `create_tab`, and the `url` of `create_session`) will open.
@@ -183,6 +193,8 @@ The policy checks the URLs the agent passes to navigation tools. It does not sto
 ### `BROWSER_ISOLATE_CLIENTS` {#browser_isolate_clients}
 
 `true` (or `--isolate-clients`) gives every MCP client its own isolated session on its first tool call, so agents sharing a server never see each other's cookies, tabs, or traffic.
+
+Over HTTP, clients on the current MCP protocol (2026-07-28) are told apart only by their named token from [`BROWSER_AUTH_TOKENS`](#browser_auth_tokens); without one they share a session, and the server warns at startup. Clients on the older session-based protocol are told apart by their session id. See [how the server tells clients apart](/concepts/sessions#client-identity).
 
 ### `LOG_LEVEL` {#log_level}
 

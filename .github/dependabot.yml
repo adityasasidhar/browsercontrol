@@ -8,11 +8,6 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    ignore:
-      # fastmcp 4 negotiates a session-less MCP protocol, so ctx.session_id changes on
-      # every request and isolate_clients breaks. Remove once client identity is redesigned.
-      - dependency-name: fastmcp
-        versions: [">=4"]
   - package-ecosystem: npm
     directory: /
     schedule:

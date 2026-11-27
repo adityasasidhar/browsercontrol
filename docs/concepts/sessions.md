@@ -56,3 +56,13 @@ Switching sessions switches all of it.
 When several MCP clients share a server over [HTTP](/guide/http), each client keeps its own current session. One agent calling `switch_session` doesn't move another.
 
 To isolate clients completely, start the server with `--isolate-clients` (or `BROWSER_ISOLATE_CLIENTS=true`). Each client then gets its own isolated session on its first tool call.
+
+### How the server tells clients apart {#client-identity}
+
+The current MCP protocol (2026-07-28) has no sessions: each request stands alone, so the server needs something else to recognize a client from one call to the next. In order, it uses:
+
+1. **A named token.** Over HTTP, a client that authenticates with its own token from [`BROWSER_AUTH_TOKENS`](/reference/configuration#browser_auth_tokens) is identified by that token's name, on any protocol version.
+2. **The MCP session.** A client on the older session-based protocol is identified by its session id, as before.
+3. **The process.** Over stdio, one server process serves one client, so that client is always the same.
+
+A client on the current protocol that connects over HTTP without a named token can't be recognized. All such clients share one current session, and `--isolate-clients` can't keep them apart; the server warns at startup if `--isolate-clients` is on without `BROWSER_AUTH_TOKENS`. Give each client [its own token](/guide/http#per-client-tokens) to isolate them.

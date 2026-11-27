@@ -6,6 +6,21 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `BROWSER_AUTH_TOKENS`: named per-client bearer tokens (`name:token,name:token`). The name
+  identifies the client, so `--isolate-clients` can keep HTTP clients apart on the current MCP
+  protocol.
+
+### Changed
+
+- Requires fastmcp 4 (from 3). Clients that negotiate the session-less MCP 2026-07-28 protocol are
+  now recognized across calls: over stdio by the process, over HTTP by their named token, and on
+  the older session-based protocol by their session id as before. Previously `create_session`,
+  `switch_session` and `--isolate-clients` lost track of such clients after every call.
+- `--isolate-clients` on `http`/`sse` without `BROWSER_AUTH_TOKENS` now logs a warning: clients on
+  the current protocol can't be told apart and share one session.
+
 ## [0.4.0] - 2026-11-27
 
 ### Added

@@ -1,6 +1,39 @@
+import logging
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+# A client name from BROWSER_AUTH_TOKENS. Kept short and plain: it shows up in logs.
+_CLIENT_NAME = re.compile(r"[A-Za-z0-9_.-]{1,64}")
+
+
+def parse_auth_tokens(raw: str) -> dict[str, str]:
+    """Parse ``BROWSER_AUTH_TOKENS`` (``name:token,name:token``) into ``{name: token}``.
+
+    Malformed entries, repeated names and repeated tokens are skipped with a warning that
+    names the entry's position but never the token, so a typo fails closed (that client is
+    rejected) instead of leaking a secret into the log.
+    """
+    tokens: dict[str, str] = {}
+    for position, entry in enumerate((e.strip() for e in raw.split(",")), start=1):
+        if not entry:
+            continue
+        name, _, token = entry.partition(":")
+        name, token = name.strip(), token.strip()
+        if not _CLIENT_NAME.fullmatch(name) or not token:
+            problem = "is not name:token with a name of letters, digits, '.', '_' or '-'"
+        elif name in tokens:
+            problem = f"repeats the client name {name!r}"
+        elif token in tokens.values():
+            problem = "repeats a token already given to another client"
+        else:
+            tokens[name] = token
+            continue
+        logger.warning("Ignoring BROWSER_AUTH_TOKENS entry %d: it %s.", position, problem)
+    return tokens
 
 
 @dataclass
@@ -46,6 +79,9 @@ class Config:
     # Bearer token required on the http and sse transports. Unset means no authentication.
     # Env only (never a flag), so it stays out of process lists; hidden from repr.
     auth_token: str | None = field(default=None, repr=False)
+    # Named bearer tokens, one per client ({name: token}). The name identifies the client,
+    # which is how isolate_clients tells HTTP clients apart on the session-less protocol.
+    auth_tokens: dict[str, str] = field(default_factory=dict, repr=False)
 
     # Navigation policy (see navigation_policy.py). Domains (and their subdomains) that
     # navigation tools may open; empty means no restriction.
@@ -124,6 +160,7 @@ class Config:
         config.auth_dir = Path(auth_dir) if auth_dir else config.user_data_dir.parent / "auth"
 
         config.auth_token = os.getenv("BROWSER_AUTH_TOKEN", "").strip() or None
+        config.auth_tokens = parse_auth_tokens(os.getenv("BROWSER_AUTH_TOKENS", ""))
         config.allowed_domains = [
             d.strip().lower()
             for d in os.getenv("BROWSER_ALLOWED_DOMAINS", "").split(",")

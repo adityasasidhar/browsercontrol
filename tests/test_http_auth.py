@@ -130,14 +130,14 @@ class TestMiddleware:
 
 class TestWiring:
     def test_no_middleware_without_a_token(self) -> None:
-        with patch.object(config, "auth_token", None):
+        with patch.object(config, "auth_token", None), patch.object(config, "auth_tokens", {}):
             assert auth_middleware() == []
 
     def test_middleware_with_a_token(self) -> None:
         with patch.object(config, "auth_token", TOKEN):
             (middleware,) = auth_middleware()
         assert middleware.cls is BearerAuthMiddleware
-        assert middleware.kwargs == {"token": TOKEN}
+        assert middleware.kwargs == {"token": TOKEN, "tokens": {}}
 
     @pytest.mark.parametrize("transport", ["http", "sse"])
     def test_main_passes_it_to_the_server(self, transport: str) -> None:

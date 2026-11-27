@@ -33,7 +33,7 @@ uv run pre-commit run --all-files          # Run every hook (mirrors the CI lint
 uv run python scripts/gen_tools_json.py    # Regenerate docs/public/tools.json after changing a tool
 (cd docs && npm ci && npm run build)       # Build the VitePress docs site (gated in docs.yml)
 
-uv run fastmcp dev browsercontrol/server.py   # Run the server in dev mode with inspector
+uv run fastmcp dev inspector browsercontrol/server.py   # Run the server with the MCP Inspector
 browsercontrol                                # Run the installed server (also: python -m browsercontrol)
 browsercontrol --transport http --port 8000   # Streamable HTTP at /mcp (add --isolate-clients)
 ```
@@ -57,7 +57,12 @@ touching anything:
   the Chrome attached over CDP) plus isolated contexts from `create_session`.
   `browser.session` resolves the session the calling MCP client is bound to via
   the `current_client` contextvar, which `SessionBindingMiddleware`
-  (`resources.py`) sets per tool call. `_context`, `_page`, `_console_logs`,
+  (`resources.py`) sets per tool call. The key comes from `_client_key`, never
+  plain `ctx.session_id`: on the session-less MCP 2026-07-28 protocol (fastmcp
+  4's default) `session_id` is new on every request. The key is the named
+  `BROWSER_AUTH_TOKENS` token, else the legacy session id, else `"process"` on
+  stdio/in-memory; session-less HTTP clients with no named token share `""`.
+  `_context`, `_page`, `_console_logs`,
   `_network_requests`, `_page_errors`, and `_request_map` are properties onto
   that session (tests assign them directly). Code that runs outside a tool call
   (event listeners) must capture its `Session` explicitly, never read

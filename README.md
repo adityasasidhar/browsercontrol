@@ -146,8 +146,11 @@ See [all 79 tools](https://adityasasidhar.github.io/browsercontrol/reference/), 
 
 ```bash
 uvx browsercontrol --transport http
-uvx browsercontrol --transport http --isolate-clients   # a separate session for each client
+BROWSER_AUTH_TOKENS="alice:$(openssl rand -hex 32),bob:$(openssl rand -hex 32)" \
+  uvx browsercontrol --transport http --isolate-clients   # a separate session for each client
 ```
+
+Isolation needs a token per client: clients on the current MCP protocol are told apart by their named token in `BROWSER_AUTH_TOKENS`.
 
 **Limit where it can go.** Allow only certain sites with `BROWSER_ALLOWED_DOMAINS` (comma-separated; subdomains included). Navigation tools refuse anything else, and always refuse `javascript:`, `file:`, `data:`, and `chrome:` URLs unless `BROWSER_ALLOW_UNSAFE_SCHEMES=true`:
 

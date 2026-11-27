@@ -49,6 +49,10 @@ uvx browsercontrol --transport http --isolate-clients
 
 With `--isolate-clients` (or `BROWSER_ISOLATE_CLIENTS=true`), each client gets a fresh in-memory session on its first tool call: separate cookies, tabs, captured traffic, mocks, and action log. Use it when agents work in parallel and must not see each other's logins.
 
+::: warning Give each client its own token
+Clients on the current MCP protocol send nothing that identifies them between calls, so over HTTP the server tells them apart by their [named token](#per-client-tokens). Without `BROWSER_AUTH_TOKENS`, those clients all share one session and only clients on the older session-based protocol are isolated. See [how the server tells clients apart](/concepts/sessions#client-identity).
+:::
+
 ## Security
 
 ::: danger Authentication is off unless you set a token
@@ -81,6 +85,17 @@ claude mcp add --transport http browsercontrol http://HOST:8000/mcp \
   }
 }
 ```
+
+### Per-client tokens {#per-client-tokens}
+
+`BROWSER_AUTH_TOKENS` gives each client its own token, as comma-separated `name:token` pairs. Every token is accepted, and the name identifies the client, which is what `--isolate-clients` needs on the current MCP protocol:
+
+```bash
+export BROWSER_AUTH_TOKENS="alice:$(openssl rand -hex 32),bob:$(openssl rand -hex 32)"
+uvx browsercontrol --transport http --isolate-clients
+```
+
+Each client then sends its own token in the same `Authorization: Bearer <token>` header. Names may use letters, digits, `.`, `_`, and `-`; malformed entries and repeated names or tokens are skipped with a warning that never includes the token. `BROWSER_AUTH_TOKEN` can be set as well, as a shared token that names no client.
 
 The token is read from the environment only. There is deliberately no `--auth-token` flag, because command-line arguments show up in process lists. It also applies to `--transport sse`.
 

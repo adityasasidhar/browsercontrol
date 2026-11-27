@@ -20,7 +20,7 @@ uv run pre-commit install            # lint and format on commit
 Run the server with the MCP inspector:
 
 ```bash
-uv run fastmcp dev browsercontrol/server.py
+uv run fastmcp dev inspector browsercontrol/server.py
 ```
 
 ## Checks

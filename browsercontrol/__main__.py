@@ -47,14 +47,18 @@ def _is_loopback(host: str) -> bool:
         return False
 
 
+def _auth_enabled() -> bool:
+    return bool(config.auth_token or config.auth_tokens)
+
+
 def non_loopback_warning(host: str) -> str:
     """The warning for serving beyond loopback; says whether a token protects the port."""
-    if config.auth_token:
+    if _auth_enabled():
         return (
-            f"Serving on {host}, which is reachable from other machines. Requests need the "
-            "bearer token from BROWSER_AUTH_TOKEN, but the connection is plain HTTP, so the "
-            "token can be read on the network; use a TLS proxy or bind to 127.0.0.1 unless "
-            "the network is trusted."
+            f"Serving on {host}, which is reachable from other machines. Requests need a "
+            "bearer token from BROWSER_AUTH_TOKEN or BROWSER_AUTH_TOKENS, but the connection "
+            "is plain HTTP, so the token can be read on the network; use a TLS proxy or bind "
+            "to 127.0.0.1 unless the network is trusted."
         )
     return (
         f"Serving on {host}, which is reachable from other machines, and "
@@ -62,6 +66,14 @@ def non_loopback_warning(host: str) -> str:
         "can reach the port controls the browser. Set BROWSER_AUTH_TOKEN, or bind to "
         "127.0.0.1 unless the network is trusted."
     )
+
+
+ISOLATION_WARNING = (
+    "--isolate-clients is on but BROWSER_AUTH_TOKENS is not set. Clients on the current MCP "
+    "protocol (2026-07-28) send nothing that identifies them between calls, so they all "
+    "share one browser session; only clients on the older session-based protocol get their "
+    "own. Give each client its own named token in BROWSER_AUTH_TOKENS to isolate them."
+)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -76,8 +88,13 @@ def main(argv: list[str] | None = None) -> None:
         return
     if not _is_loopback(args.host):
         logger.warning(non_loopback_warning(args.host))
-    if config.auth_token:
-        logger.info("Bearer token authentication is enabled (BROWSER_AUTH_TOKEN).")
+    if _auth_enabled():
+        sources = ["BROWSER_AUTH_TOKEN"] if config.auth_token else []
+        if config.auth_tokens:
+            sources.append(f"{len(config.auth_tokens)} named client tokens in BROWSER_AUTH_TOKENS")
+        logger.info("Bearer token authentication is enabled (%s).", " and ".join(sources))
+    if config.isolate_clients and not config.auth_tokens:
+        logger.warning(ISOLATION_WARNING)
     mcp.run(
         transport=args.transport,
         host=args.host,

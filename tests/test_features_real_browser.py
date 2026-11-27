@@ -639,9 +639,14 @@ async def test_navigation_policy_blocks_in_a_real_browser(
     assert text.startswith("Navigated to")
 
 
-async def test_isolate_clients_gives_each_client_its_own_session(
+def _text(result: Any) -> str:
+    return str(result.content)
+
+
+async def test_isolate_clients_separates_legacy_protocol_clients(
     tmp_path: Path, server: int
 ) -> None:
+    """Handshake-era clients are still told apart by their session id."""
     from fastmcp import Client
 
     from browsercontrol.browser import browser
@@ -651,13 +656,13 @@ async def test_isolate_clients_gives_each_client_its_own_session(
         patch("browsercontrol.browser.config.user_data_dir", tmp_path / "profile"),
         patch("browsercontrol.browser.config.isolate_clients", True),
     ):
-        async with Client(mcp) as first, Client(mcp) as second:
+        async with Client(mcp, mode="legacy") as first, Client(mcp, mode="legacy") as second:
             url = f"http://127.0.0.1:{server}/"
             await first.call_tool("navigate_to", {"url": url})
             await first.call_tool("run_javascript", {"script": "document.cookie = 'who=first'"})
             await second.call_tool("navigate_to", {"url": url})
             cookie = await second.call_tool("run_javascript", {"script": "document.cookie"})
-            assert "who=first" not in str(cookie.content)
+            assert "who=first" not in _text(cookie)
 
             listing = json.loads(
                 (await first.read_resource("browser://sessions"))[0].text  # type: ignore[union-attr]
@@ -668,3 +673,90 @@ async def test_isolate_clients_gives_each_client_its_own_session(
             )
             assert any(e["url"] == url for e in network)
     assert not browser.is_started
+
+
+async def test_session_binding_survives_across_calls_on_the_current_protocol(
+    tmp_path: Path, server: int
+) -> None:
+    """On 2026-07-28 session_id is new per request; the session a client picked must stick."""
+    from fastmcp import Client
+
+    from browsercontrol.browser import browser
+    from browsercontrol.server import mcp
+
+    with patch("browsercontrol.browser.config.user_data_dir", tmp_path / "profile"):
+        async with Client(mcp) as client:
+            url = f"http://127.0.0.1:{server}/"
+            await client.call_tool("create_session", {"name": "side", "url": url})
+            await client.call_tool("run_javascript", {"script": "document.cookie = 'in=side'"})
+            cookie = await client.call_tool("run_javascript", {"script": "document.cookie"})
+            assert "in=side" in _text(cookie)
+            listing = json.loads(
+                (await client.read_resource("browser://sessions"))[0].text  # type: ignore[union-attr]
+            )
+            assert [s["name"] for s in listing if s["current"]] == ["side"]
+    assert not browser.is_started
+
+
+async def test_named_tokens_isolate_http_clients_on_the_current_protocol(
+    tmp_path: Path, server: int
+) -> None:
+    """Over HTTP the client's named token is its identity, so isolation works without sessions."""
+    from fastmcp import Client
+
+    tokens = {"alice": "alice-token-0001", "bob": "bob-token-0002"}
+    port = _free_port()
+    env = {
+        **__import__("os").environ,
+        "BROWSER_HEADLESS": "true",
+        "BROWSER_USER_DATA_DIR": str(tmp_path / "profile"),
+        "BROWSER_AUTH_TOKENS": ",".join(f"{n}:{t}" for n, t in tokens.items()),
+    }
+    proc = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "browsercontrol",
+            "--transport",
+            "http",
+            "--port",
+            str(port),
+            "--isolate-clients",
+        ],
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
+    mcp_url = f"http://127.0.0.1:{port}/mcp"
+    page = f"http://127.0.0.1:{server}/"
+    try:
+        deadline = time.time() + 60
+        while True:
+            try:
+                async with Client(mcp_url, auth=tokens["alice"]) as client:
+                    await client.list_tools()
+                break
+            except Exception:
+                if proc.poll() is not None or time.time() > deadline:
+                    raise AssertionError(proc.stderr.read().decode() if proc.stderr else "")
+                await asyncio.sleep(0.5)
+
+        async with (
+            Client(mcp_url, auth=tokens["alice"]) as alice,
+            Client(mcp_url, auth=tokens["bob"]) as bob,
+        ):
+            await alice.call_tool("navigate_to", {"url": page})
+            await alice.call_tool("run_javascript", {"script": "document.cookie = 'who=alice'"})
+            await bob.call_tool("navigate_to", {"url": page})
+            bob_cookie = await bob.call_tool("run_javascript", {"script": "document.cookie"})
+            assert "who=alice" not in _text(bob_cookie)
+            # Alice's next call lands back in her own session, cookie intact.
+            alice_cookie = await alice.call_tool("run_javascript", {"script": "document.cookie"})
+            assert "who=alice" in _text(alice_cookie)
+            listing = json.loads(
+                (await bob.read_resource("browser://sessions"))[0].text  # type: ignore[union-attr]
+            )
+            assert len([s for s in listing if s["isolated"]]) == 2
+    finally:
+        proc.terminate()
+        proc.wait(timeout=30)
