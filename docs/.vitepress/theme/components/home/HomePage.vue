@@ -63,7 +63,7 @@ const ticks = Array.from({ length: 61 }, (_, i) => i)
       <span class="status-item"><i class="status-dot" /> ready</span>
       <span class="status-item">stdio · http</span>
       <span class="status-item">{{ data.count }} tools</span>
-      <span class="status-item hide-sm">Python 3.11+</span>
+      <span class="status-item hide-sm">Python 3.11.5+</span>
       <span class="status-item hide-sm">runs locally</span>
       <span class="status-item">MIT</span>
     </div>

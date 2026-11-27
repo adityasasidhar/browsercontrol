@@ -15,7 +15,7 @@ Every design decision is measured against two questions. Does it make an agent m
 
 | | |
 | --- | --- |
-| **Language** | Python 3.11+ |
+| **Language** | Python 3.11.5+ |
 | **Built on** | [FastMCP](https://gofastmcp.com), [Playwright](https://playwright.dev/python/), [Pillow](https://python-pillow.org) |
 | **Browser** | Chromium, or your own Chrome over CDP |
 | **Quality** | mypy strict, ruff, bandit; tests on Linux, Windows, and macOS |

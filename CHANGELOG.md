@@ -20,6 +20,9 @@ All notable changes to this project are documented here. The format follows
   `switch_session` and `--isolate-clients` lost track of such clients after every call.
 - `--isolate-clients` on `http`/`sse` without `BROWSER_AUTH_TOKENS` now logs a warning: clients on
   the current protocol can't be told apart and share one session.
+- Requires Python 3.11.5 or newer (was 3.11). Python 3.11.0 to 3.11.4 are no longer supported.
+  This lets the lockfile use soupsieve 4.x for every supported Python, which fixes three open
+  Dependabot advisories on soupsieve 2.10.
 
 ## [0.4.0] - 2026-11-27
 

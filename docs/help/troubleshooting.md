@@ -57,7 +57,7 @@ BrowserControl opens a visible window by default, which needs a display. On a se
 
 ### Install fails on old Python
 
-BrowserControl needs Python 3.11 or newer. `python --version` shows yours; `uv python install 3.12` installs a newer one, and `uvx` picks a suitable Python on its own.
+BrowserControl needs Python 3.11.5 or newer. `python --version` shows yours; `uv python install 3.12` installs a newer one, and `uvx` picks a suitable Python on its own.
 
 ## Elements
 
