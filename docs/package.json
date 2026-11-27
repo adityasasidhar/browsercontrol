@@ -16,5 +16,8 @@
     "vitepress": "^1.6.4",
     "vitepress-plugin-group-icons": "^1.8.2",
     "vitepress-plugin-llms": "^1.15.0"
+  },
+  "overrides": {
+    "vite": "^6.4.4"
   }
 }
