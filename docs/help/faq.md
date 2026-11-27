@@ -31,7 +31,7 @@ Because the page might have changed. Each screenshot is numbered from scratch, s
 
 ## Can several agents use it at once?
 
-Yes. Run it [over HTTP](/guide/http) and connect each client to the same URL. Add `--isolate-clients` so each agent gets its own cookies, tabs, and traffic.
+Yes. Run it [over HTTP](/guide/http) and connect each client to the same URL. Add `--isolate-clients`, and give each agent its own token in [`BROWSER_AUTH_TOKENS`](/guide/http#per-client-tokens), so each agent gets its own cookies, tabs, and traffic.
 
 ## Can it solve CAPTCHAs or get past bot protection?
 

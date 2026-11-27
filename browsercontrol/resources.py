@@ -10,8 +10,11 @@ import logging
 from typing import Any
 
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_request
 from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
+from mcp_types.version import MODERN_PROTOCOL_VERSIONS
 
+from browsercontrol.auth import CLIENT_STATE_KEY
 from browsercontrol.browser import browser, current_client
 
 logger = logging.getLogger(__name__)
@@ -83,11 +86,47 @@ def register_resources(mcp: FastMCP) -> None:
         return _dump(browser.list_sessions() if browser.is_started else [])
 
 
+# The key for the one client of a stdio or in-memory server on the session-less protocol.
+PROCESS_CLIENT = "process"
+
+
+def _token_client() -> str | None:
+    """The name of the BROWSER_AUTH_TOKENS client that sent this HTTP request, if any."""
+    try:
+        state = get_http_request().scope.get("state") or {}
+    except RuntimeError:  # not an HTTP request (stdio, in-memory)
+        return None
+    name = state.get(CLIENT_STATE_KEY)
+    return str(name) if name else None
+
+
 def _client_key(context: MiddlewareContext[Any]) -> str:
+    """A key that stays the same across one MCP client's calls; "" when nothing identifies it.
+
+    In order: the client's named bearer token (BROWSER_AUTH_TOKENS); the session id on a
+    handshake-era (legacy) connection, which lasts the whole MCP session; one fixed key on a
+    session-less stdio or in-memory connection, which serves a single client. A session-less
+    HTTP request without a named token carries nothing stable, since ``session_id`` is new
+    on every request there, so those clients all share "".
+    """
     try:
         ctx = context.fastmcp_context
-        return str(ctx.session_id) if ctx is not None else ""
+        if ctx is None:
+            return ""
+        name = _token_client()
+        if name:
+            return f"token:{name}"
+        request_context = ctx.request_context
+        if (
+            request_context is not None
+            and request_context.protocol_version not in MODERN_PROTOCOL_VERSIONS
+        ):
+            return str(ctx.session_id)
+        if ctx.transport in ("sse", "streamable-http"):
+            return ""
+        return PROCESS_CLIENT
     except Exception:
+        logger.debug("Could not identify the MCP client", exc_info=True)
         return ""
 
 
