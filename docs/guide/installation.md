@@ -5,7 +5,7 @@ description: Requirements and every way to install BrowserControl, plus how it p
 
 # Installation
 
-BrowserControl needs Python 3.11 or newer and runs on Linux, macOS, and Windows. Allow about 300 MB if it has to download Chromium.
+BrowserControl needs Python 3.11.5 or newer and runs on Linux, macOS, and Windows. Allow about 300 MB if it has to download Chromium.
 
 ## Choose how to run it
 

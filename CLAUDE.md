@@ -199,7 +199,7 @@ handling, following the existing per-module test files.
 
 ## Conventions
 
-- Python 3.11+. Type hints are required and checked by mypy in **strict** mode
+- Python 3.11.5+. Type hints are required and checked by mypy in **strict** mode
   (`disallow_untyped_defs`, etc.) — annotate fully.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`) and are signed off
   (`git commit -s`, DCO enforced in CI; PR titles are checked too). PRs explain the
