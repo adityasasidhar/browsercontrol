@@ -16,6 +16,6 @@
     "uv.lock"
   ],
   "dependencies": {
-    "@opencode/plugin": "2.3.2"
+    "@opencode/plugin": "2.4.1"
   }
 }
