@@ -100,6 +100,9 @@ class BrowserManager:
         self._sessions: dict[str, Session] = {DEFAULT_SESSION: Session(DEFAULT_SESSION)}
         # MCP client key -> session name. Unbound clients use the default session.
         self._bindings: dict[str, str] = {}
+        # Serializes ensure_client_session: it names and opens a session across awaits, so two
+        # new clients calling at once would otherwise both pick the same name and share a session.
+        self._client_session_lock = asyncio.Lock()
         self._tasks: set[asyncio.Task[Any]] = set()
 
         # Set of Marks state: one element map per tab, and a counter that makes
@@ -256,14 +259,17 @@ class BrowserManager:
         """With BROWSER_ISOLATE_CLIENTS, give each new MCP client its own isolated session."""
         if not config.isolate_clients or not client or client in self._bindings:
             return
-        token = current_client.set(client)
-        try:
-            name = f"client-{len(self._sessions)}"
-            while name in self._sessions:
-                name += "_"
-            await self.create_session(name)
-        finally:
-            current_client.reset(token)
+        async with self._client_session_lock:
+            if client in self._bindings:  # another call from this client got here first
+                return
+            token = current_client.set(client)
+            try:
+                name = f"client-{len(self._sessions)}"
+                while name in self._sessions:
+                    name += "_"
+                await self.create_session(name)
+            finally:
+                current_client.reset(token)
 
     def devices(self) -> dict[str, Any]:
         """Playwright's device descriptors, by name."""
