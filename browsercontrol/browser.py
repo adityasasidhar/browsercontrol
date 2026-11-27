@@ -100,9 +100,10 @@ class BrowserManager:
         self._sessions: dict[str, Session] = {DEFAULT_SESSION: Session(DEFAULT_SESSION)}
         # MCP client key -> session name. Unbound clients use the default session.
         self._bindings: dict[str, str] = {}
-        # Serializes ensure_client_session: it names and opens a session across awaits, so two
-        # new clients calling at once would otherwise both pick the same name and share a session.
+        # One new client's session at a time, so a client calling twice at once gets one session.
         self._client_session_lock = asyncio.Lock()
+        # Session names claimed by a create_session that has not finished opening its context.
+        self._pending_names: set[str] = set()
         self._tasks: set[asyncio.Task[Any]] = set()
 
         # Set of Marks state: one element map per tab, and a counter that makes
@@ -199,26 +200,36 @@ class BrowserManager:
 
         ``storage_state`` is a file from ``save_auth_state`` to start the context signed in.
         """
-        if not name or name in self._sessions:
+        if not name or name in self._sessions or name in self._pending_names:
             raise ValueError(f"Session name {name!r} is empty or already in use")
-        await self.ensure_started()
-        base = self._sessions[DEFAULT_SESSION].context
-        owner = self._browser or (base.browser if base is not None else None)
-        if owner is None:
-            raise RuntimeError("This browser cannot open isolated contexts")
+        # Claim the name before the first await. Opening a context takes a while, and without
+        # the claim a second caller (an explicit create_session, or another client's automatic
+        # one) passes the check above and then replaces this session, sharing it.
+        self._pending_names.add(name)
+        try:
+            await self.ensure_started()
+            base = self._sessions[DEFAULT_SESSION].context
+            owner = self._browser or (base.browser if base is not None else None)
+            if owner is None:
+                raise RuntimeError("This browser cannot open isolated contexts")
 
-        kwargs: dict[str, Any] = {"accept_downloads": True}
-        if device:
-            kwargs.update(self.device_descriptor(device))
-        else:
-            kwargs["viewport"] = {"width": config.viewport_width, "height": config.viewport_height}
-        if storage_state is not None:
-            kwargs["storage_state"] = storage_state
-        context = await owner.new_context(**kwargs)
-        session = Session(name, isolated=True)
-        self._wire_context(session, context)
-        session.page = await context.new_page()
-        self._sessions[name] = session
+            kwargs: dict[str, Any] = {"accept_downloads": True}
+            if device:
+                kwargs.update(self.device_descriptor(device))
+            else:
+                kwargs["viewport"] = {
+                    "width": config.viewport_width,
+                    "height": config.viewport_height,
+                }
+            if storage_state is not None:
+                kwargs["storage_state"] = storage_state
+            context = await owner.new_context(**kwargs)
+            session = Session(name, isolated=True)
+            self._wire_context(session, context)
+            session.page = await context.new_page()
+            self._sessions[name] = session
+        finally:
+            self._pending_names.discard(name)
         self.bind(name)
         return session
 
@@ -264,8 +275,8 @@ class BrowserManager:
                 return
             token = current_client.set(client)
             try:
-                name = f"client-{len(self._sessions)}"
-                while name in self._sessions:
+                name = f"client-{len(self._sessions) + len(self._pending_names)}"
+                while name in self._sessions or name in self._pending_names:
                     name += "_"
                 await self.create_session(name)
             finally:

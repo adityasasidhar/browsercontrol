@@ -1,6 +1,7 @@
 """Tests for BrowserManager core functionality."""
 
 import asyncio
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -637,3 +638,70 @@ class TestEnsureClientSession:
         with patch("browsercontrol.browser.config.isolate_clients", True):
             await asyncio.gather(*(self._first_call(mgr, "token:alice") for _ in range(3)))
         assert mgr.opened == ["client-1"]  # type: ignore[attr-defined]  # no orphaned contexts
+
+
+class TestCreateSessionClaimsItsName:
+    """create_session must hold its name while the context opens, or two callers share a session."""
+
+    @staticmethod
+    def _manager(*, fail_first: bool = False) -> BrowserManager:
+        mgr = BrowserManager()
+        mgr.opened = 0  # type: ignore[attr-defined]
+        calls: list[None] = []
+
+        async def new_context(**_: object) -> MagicMock:
+            await asyncio.sleep(0.05)
+            calls.append(None)
+            if fail_first and len(calls) == 1:
+                raise RuntimeError("context failed")
+            mgr.opened += 1  # type: ignore[attr-defined]
+            context = MagicMock()
+            context.new_page = AsyncMock(return_value=MagicMock())
+            return context
+
+        base = MagicMock()
+        base.browser.new_context = new_context
+        mgr._sessions["default"].context = base
+        mgr.ensure_started = AsyncMock()  # type: ignore[method-assign]
+        return mgr
+
+    @staticmethod
+    async def _as(client: str, call: Any) -> Any:
+        token = current_client.set(client)
+        try:
+            return await call
+        finally:
+            current_client.reset(token)
+
+    @pytest.mark.asyncio
+    async def test_explicit_name_cannot_take_the_one_being_allocated_automatically(self):
+        mgr = self._manager()
+        with patch("browsercontrol.browser.config.isolate_clients", True):
+            automatic, explicit = await asyncio.gather(
+                self._as("token:bob", mgr.ensure_client_session("token:bob")),
+                self._as("token:alice", mgr.create_session("client-1")),
+                return_exceptions=True,
+            )
+        assert automatic is None
+        assert isinstance(explicit, ValueError)
+        assert mgr._bindings == {"token:bob": "client-1"}
+        assert mgr.opened == 1  # type: ignore[attr-defined]  # no orphaned context
+
+    @pytest.mark.asyncio
+    async def test_concurrent_explicit_calls_with_one_name_open_one_session(self):
+        mgr = self._manager()
+        results = await asyncio.gather(
+            self._as("token:alice", mgr.create_session("side")),
+            self._as("token:bob", mgr.create_session("side")),
+            return_exceptions=True,
+        )
+        assert sorted(type(r).__name__ for r in results) == ["Session", "ValueError"]
+        assert mgr.opened == 1  # type: ignore[attr-defined]
+
+    @pytest.mark.asyncio
+    async def test_a_failed_creation_releases_its_name(self):
+        mgr = self._manager(fail_first=True)
+        with pytest.raises(RuntimeError, match="context failed"):
+            await self._as("token:alice", mgr.create_session("side"))
+        session = await self._as("token:alice", mgr.create_session("side"))
+        assert session.name == "side"
