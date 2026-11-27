@@ -31,7 +31,7 @@ jobs:
         run: uv run --frozen python scripts/gen_tools_json.py --check
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
