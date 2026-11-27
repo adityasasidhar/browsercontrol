@@ -77,8 +77,8 @@ touching anything:
   bounded by `BROWSER_SETTLE_TIMEOUT`.
 
 - `screenshot_with_som()` is called at the end of nearly every tool. It takes a
-  screenshot, runs `get_interactive_elements()`, draws the numbered boxes, and
-  **replaces the active tab's element map** with 1-indexed IDs. Maps are kept
+  screenshot, runs `get_interactive_elements()`, draws the numbered boxes (`marks.annotate`, pure image
+  work), and **replaces the active tab's element map** with 1-indexed IDs. Maps are kept
   per tab (`_element_maps`), so IDs never resolve against another tab.
 - **Element IDs are ephemeral.** They are only valid against the most recent
   screenshot. Any navigation, click, scroll, or screenshot regenerates the map
@@ -213,13 +213,13 @@ handling, following the existing per-module test files.
 - Tools must build results via the shared `get_screenshot_with_summary` helper;
   `tests/test_element_summary.py` fails if a tool module defines its own copy.
 - Keep tool docstrings actionable: FastMCP exposes them to clients.
-- Every file is capped at 800 lines (pre-commit `max-lines`). `browser.py` is close to
-  it, so put new manager-adjacent logic in its own module (as `session.py`,
-  `emulation.py`, and `codegen.py` do) rather than growing the manager.
+- Every file is capped at 800 lines (pre-commit `max-lines`). `browser.py` is the largest
+  (about 670 lines), so put new manager-adjacent logic in its own module (as `session.py`,
+  `emulation.py`, `codegen.py`, and `marks.py` do) rather than growing the manager.
 - Pre-commit hooks run on commit: ruff lint + format, bandit, actionlint on the
   workflows, `uv-lock`, `max-lines`, the standard whitespace/YAML/TOML/JSON file
   checks, and **Tach** import boundaries (`tach.toml`): the core modules
-  (`browser`, `codegen`, `config`, `elements`, `emulation`, `session`) must not
+  (`browser`, `codegen`, `config`, `elements`, `emulation`, `marks`, `session`) must not
   import `tools` or `server`, and `tools` must not import `server`.
   `git commit --no-verify` bypasses them but CI will still enforce them.
 - The version is set in `pyproject.toml`; `__version__` and the HAR creator read
