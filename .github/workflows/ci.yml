@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+# Every job only checks out code and runs local tools; none needs write access.
+permissions:
+  contents: read
+
 env:
   # Pin the interpreter: without it uv picks the newest one on the runner
   # (Homebrew Python 3.15 on macOS), which our dependencies don't support yet.

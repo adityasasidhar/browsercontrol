@@ -57,7 +57,7 @@ class TestSaveAuthState:
         context.storage_state.assert_awaited_once_with(indexed_db=True)
         if sys.platform != "win32":
             assert os.stat(path).st_mode & 0o777 == 0o600
-        assert "1 cookie(s)" in result and "https://example.com" in result
+        assert "1 cookie(s); storage for 1 origin(s): https://example.com\n" in result
         assert "secret" not in result
 
     async def test_bad_name_is_reported(self, mcp_server, mock_browser_manager, auth_dir):
